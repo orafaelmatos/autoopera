@@ -1,16 +1,73 @@
 
 import React, { useState } from 'react';
-import { Settings, Shield, Link2, Bell, Smartphone, ExternalLink, Trophy, Star, Plus, Trash2 } from 'lucide-react';
+import { Settings, Shield, Link2, Bell, Smartphone, ExternalLink, Trophy, Star, Plus, Trash2, Clock, Save } from 'lucide-react';
+import { Availability } from '../types';
 
-const SettingsView: React.FC = () => {
+interface Props {
+  availability: Availability[];
+  setAvailability: (a: Availability[]) => void;
+}
+
+const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
+  const toggleDay = (index: number) => {
+    const newAv = [...availability];
+    newAv[index].isActive = !newAv[index].isActive;
+    setAvailability(newAv);
+  };
+
+  const updateTime = (index: number, field: 'startTime' | 'endTime', value: string) => {
+    const newAv = [...availability];
+    newAv[index][field] = value;
+    setAvailability(newAv);
+  };
   return (
     <div className="space-y-8 animate-fadeIn pb-10">
-      <header>
-        <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Configurações <span className="text-yellow-500">do Sistema</span></h2>
-        <p className="text-gray-400 mt-1">Gerencie seu perfil, integrações e fidelidade.</p>
+      <header className="flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Configurações <span className="text-yellow-500">do Sistema</span></h2>
+          <p className="text-gray-400 mt-1">Gerencie seu perfil, integrações e fidelidade.</p>
+        </div>
       </header>
 
       <div className="grid gap-6">
+
+        {/* Jornada Semanal Fixa */}
+        <section className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-yellow-500/20 p-2 rounded-lg text-yellow-500"><Clock size={20} /></div>
+              <h3 className="text-xl font-oswald font-bold uppercase text-white">
+                Jornada Semanal
+              </h3>
+            </div>
+            <button className="bg-yellow-500 text-black px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all text-xs">
+              <Save size={16} /> Salvar Alterações
+            </button>
+          </div>
+          <div className="bg-black/40 border border-gray-800 rounded-xl overflow-hidden">
+            {availability.map((day, idx) => (
+              <div key={idx} className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 last:border-0 transition-all ${day.isActive ? 'bg-transparent' : 'bg-gray-800/10 opacity-50'}`}>
+                <div className="flex items-center gap-4">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={day.isActive} onChange={() => toggleDay(idx)} className="sr-only peer" />
+                    <div className="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                  </label>
+                  <span className={`font-bold w-20 text-sm ${day.isActive ? 'text-white' : 'text-gray-500'}`}>{DAYS[idx]}</span>
+                </div>
+                {day.isActive ? (
+                  <div className="flex items-center gap-2">
+                    <input type="time" value={day.startTime} onChange={(e) => updateTime(idx, 'startTime', e.target.value)} className="bg-black border border-gray-800 rounded-lg px-2 py-1 text-xs text-white" />
+                    <span className="text-gray-600 text-[10px] font-bold uppercase">até</span>
+                    <input type="time" value={day.endTime} onChange={(e) => updateTime(idx, 'endTime', e.target.value)} className="bg-black border border-gray-800 rounded-lg px-2 py-1 text-xs text-white" />
+                  </div>
+                ) : <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Off-line</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Loyalty Program Config */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
           <div className="flex items-center gap-4 mb-6">

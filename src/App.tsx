@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -14,21 +15,29 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { Service, Appointment, Availability, ViewState, Customer, Transaction, Product, WaitingListEntry } from './types';
-import DashboardView from './components/DashboardView';
-import CalendarView from './components/CalendarView';
-import ServicesView from './components/ServicesView';
-import SettingsView from './components/SettingsView';
-import CustomersView from './components/CustomersView';
-import FinanceView from './components/FinanceView';
-import ReportsView from './components/ReportsView';
-import PromotionsView from './components/PromotionsView';
-import InventoryView from './components/InventoryView';
+import { Service, Appointment, Availability, Customer, Transaction, Product, WaitingListEntry } from './types';
+import Dashboard from './pages/Dashboard';
+import CalendarPage from './pages/Calendar';
+import Services from './pages/Services';
+import SettingsPage from './pages/Settings';
+import Customers from './pages/Customers';
+import Finance from './pages/Finance';
+import Reports from './pages/Reports';
+import Promotions from './pages/Promotions';
+import Inventory from './pages/Inventory';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ViewState>('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
+  const getActiveTab = (pathname: string) => {
+    if (pathname === '/') return 'dashboard';
+    return pathname.substring(1);
+  };
+
+  const activeTab = getActiveTab(location.pathname);
+
   const [services, setServices] = useState<Service[]>([
     { id: '1', name: 'Corte Social', price: 45, duration: 45, commission: 50, description: 'Corte tradicional.' },
     { id: '2', name: 'Barba Terapia', price: 35, duration: 30, commission: 40, description: 'Toalha quente.' },
@@ -74,24 +83,9 @@ const App: React.FC = () => {
     { dayOfWeek: 0, startTime: '00:00', endTime: '00:00', isActive: false },
   ]);
 
-  const handleTabChange = (tab: ViewState) => {
-    setActiveTab(tab);
+  const handleNavigation = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <DashboardView appointments={appointments} services={services} waitingListCount={waitingList.length} onNavigateToPromotions={() => setActiveTab('promotions')} />;
-      case 'calendar': return <CalendarView availability={availability} setAvailability={setAvailability} waitingList={waitingList} setWaitingList={setWaitingList} services={services} />;
-      case 'services': return <ServicesView services={services} setServices={setServices} />;
-      case 'customers': return <CustomersView customers={customers} setCustomers={setCustomers} />;
-      case 'finance': return <FinanceView transactions={transactions} setTransactions={setTransactions} />;
-      case 'reports': return <ReportsView appointments={appointments} services={services} onNavigateToPromotions={() => setActiveTab('promotions')} />;
-      case 'promotions': return <PromotionsView services={services} customers={customers} />;
-      case 'inventory': return <InventoryView products={products} setProducts={setProducts} />;
-      case 'settings': return <SettingsView />;
-      default: return <DashboardView appointments={appointments} services={services} waitingListCount={waitingList.length} />;
-    }
   };
 
   return (
@@ -104,15 +98,15 @@ const App: React.FC = () => {
           <h1 className="text-2xl font-oswald font-bold tracking-wider">BARBER<span className="text-yellow-500">FLOW</span></h1>
         </div>
         <div className="flex flex-col gap-1 custom-scrollbar overflow-y-auto">
-          <NavButton active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} icon={<LayoutDashboard />} label="Dashboard" />
-          <NavButton active={activeTab === 'calendar'} onClick={() => handleTabChange('calendar')} icon={<Calendar />} label="Agenda" />
-          <NavButton active={activeTab === 'services'} onClick={() => handleTabChange('services')} icon={<Scissors />} label="Serviços" />
-          <NavButton active={activeTab === 'customers'} onClick={() => handleTabChange('customers')} icon={<Users />} label="Clientes" />
-          <NavButton active={activeTab === 'finance'} onClick={() => handleTabChange('finance')} icon={<DollarSign />} label="Financeiro" />
-          <NavButton active={activeTab === 'inventory'} onClick={() => handleTabChange('inventory')} icon={<Package />} label="Estoque" />
-          <NavButton active={activeTab === 'promotions'} onClick={() => handleTabChange('promotions')} icon={<Megaphone />} label="Promoções" />
-          <NavButton active={activeTab === 'reports'} onClick={() => handleTabChange('reports')} icon={<BarChart3 />} label="Relatórios" />
-          <NavButton active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} icon={<Settings />} label="Ajustes" />
+          <NavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/')} icon={<LayoutDashboard />} label="Dashboard" />
+          <NavButton active={activeTab === 'calendar'} onClick={() => handleNavigation('/calendar')} icon={<Calendar />} label="Agenda" />
+          <NavButton active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Serviços" />
+          <NavButton active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users />} label="Clientes" />
+          <NavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign />} label="Financeiro" />
+          <NavButton active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package />} label="Estoque" />
+          <NavButton active={activeTab === 'promotions'} onClick={() => handleNavigation('/promotions')} icon={<Megaphone />} label="Promoções" />
+          <NavButton active={activeTab === 'reports'} onClick={() => handleNavigation('/reports')} icon={<BarChart3 />} label="Relatórios" />
+          <NavButton active={activeTab === 'settings'} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
         </div>
         <div className="mt-auto pt-6 border-t border-gray-800">
           <div className="flex items-center gap-3">
@@ -125,14 +119,25 @@ const App: React.FC = () => {
       </nav>
 
       <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto max-w-7xl mx-auto w-full">
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={<Dashboard appointments={appointments} services={services} waitingListCount={waitingList.length} onNavigateToPromotions={() => handleNavigation('/promotions')} />} />
+          <Route path="/calendar" element={<CalendarPage availability={availability} setAvailability={setAvailability} waitingList={waitingList} setWaitingList={setWaitingList} services={services} />} />
+          <Route path="/services" element={<Services services={services} setServices={setServices} />} />
+          <Route path="/customers" element={<Customers customers={customers} setCustomers={setCustomers} />} />
+          <Route path="/finance" element={<Finance transactions={transactions} setTransactions={setTransactions} />} />
+          <Route path="/reports" element={<Reports appointments={appointments} services={services} onNavigateToPromotions={() => handleNavigation('/promotions')} />} />
+          <Route path="/promotions" element={<Promotions services={services} customers={customers} />} />
+          <Route path="/inventory" element={<Inventory products={products} setProducts={setProducts} />} />
+          <Route path="/settings" element={<SettingsPage availability={availability} setAvailability={setAvailability} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-gray-800 px-2 py-2 flex justify-around items-center z-50">
-        <MobileNavButton active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} icon={<LayoutDashboard size={20} />} />
-        <MobileNavButton active={activeTab === 'calendar'} onClick={() => handleTabChange('calendar')} icon={<Calendar size={20} />} />
-        <MobileNavButton active={activeTab === 'customers'} onClick={() => handleTabChange('customers')} icon={<Users size={20} />} />
-        <MobileNavButton active={activeTab === 'finance'} onClick={() => handleTabChange('finance')} icon={<DollarSign size={20} />} />
+        <MobileNavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/')} icon={<LayoutDashboard size={20} />} />
+        <MobileNavButton active={activeTab === 'calendar'} onClick={() => handleNavigation('/calendar')} icon={<Calendar size={20} />} />
+        <MobileNavButton active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users size={20} />} />
+        <MobileNavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign size={20} />} />
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
           className={`p-3 rounded-2xl transition-all text-gray-500 hover:text-white`}
@@ -148,11 +153,11 @@ const App: React.FC = () => {
             <button onClick={() => setIsMobileMenuOpen(false)} className="bg-gray-800 p-2 rounded-full"><X size={24} /></button>
           </div>
           <div className="grid grid-cols-2 gap-4 overflow-y-auto pb-10">
-            <MenuCard active={activeTab === 'inventory'} onClick={() => handleTabChange('inventory')} icon={<Package />} label="Estoque" />
-            <MenuCard active={activeTab === 'promotions'} onClick={() => handleTabChange('promotions')} icon={<Megaphone />} label="Promoções" />
-            <MenuCard active={activeTab === 'reports'} onClick={() => handleTabChange('reports')} icon={<BarChart3 />} label="Relatórios" />
-            <MenuCard active={activeTab === 'services'} onClick={() => handleTabChange('services')} icon={<Scissors />} label="Serviços" />
-            <MenuCard active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} icon={<Settings />} label="Ajustes" />
+            <MenuCard active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package />} label="Estoque" />
+            <MenuCard active={activeTab === 'promotions'} onClick={() => handleNavigation('/promotions')} icon={<Megaphone />} label="Promoções" />
+            <MenuCard active={activeTab === 'reports'} onClick={() => handleNavigation('/reports')} icon={<BarChart3 />} label="Relatórios" />
+            <MenuCard active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Serviços" />
+            <MenuCard active={activeTab === 'settings'} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
           </div>
         </div>
       )}

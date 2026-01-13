@@ -63,18 +63,6 @@ const CalendarView: React.FC<Props> = ({ availability, setAvailability, waitingL
     setWaitPhone('');
   };
 
-  const toggleDay = (index: number) => {
-    const newAv = [...availability];
-    newAv[index].isActive = !newAv[index].isActive;
-    setAvailability(newAv);
-  };
-
-  const updateTime = (index: number, field: 'startTime' | 'endTime', value: string) => {
-    const newAv = [...availability];
-    newAv[index][field] = value;
-    setAvailability(newAv);
-  };
-
   const handleAddException = () => {
     if (!excDate || !excReason) return;
     const newExc: ScheduleException = {
@@ -100,7 +88,7 @@ const CalendarView: React.FC<Props> = ({ availability, setAvailability, waitingL
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Gestão de <span className="text-yellow-500">Agenda</span></h2>
-          <p className="text-gray-400 mt-1">Sua jornada, exceções e lista de espera inteligente.</p>
+          <p className="text-gray-400 mt-1">Sua lista de espera inteligente.</p>
         </div>
         <div className="flex gap-2">
            <button 
@@ -109,39 +97,10 @@ const CalendarView: React.FC<Props> = ({ availability, setAvailability, waitingL
           >
             <ListOrdered size={18} /> Lista de Espera
           </button>
-          <button className="flex-1 sm:flex-none bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/10">
-            <Save size={18} /> Salvar Tudo
-          </button>
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Jornada Semanal Fixa */}
-        <section className="space-y-4">
-          <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2 text-white">
-            <Clock className="text-yellow-500" size={20} /> Jornada Semanal
-          </h3>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-            {availability.map((day, idx) => (
-              <div key={idx} className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 last:border-0 transition-all ${day.isActive ? 'bg-transparent' : 'bg-gray-800/10 opacity-50'}`}>
-                <div className="flex items-center gap-4">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={day.isActive} onChange={() => toggleDay(idx)} className="sr-only peer" />
-                    <div className="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
-                  </label>
-                  <span className={`font-bold w-20 text-sm ${day.isActive ? 'text-white' : 'text-gray-500'}`}>{DAYS[idx]}</span>
-                </div>
-                {day.isActive ? (
-                  <div className="flex items-center gap-2">
-                    <input type="time" value={day.startTime} onChange={(e) => updateTime(idx, 'startTime', e.target.value)} className="bg-black border border-gray-800 rounded-lg px-2 py-1 text-xs text-white" />
-                    <span className="text-gray-600 text-[10px] font-bold uppercase">até</span>
-                    <input type="time" value={day.endTime} onChange={(e) => updateTime(idx, 'endTime', e.target.value)} className="bg-black border border-gray-800 rounded-lg px-2 py-1 text-xs text-white" />
-                  </div>
-                ) : <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Off-line</span>}
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="grid lg:grid-cols-1 gap-8">
 
         {/* Lista de Espera Visual */}
         <section className="space-y-4">

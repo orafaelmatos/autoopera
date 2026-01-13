@@ -50,53 +50,43 @@ const DashboardView: React.FC<Props> = ({ appointments, services, waitingListCou
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <section>
+        <section className="col-span-1 lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold font-oswald uppercase flex items-center gap-2">
               <Clock className="text-yellow-500" size={20} /> Agenda de Hoje
             </h3>
           </div>
-          <div className="grid gap-3">
-            {appointments.filter(a => a.status !== 'completed').map((apt) => (
-              <div key={apt.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center justify-between group hover:border-yellow-500/30 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-500">
-                    <User size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-white">{apt.clientName}</h4>
-                    <p className="text-xs text-gray-400">{getServiceName(apt.serviceId)} • {new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  </div>
-                </div>
-                <span className={`text-[10px] px-2 py-1 rounded-full uppercase font-bold ${
-                  apt.status === 'confirmed' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
-                }`}>
-                  {apt.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <h3 className="text-xl font-bold font-oswald uppercase mb-4 flex items-center gap-2 text-yellow-500">
-            <TrendingUp size={20} /> Insights Inteligentes
-          </h3>
-          <div className="space-y-6">
-             <div className="p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-xl flex items-center gap-4">
-                <Trophy className="text-yellow-500" size={24} />
-                <div>
-                  <p className="text-sm text-white font-bold">Programa de Fidelidade</p>
-                  <p className="text-xs text-gray-400">Há <span className="text-white">12 clientes</span> com pontos suficientes para resgatar um corte grátis. O n8n pode enviar um lembrete para eles.</p>
-                </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+             {/* Listagem de horários hoje */}
+             <div className="divide-y divide-gray-800">
+                {appointments.filter(a => a.status !== 'completed').length > 0 ? (
+                   appointments.filter(a => a.status !== 'completed').map(apt => (
+                      <div key={apt.id} className="p-4 flex items-center justify-between hover:bg-gray-800/20 transition-all">
+                          <div className="flex items-center gap-4">
+                             <div className="bg-gray-800 p-3 rounded-xl text-gray-400">
+                                <User size={20} />
+                             </div>
+                             <div>
+                                <h4 className="font-bold text-white text-lg">{apt.clientName}</h4>
+                                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{getServiceName(apt.serviceId)}</p>
+                             </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-xl font-oswald font-bold text-white mb-1">
+                                {new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                             </p>
+                             <span className={`text-[10px] px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
+                                apt.status === 'confirmed' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                             }`}>
+                                {apt.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                             </span>
+                          </div>
+                      </div>
+                   ))
+                ) : (
+                   <div className="p-8 text-center text-gray-500 text-sm">Nenhum agendamento pendente para hoje.</div>
+                )}
              </div>
-             {waitingListCount > 0 && (
-               <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-                 <p className="text-xs text-orange-400 uppercase font-bold mb-1">Atenção</p>
-                 <p className="text-sm text-gray-300">Você tem <span className="text-white font-bold">{waitingListCount} clientes</span> aguardando uma vaga hoje.</p>
-               </div>
-             )}
-            <ProgressBar label="Meta de Faturamento" current={totalRevenue} target={5000} color="bg-yellow-500" />
           </div>
         </section>
       </div>
