@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { 
-  Service, Customer, Appointment, Transaction, 
+  Service, Customer, Appointment, Transaction, Barber,
   Product, Promotion, WaitingListEntry, Availability, ScheduleException 
 } from './types';
 
@@ -12,6 +12,41 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Opcional: logout automático ou refresh token
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const authApi = {
+  login: (data: any) => api.post('/auth/login/', data),
+  me: () => api.get('/auth/me/'),
+};
+
+export const barbersApi = {
+  getAll: () => api.get<Barber[]>('/barbers/').then(r => r.data),
+  create: (data: Partial<Barber>) => api.post<Barber>('/barbers/', data).then(r => r.data),
+  update: (id: string, data: Partial<Barber>) => api.put<Barber>(`/barbers/${id}/`, data).then(r => r.data),
+  delete: (id: string) => api.delete(`/barbers/${id}/`),
+};
 
 export const servicesApi = {
   getAll: () => api.get<Service[]>('/services/').then(r => r.data),
@@ -31,6 +66,8 @@ export const customersApi = {
 export const appointmentsApi = {
   getAll: () => api.get<Appointment[]>('/appointments/').then(r => r.data),
   getToday: () => api.get<Appointment[]>('/appointments/today/').then(r => r.data),
+  getAvailableSlots: (barberId: string, serviceId: string, date: string) => 
+    api.get<string[]>('/appointments/available_slots/', { params: { barberId, serviceId, date } }).then(r => r.data),
   create: (data: Partial<Appointment>) => api.post<Appointment>('/appointments/', data).then(r => r.data),
   update: (id: string, data: Partial<Appointment>) => api.patch<Appointment>(`/appointments/${id}/`, data).then(r => r.data),
   delete: (id: string) => api.delete(`/appointments/${id}/`),

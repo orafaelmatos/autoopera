@@ -4,7 +4,7 @@ from .views import (
     ServiceViewSet, CustomerViewSet, LoyaltyRewardViewSet,
     AppointmentViewSet, WaitingListEntryViewSet, AvailabilityViewSet,
     ScheduleExceptionViewSet, TransactionViewSet, PromotionViewSet,
-    ProductViewSet, BarberViewSet
+    ProductViewSet, BarberViewSet, whatsapp_login, get_me
 )
 
 router = DefaultRouter()
@@ -21,5 +21,7 @@ router.register(r'promotions', PromotionViewSet, basename='promotion')
 router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
+    path('auth/login/', whatsapp_login, name='whatsapp-login'),
+    path('auth/me/', get_me, name='get-me'),
     path('', include(router.urls)),
 ]

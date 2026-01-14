@@ -14,11 +14,16 @@ import {
   Smartphone,
   Info,
   X,
-  CheckCircle2
+  CheckCircle2,
+  ChevronRight,
+  User,
+  Scissors
 } from 'lucide-react';
 import { waitingListApi, appointmentsApi, scheduleExceptionsApi } from '../api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
+  barberId?: string;
   availability: Availability[];
   setAvailability: (a: Availability[]) => void;
   waitingList: WaitingListEntry[];
@@ -33,6 +38,7 @@ interface Props {
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 const CalendarView: React.FC<Props> = ({ 
+  barberId,
   availability, 
   setAvailability, 
   waitingList, 
@@ -76,6 +82,7 @@ const CalendarView: React.FC<Props> = ({
       const entry = await appointmentsApi.create({
         clientName: aptName,
         serviceId: aptService,
+        barberId: barberId,
         date: `${aptDate}T${aptTime}:00`,
         status: 'confirmed',
         platform: 'manual',
@@ -83,7 +90,6 @@ const CalendarView: React.FC<Props> = ({
       } as any);
       setAppointments([...appointments, entry]);
       
-      // Mostrar animação de sucesso
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -95,18 +101,14 @@ const CalendarView: React.FC<Props> = ({
     } catch (error: any) {
       console.error("Erro ao adicionar agendamento:", error);
       const backendError = error.response?.data?.error;
-      
       const errorMessages: Record<string, string> = {
         'OUT_OF_WORKING_HOURS': 'O barbeiro não atende neste horário ou dia.',
-        'SLOT_UNAVAILABLE': 'Este horário já está ocupado com outro cliente.',
-        'LUNCH_BREAK': 'O barbeiro está em horário de almoço neste momento.',
-        'DATE_IN_PAST': 'Não é possível agendar um horário no passado.',
-        'DATE_NOT_ALLOWED': 'Data fora do período permitido para agendamentos.',
-        'DATE_BLOCKED': 'Este dia está bloqueado para agendamentos.',
-        'SERVICE_INACTIVE': 'Este serviço não está disponível no momento.'
+        'SLOT_UNAVAILABLE': 'Este horário já está ocupado.',
+        'LUNCH_BREAK': 'O barbeiro está em horário de almoço.',
+        'DATE_IN_PAST': 'Não é possível agendar no passado.',
+        'DATE_BLOCKED': 'Este dia está bloqueado.',
       };
-
-      setAptError(errorMessages[backendError] || 'Ocorreu um erro ao tentar agendar. Verifique os dados e tente novamente.');
+      setAptError(errorMessages[backendError] || 'Erro ao agendar. Verifique os dados.');
     }
   };
 
@@ -138,341 +140,205 @@ const CalendarView: React.FC<Props> = ({
     }
   };
 
-  const handleAddException = async () => {
-    if (!excDate || !excReason) return;
-    try {
-      const newExc = await scheduleExceptionsApi.create({
-        date: excDate,
-        type: excType,
-        reason: excReason,
-        ...(excType === 'extended' ? { startTime: excStart, endTime: excEnd } : {})
-      });
-      setExceptions([...exceptions, newExc]);
-      setIsAddingNew(false);
-      resetExcForm();
-    } catch (error) {
-      console.error("Erro ao adicionar exceção:", error);
-    }
-  };
-
-  const handleRemoveException = async (id: string) => {
-    try {
-      await scheduleExceptionsApi.delete(id);
-      setExceptions(exceptions.filter(e => e.id !== id));
-    } catch (error) {
-      console.error("Erro ao remover exceção:", error);
-    }
-  };
-
-  const resetExcForm = () => {
-    setExcDate('');
-    setExcReason('');
-    setExcType('blocked');
-  };
+  const activeAppointments = appointments
+    .filter(a => a.status !== 'cancelled')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="space-y-10 animate-fadeIn pb-20">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Gestão de <span className="text-yellow-500">Agenda</span></h2>
-          <p className="text-gray-400 mt-1">Sua lista de espera inteligente.</p>
+          <h2 className="text-4xl font-bold tracking-tight text-white">Gestão de <span className="text-gray-500">Agenda</span></h2>
+          <p className="text-gray-500 mt-2 font-medium">Controle seus horários e lista de espera inteligente.</p>
         </div>
-        <div className="flex gap-2">
-           <button 
-            onClick={() => setIsAddingAppointment(true)}
-            className="flex-1 sm:flex-none bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all font-oswald uppercase text-sm"
-          >
-            <CalendarIcon size={18} /> Agendar Horário
-          </button>
-           <button 
+        <div className="flex gap-4">
+          <button 
             onClick={() => setIsAddingWaiting(true)}
-            className="flex-1 sm:flex-none bg-gray-900 border border-orange-500/30 text-orange-500 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-500/10 transition-all font-oswald uppercase text-sm"
+            className="px-6 py-4 bg-white/5 text-gray-400 rounded-2xl border border-white/5 font-bold text-[13px] hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
           >
-            <ListOrdered size={18} /> Lista de Espera
+            <ListOrdered size={18} />
+            <span>Lista de Espera</span>
+          </button>
+          <button 
+            onClick={() => setIsAddingAppointment(true)}
+            className="bg-[#007AFF] text-white px-8 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
+          >
+            <CalendarIcon size={18} />
+            <span>Novo Agendamento</span>
           </button>
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Próximos Agendamentos */}
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2 text-white">
-              <CalendarIcon className="text-yellow-500" size={20} /> Próximos Agendamentos
-            </h3>
-            <span className="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-1 rounded-full font-bold uppercase">{appointments.filter(a => a.status !== 'cancelled').length} Ativos</span>
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Main Column: Appointments */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-bold tracking-tight text-white">Próximos Agendamentos</h3>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] bg-[#007AFF]/10 px-3 py-1 rounded-full">
+              {activeAppointments.length} Ativos
+            </span>
           </div>
 
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-             {appointments
-              .filter(a => a.status !== 'cancelled')
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map(apt => (
-               <div key={apt.id} className="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
-                     <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-black border border-gray-800 text-yellow-500">
-                        <span className="text-[10px] font-bold uppercase">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-                        <span className="text-sm font-bold font-oswald">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                     </div>
-                     <div>
-                        <h4 className="text-sm font-bold text-white">{apt.clientName}</h4>
-                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
-                          {services.find(s => s.id === apt.serviceId)?.name || 'Serviço'} • {new Date(apt.date).toLocaleDateString('pt-BR')}
-                        </p>
-                     </div>
+          <div className="space-y-4">
+            {activeAppointments.map(apt => (
+              <motion.div 
+                key={apt.id}
+                whileHover={{ y: -2 }}
+                className="bg-[#1c1c1e] border border-white/5 p-6 rounded-[32px] flex items-center justify-between group hover:bg-[#2c2c2e] transition-all"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center justify-center w-16 h-16 rounded-[20px] bg-black/40 border border-white/5 text-[#007AFF]">
+                    <span className="text-[10px] font-black uppercase mb-1">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+                    <span className="text-lg font-bold tracking-tight leading-none">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                     <span className={`text-[9px] px-2 py-1 rounded-full font-bold uppercase ${apt.status === 'confirmed' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                        {apt.status}
-                     </span>
+                  <div>
+                    <h4 className="text-lg font-bold text-white tracking-tight">{apt.clientName}</h4>
+                    <div className="flex items-center gap-3 mt-1 text-gray-500 font-medium text-[11px] uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5"><Scissors size={12} /> {services.find(s => s.id === apt.serviceId)?.name || 'Serviço'}</span>
+                      <span className="w-1 h-1 rounded-full bg-gray-700" />
+                      <span className="flex items-center gap-1.5"><CalendarDays size={12} /> {new Date(apt.date).toLocaleDateString('pt-BR')}</span>
+                    </div>
                   </div>
-               </div>
-             ))}
-             {appointments.length === 0 && (
-                <div className="text-center py-10 border border-dashed border-gray-800 rounded-2xl text-gray-600 text-sm">
-                  Nenhum agendamento encontrado.
                 </div>
-             )}
-          </div>
-        </section>
-
-        {/* Lista de Espera Visual */}
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2 text-white">
-              <ListOrdered className="text-orange-500" size={20} /> Lista de Espera Hoje
-            </h3>
-            <span className="bg-orange-500/10 text-orange-500 text-[10px] px-2 py-1 rounded-full font-bold uppercase">{waitingList.length} Clientes</span>
-          </div>
-
-          <div className="space-y-3">
-             {waitingList.map(entry => (
-               <div key={entry.id} className="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-orange-500 font-bold font-oswald border border-orange-500/20">
-                        {entry.customerName.charAt(0)}
-                     </div>
-                     <div>
-                        <h4 className="text-sm font-bold text-white">{entry.customerName}</h4>
-                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
-                          {services.find(s => s.id === (entry as any).service || s.id === entry.serviceId)?.name} • {entry.preferredPeriod === 'any' ? 'Qualquer horário' : entry.preferredPeriod}
-                        </p>
-                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                     <button className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-all" title="Agendar Manualmente">
-                        <Smartphone size={16} />
-                     </button>
-                     <button onClick={() => handleRemoveWaiting(entry.id)} className="p-2 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                        <Trash2 size={16} />
-                     </button>
-                  </div>
-               </div>
-             ))}
-             {waitingList.length === 0 && (
-                <div className="text-center py-10 border border-dashed border-gray-800 rounded-2xl text-gray-600 text-sm">
-                  Lista de espera vazia.
+                <div className="flex items-center gap-4">
+                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    apt.status === 'confirmed' ? 'bg-green-500/10 text-green-500' : 'bg-[#007AFF]/10 text-[#007AFF]'
+                  }`}>
+                    {apt.status}
+                  </span>
+                  <button className="p-2 text-gray-600 hover:text-white transition-all bg-white/5 rounded-xl opacity-0 group-hover:opacity-100">
+                    <ChevronRight size={18} />
+                  </button>
                 </div>
-             )}
+              </motion.div>
+            ))}
+            {activeAppointments.length === 0 && (
+              <div className="text-center py-20 bg-[#1c1c1e] border border-dashed border-white/5 rounded-[32px] text-gray-600 text-sm font-medium">
+                Nenhum agendamento para os próximos dias.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar: Waiting List */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-bold tracking-tight text-white">Lista de Espera</h3>
           </div>
 
-          <div className="bg-orange-500/5 border border-orange-500/10 p-4 rounded-2xl flex gap-3">
-             <Info className="text-orange-500 shrink-0" size={18} />
-             <p className="text-[10px] text-gray-400 leading-relaxed uppercase font-bold tracking-tight">
-                Se um horário for cancelado, o robô <span className="text-white">n8n</span> enviará mensagens para esses clientes seguindo a ordem de entrada.
-             </p>
+          <div className="space-y-4">
+            {waitingList.map(entry => (
+              <div key={entry.id} className="bg-[#1c1c1e] border border-white/5 p-5 rounded-[24px] flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
+                    {entry.customerName.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white tracking-tight">{entry.customerName}</h4>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                      {entry.preferredPeriod === 'any' ? 'Qualquer horário' : entry.preferredPeriod}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => handleRemoveWaiting(entry.id)} className="p-2 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+            
+            <div className="bg-orange-500/5 border border-orange-500/10 p-6 rounded-[24px]">
+              <div className="flex gap-3 items-center mb-3">
+                <Info size={16} className="text-orange-500" />
+                <span className="text-[11px] font-black text-orange-500 uppercase tracking-widest">Inteligência</span>
+              </div>
+              <p className="text-[11px] text-gray-400 leading-relaxed font-medium">
+                A lista de espera é monitorada automaticamente. Se um horário surgir, notificaremos os clientes prioritários.
+              </p>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
 
-      {/* Modal: Adicionar à Lista de Espera */}
-      {isAddingWaiting && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-           <div className="bg-gray-900 border border-gray-800 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-scaleIn">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-oswald font-bold uppercase tracking-wide">Pôr na <span className="text-orange-500">Espera</span></h3>
-                <button onClick={() => setIsAddingWaiting(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
-              </div>
-
-              <div className="space-y-4">
-                 <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Nome do Cliente</label>
-                    <input type="text" value={waitName} onChange={e => setWaitName(e.target.value)} placeholder="Ex: Lucas Ferreira" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-orange-500 outline-none" />
-                 </div>
-                 <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">WhatsApp</label>
-                    <input type="text" value={waitPhone} onChange={e => setWaitPhone(e.target.value)} placeholder="(11) 90000-0000" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-orange-500 outline-none" />
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Serviço</label>
-                        <select value={waitService} onChange={e => setWaitService(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-orange-500 outline-none">
-                            {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Período</label>
-                        <select value={waitPeriod} onChange={e => setWaitPeriod(e.target.value as any)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-orange-500 outline-none">
-                            <option value="any">Qualquer um</option>
-                            <option value="morning">Manhã</option>
-                            <option value="afternoon">Tarde</option>
-                            <option value="night">Noite</option>
-                        </select>
-                    </div>
-                 </div>
-              </div>
-
-              <div className="flex gap-3 mt-10">
-                <button onClick={() => setIsAddingWaiting(false)} className="flex-1 py-4 border border-gray-800 rounded-2xl font-bold text-gray-400 hover:bg-gray-800 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
-                <button onClick={handleAddWaiting} className="flex-1 py-4 bg-orange-500 text-black rounded-2xl font-bold hover:bg-orange-400 transition-all uppercase text-[10px] tracking-widest">Salvar na Lista</button>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {/* Modal: Novo Agendamento */}
-      {isAddingAppointment && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-           {showSuccess ? (
-              <div className="flex flex-col items-center justify-center space-y-4 animate-scaleIn">
-                <div className="bg-green-500 p-6 rounded-full shadow-lg shadow-green-500/20">
-                  <CheckCircle2 size={64} className="text-black animate-bounce" />
-                </div>
-                <h3 className="text-3xl font-oswald font-bold uppercase text-white">Agendado com Sucesso!</h3>
-                <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Aguardamos o cliente no horário marcado.</p>
-              </div>
-           ) : (
-              <div className="bg-gray-900 border border-gray-800 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-scaleIn relative overflow-hidden">
-                <div className="flex justify-between items-center mb-8">
-                  <h3 className="text-2xl font-oswald font-bold uppercase tracking-wide">Novo <span className="text-yellow-500">Agendamento</span></h3>
-                  <button onClick={() => { setIsAddingAppointment(false); setAptError(null); }} className="text-gray-500 hover:text-white"><X size={24} /></button>
-                </div>
-
-                {aptError && (
-                  <div className="mb-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 animate-headShake">
-                    <AlertCircle className="text-red-500 shrink-0" size={20} />
-                    <p className="text-xs font-bold text-red-500 uppercase tracking-tight">{aptError}</p>
+      {/* Modals with AnimatePresence */}
+      <AnimatePresence>
+        {isAddingAppointment && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-md rounded-[32px] p-10 shadow-2xl relative"
+            >
+              {showSuccess ? (
+                <div className="py-20 flex flex-col items-center justify-center text-center">
+                  <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mb-6 border border-green-500/30">
+                    <CheckCircle2 size={40} className="animate-bounce" />
                   </div>
-                )}
+                  <h3 className="text-2xl font-bold text-white mb-2">Agendado com Sucesso!</h3>
+                  <p className="text-gray-500 font-medium">O cliente receberá uma confirmação.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-10">
+                    <h3 className="text-3xl font-bold tracking-tight text-white mb-2">Novo Agendamento</h3>
+                    <p className="text-gray-500 font-medium">Marque um horário manualmente na sua agenda.</p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome do Cliente</label>
+                      <div className="relative">
+                        <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+                        <input type="text" value={aptName} onChange={e => setAptName(e.target.value)} placeholder="Ex: João Silva" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                      </div>
+                    </div>
 
-                <div className="space-y-4">
-                   <div>
-                      <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Nome do Cliente</label>
-                      <input type="text" value={aptName} onChange={e => { setAptName(e.target.value); setAptError(null); }} placeholder="Ex: João Silva" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
-                   </div>
-                   <div>
-                      <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Serviço</label>
-                      <select value={aptService} onChange={e => { setAptService(e.target.value); setAptError(null); }} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none">
+                    <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Serviço</label>
+                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium">
                           {services.map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
-                      </select>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div>
-                          <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Data</label>
-                          <input type="date" value={aptDate} onChange={e => { setAptDate(e.target.value); setAptError(null); }} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+                       </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Data</label>
+                        <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
                       </div>
-                      <div>
-                          <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Horário</label>
-                          <input type="time" value={aptTime} onChange={e => { setAptTime(e.target.value); setAptError(null); }} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Horário</label>
+                        <input type="time" value={aptTime} onChange={e => setAptTime(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
                       </div>
-                   </div>
-                   <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl mt-4">
-                      <input 
-                        type="checkbox" 
-                        id="override" 
-                        checked={aptOverride} 
-                        onChange={e => setAptOverride(e.target.checked)} 
-                        className="w-5 h-5 accent-yellow-500 bg-black border-gray-800 rounded" 
-                      />
-                      <div>
-                        <label htmlFor="override" className="text-xs font-bold text-yellow-500 uppercase cursor-pointer block">Criar Encaixe Manual</label>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase">Ignora validações de horário e conflitos.</p>
+                    </div>
+
+                    {aptError && (
+                      <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex gap-3 items-center">
+                        <AlertCircle className="text-red-500" size={16} />
+                        <p className="text-[11px] text-red-500 font-bold uppercase">{aptError}</p>
                       </div>
-                   </div>
-                </div>
-
-                <div className="flex gap-3 mt-10">
-                  <button onClick={() => { setIsAddingAppointment(false); setAptError(null); }} className="flex-1 py-4 border border-gray-800 rounded-2xl font-bold text-gray-400 hover:bg-gray-800 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
-                  <button onClick={handleAddAppointment} className="flex-1 py-4 bg-yellow-500 text-black rounded-2xl font-bold hover:bg-yellow-400 transition-all uppercase text-[10px] tracking-widest">Agendar Agora</button>
-                </div>
-              </div>
-           )}
-        </div>
-      )}
-
-      {/* Datas Especiais / Exceções */}
-      <section className="space-y-4 pt-10 border-t border-gray-800/50">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2 text-white">
-            <CalendarDays className="text-yellow-500" size={20} /> Datas Especiais (Exceções)
-          </h3>
-          <button onClick={() => setIsAddingNew(true)} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition-all">
-            <Plus size={14} /> Adicionar Exceção
-          </button>
-        </div>
-        <div className="grid md:grid-cols-2 gap-3">
-          {exceptions.map(exc => (
-            <div key={exc.id} className="bg-gray-900 border border-gray-800 p-4 rounded-2xl flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className={`w-2 h-10 rounded-full ${exc.type === 'blocked' ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                <div>
-                  <span className="font-bold text-white block text-sm">{new Date(exc.date).toLocaleDateString('pt-BR')}</span>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">{exc.reason}</p>
-                </div>
-              </div>
-              <button onClick={() => handleRemoveException(exc.id)} className="p-2 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Modal: Nova Exceção */}
-      {isAddingException && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-scaleIn">
-            <h3 className="text-2xl font-oswald font-bold uppercase mb-8">Configurar <span className="text-yellow-500">Exceção</span></h3>
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Data</label>
-                  <input type="date" value={excDate} onChange={(e) => setExcDate(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Tipo</label>
-                  <select value={excType} onChange={(e) => setExcType(e.target.value as any)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none">
-                    <option value="blocked">Bloquear Dia</option>
-                    <option value="extended">Jornada Especial</option>
-                  </select>
-                </div>
-              </div>
-
-              {excType === 'extended' && (
-                <div className="grid grid-cols-2 gap-4 animate-fadeIn">
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Início</label>
-                    <input type="time" value={excStart} onChange={(e) => setExcStart(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Fim</label>
-                    <input type="time" value={excEnd} onChange={(e) => setExcEnd(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+
+                  <div className="flex flex-col gap-4 mt-12">
+                    <button 
+                      onClick={handleAddAppointment} 
+                      className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                    >
+                      Confirmar Horário
+                    </button>
+                    <button 
+                      onClick={() => setIsAddingAppointment(false)} 
+                      className="w-full py-4 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                    >
+                      Cancelar
+                    </button>
                   </div>
-                </div>
+                </>
               )}
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Motivo</label>
-                <input type="text" value={excReason} onChange={(e) => setExcReason(e.target.value)} placeholder="Ex: Feriado" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-10">
-              <button onClick={() => setIsAddingNew(false)} className="flex-1 py-4 border border-gray-800 rounded-2xl font-bold text-gray-400 hover:bg-gray-800 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
-              <button onClick={handleAddException} className="flex-1 py-4 bg-yellow-500 text-black rounded-2xl font-bold hover:bg-yellow-400 transition-all uppercase text-[10px] tracking-widest">Adicionar</button>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

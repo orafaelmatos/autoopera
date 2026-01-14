@@ -16,9 +16,13 @@ import {
   Edit2,
   X,
   Layers,
-  ShoppingBag
+  ShoppingBag,
+  Box,
+  ChevronRight,
+  Monitor
 } from 'lucide-react';
 import { productsApi } from '../api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   products: Product[];
@@ -81,13 +85,11 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (window.confirm("Deseja realmente excluir este produto?")) {
-      try {
-        await productsApi.delete(id);
-        setProducts(products.filter(p => p.id !== id));
-      } catch (error) {
-        console.error("Erro ao excluir produto:", error);
-      }
+    try {
+      await productsApi.delete(id);
+      setProducts(products.filter(p => p.id !== id));
+    } catch (error) {
+      console.error("Erro ao excluir produto:", error);
     }
   };
 
@@ -101,236 +103,235 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Gestão de <span className="text-yellow-500">Estoque</span></h2>
-          <p className="text-gray-400 mt-1">Produtos, insumos e lucratividade.</p>
+          <h2 className="text-4xl font-bold tracking-tight text-white">Gestão de <span className="text-gray-500">Estoque</span></h2>
+          <p className="text-gray-500 mt-2 font-medium">Produtos, insumos e lucratividade do seu negócio.</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20 active:scale-95 w-full sm:w-auto justify-center"
+          className="bg-[#007AFF] text-white px-8 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
         >
-          <Plus size={20} /> Novo Produto
+          <Plus size={18} />
+          <span>Novo Produto</span>
         </button>
       </header>
 
-      {/* Cards de Indicadores */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-3xl group">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Valor em Estoque</span>
-            <DollarSign size={16} className="text-green-500" />
-          </div>
-          <h3 className="text-3xl font-oswald font-bold text-white">R$ {totalInventoryValue.toFixed(2)}</h3>
-          <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-wider">Inventário atualizado</p>
-        </div>
-
-        <div className={`bg-gray-900 border p-6 rounded-3xl group transition-colors ${lowStockCount > 0 ? 'border-red-500/30 shadow-lg shadow-red-500/5' : 'border-gray-800'}`}>
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Baixo Estoque</span>
-            <AlertTriangle size={16} className={lowStockCount > 0 ? 'text-red-500' : 'text-gray-600'} />
-          </div>
-          <h3 className={`text-3xl font-oswald font-bold ${lowStockCount > 0 ? 'text-red-500' : 'text-white'}`}>{lowStockCount}</h3>
-          <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-wider">Itens abaixo do mínimo</p>
-        </div>
-
-        <div className={`bg-gray-900 border p-6 rounded-3xl group transition-colors ${expiringSoonCount > 0 ? 'border-yellow-500/30 shadow-lg shadow-yellow-500/5' : 'border-gray-800'}`}>
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Próximos do Vencimento</span>
-            <Calendar size={16} className={expiringSoonCount > 0 ? 'text-yellow-500' : 'text-gray-600'} />
-          </div>
-          <h3 className={`text-3xl font-oswald font-bold ${expiringSoonCount > 0 ? 'text-yellow-500' : 'text-white'}`}>{expiringSoonCount}</h3>
-          <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-wider">Vencendo em 30 dias</p>
-        </div>
+      {/* Indicadores */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+        <InventoryStatCard title="Valor Total" value={`R$ ${totalInventoryValue.toFixed(2)}`} icon={<DollarSign className="text-green-500" size={20} />} trend="Global" />
+        <InventoryStatCard title="Baixo Estoque" value={lowStockCount.toString()} icon={<AlertTriangle className={lowStockCount > 0 ? 'text-red-500' : 'text-gray-400'} size={20} />} trend="Crítico" highlight={lowStockCount > 0} />
+        <InventoryStatCard title="Validade" value={expiringSoonCount.toString()} icon={<Calendar className={expiringSoonCount > 0 ? 'text-orange-500' : 'text-gray-400'} size={20} />} trend="30 dias" warning={expiringSoonCount > 0} />
       </div>
 
-      {/* Filtros e Busca */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text" 
-            placeholder="Buscar por nome do produto..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-2xl pl-12 pr-4 py-4 focus:border-yellow-500 outline-none transition-all text-sm"
-          />
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+            <input 
+              type="text" 
+              placeholder="Buscar no inventário..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#1c1c1e] border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium"
+            />
+          </div>
+          <div className="flex bg-[#1c1c1e] p-1.5 rounded-2xl border border-white/5 overflow-x-auto whitespace-nowrap">
+            {(['all', 'consumo', 'venda', 'bar'] as const).map((cat) => (
+              <button 
+                key={cat}
+                onClick={() => setFilterCategory(cat)}
+                className={`px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${filterCategory === cat ? 'bg-[#007AFF] text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+              >
+                {cat === 'all' ? 'Ver Todos' : cat}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex bg-gray-900 border border-gray-800 p-1 rounded-2xl w-full md:w-auto overflow-x-auto whitespace-nowrap scrollbar-hide">
-          {(['all', 'consumo', 'venda', 'bar'] as const).map((cat) => (
-            <button 
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${filterCategory === cat ? 'bg-yellow-500 text-black' : 'text-gray-500 hover:text-white'}`}
-            >
-              {cat === 'all' ? 'Todos' : cat}
-            </button>
-          ))}
+
+        <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Produto / Categoria</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Nível de Estoque</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Custo / Venda</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Performance</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Controle</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filtered.map(p => {
+                  const isLow = p.stock <= p.minStock;
+                  const profit = p.salePrice ? p.salePrice - p.costPrice : 0;
+                  const profitMargin = p.salePrice ? (profit / p.salePrice) * 100 : 0;
+
+                  return (
+                    <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-[14px] bg-black/40 border border-white/5 flex items-center justify-center text-gray-400">
+                             <Package size={20} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-white tracking-tight">{p.name}</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{p.category}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col items-center">
+                          <span className={`text-lg font-bold tracking-tight ${isLow ? 'text-red-500' : 'text-white'}`}>{p.stock}</span>
+                          <div className="w-16 h-1.5 bg-black/40 rounded-full mt-2 overflow-hidden border border-white/5">
+                             <div 
+                               className={`h-full rounded-full ${isLow ? 'bg-red-500' : 'bg-[#007AFF]'}`} 
+                               style={{ width: `${Math.min((p.stock / (p.minStock * 2)) * 100, 100)}%` }}
+                             />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 font-medium">
+                        <div className="flex flex-col">
+                           <span className="text-gray-500 text-[10px] font-bold uppercase mb-0.5">Custo: R$ {p.costPrice.toFixed(2)}</span>
+                           <span className="text-white text-sm font-bold tracking-tight">Venda: {p.salePrice ? `R$ ${p.salePrice.toFixed(2)}` : '--'}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        {p.salePrice ? (
+                          <div>
+                            <p className="text-sm font-bold text-green-500 tracking-tight">R$ {profit.toFixed(2)} Lucro</p>
+                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{profitMargin.toFixed(0)}% margem</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">Insumo</span>
+                        )}
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                          <button className="p-2 bg-white/5 text-gray-400 rounded-xl hover:text-white border border-white/5"><Edit2 size={14} /></button>
+                          <button onClick={() => handleDeleteProduct(p.id)} className="p-2 bg-red-500/10 text-red-500/50 rounded-xl hover:text-red-500 border border-red-500/10"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {filtered.length === 0 && (
+              <div className="text-center py-20 text-gray-600 text-sm font-medium">
+                Nenhum produto cadastrado nesta categoria.
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Tabela de Produtos */}
-      <section className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-black/50 border-b border-gray-800">
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Produto</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Estoque</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Custo Unit.</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Preço Venda</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Lucro Est.</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Validade</th>
-                <th className="p-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {filtered.map(p => {
-                const isLow = p.stock <= p.minStock;
-                const profit = p.salePrice ? p.salePrice - p.costPrice : 0;
-                const profitMargin = p.salePrice ? (profit / p.salePrice) * 100 : 0;
-
-                return (
-                  <tr key={p.id} className="hover:bg-gray-800/30 transition-colors group">
-                    <td className="p-4">
-                      <div>
-                        <p className="text-sm font-bold text-white">{p.name}</p>
-                        <p className="text-[10px] text-gray-500 uppercase font-bold flex items-center gap-1">
-                          <Tag size={8} /> {p.category}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-col items-center">
-                        <span className={`text-sm font-bold ${isLow ? 'text-red-500' : 'text-white'}`}>{p.stock}</span>
-                        <span className="text-[8px] text-gray-600 uppercase font-bold">Mín: {p.minStock}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm font-medium text-gray-400">R$ {p.costPrice.toFixed(2)}</td>
-                    <td className="p-4 text-sm font-medium text-white">
-                      {p.salePrice ? `R$ ${p.salePrice.toFixed(2)}` : '--'}
-                    </td>
-                    <td className="p-4">
-                      {p.salePrice ? (
-                        <div>
-                          <p className="text-xs font-bold text-green-500">R$ {profit.toFixed(2)}</p>
-                          <p className="text-[8px] text-gray-500 uppercase font-bold">{profitMargin.toFixed(0)}% margem</p>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-gray-600 uppercase font-bold italic">Insumo</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      {p.expiryDate ? (
-                        <div className="flex items-center gap-2">
-                           <div className={`w-1.5 h-1.5 rounded-full ${new Date(p.expiryDate) < today ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
-                           <span className="text-xs text-gray-400">{new Date(p.expiryDate).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-700">--</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 bg-gray-800 text-gray-400 rounded-lg hover:text-white"><Edit2 size={14} /></button>
-                        <button 
-                          onClick={() => handleDeleteProduct(p.id)}
-                          className="p-2 bg-gray-800 text-red-500/50 rounded-lg hover:text-red-500"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <div className="text-center py-20 text-gray-600 text-sm italic">
-              Nenhum produto encontrado.
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Modal Novo Produto */}
-      {isAdding && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-gray-900 border border-gray-800 w-full max-w-2xl rounded-3xl p-8 shadow-2xl animate-scaleIn my-10">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-oswald font-bold uppercase tracking-wide">Novo <span className="text-yellow-500">Produto</span></h3>
-              <button onClick={() => setIsAdding(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Nome do Produto</label>
-                  <input 
-                    type="text" 
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    placeholder="Ex: Cerveja IPA 500ml"
-                    className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" 
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Categoria</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => setNewCat('consumo')} className={`py-2 text-[8px] font-bold rounded-lg border uppercase ${newCat === 'consumo' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-gray-500 border-gray-800'}`}>Consumo</button>
-                    <button onClick={() => setNewCat('venda')} className={`py-2 text-[8px] font-bold rounded-lg border uppercase ${newCat === 'venda' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-gray-500 border-gray-800'}`}>Venda</button>
-                    <button onClick={() => setNewCat('bar')} className={`py-2 text-[8px] font-bold rounded-lg border uppercase ${newCat === 'bar' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black text-gray-500 border-gray-800'}`}>Bar</button>
+      <AnimatePresence>
+        {isAdding && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-2xl rounded-[32px] p-10 shadow-2xl relative"
+            >
+              <div className="mb-10">
+                <h3 className="text-3xl font-bold tracking-tight text-white mb-2">Novo Produto</h3>
+                <p className="text-gray-500 font-medium">Cadastre itens para venda ou insumos para o salão.</p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome do Item</label>
+                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Pomada Efeito Mate" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Categoria</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['consumo', 'venda', 'bar'].map((cat: any) => (
+                        <button key={cat} onClick={() => setNewCat(cat)} className={`py-4 text-[10px] font-black rounded-2xl border uppercase transition-all ${newCat === cat ? 'bg-[#007AFF] text-white border-[#007AFF] shadow-lg shadow-[#007AFF]/20' : 'bg-black/20 text-gray-600 border-white/5'}`}>{cat}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Estoque Inicial</label>
+                      <input type="number" value={newStock} onChange={e => setNewStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Mínimo Segura</label>
+                      <input type="number" value={newMinStock} onChange={e => setNewMinStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Estoque Atual</label>
-                    <input type="number" value={newStock} onChange={e => setNewStock(Number(e.target.value))} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Custo Unit.</label>
+                      <input type="number" value={newCost} onChange={e => setTotalCost(Number(e.target.value))} placeholder="0.00" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">PV (Venda)</label>
+                      <input type="number" value={newSale} onChange={e => setSalePrice(Number(e.target.value))} placeholder="0.00" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" disabled={newCat === 'consumo'} />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Estoque Mín.</label>
-                    <input type="number" value={newMinStock} onChange={e => setNewMinStock(Number(e.target.value))} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
+                  <div className="space-y-2">
+                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Data de Validade (Opcional)</label>
+                       <input type="date" value={newExpiry} onChange={e => setNewExpiry(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
                   </div>
+                  {newCat !== 'consumo' && (
+                    <div className="bg-green-500/5 border border-green-500/10 p-5 rounded-2xl">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Expectativa de Lucro Unit.</p>
+                      <p className="text-xl font-bold text-green-500 tracking-tight">R$ {(newSale - newCost).toFixed(2)} <span className="text-xs text-gray-600 ml-1">({newSale > 0 ? (((newSale - newCost) / newSale) * 100).toFixed(0) : 0}% margem)</span></p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Preço de Custo (R$)</label>
-                  <input type="number" step="0.01" value={newCost} onChange={e => setNewCost(Number(e.target.value))} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
-                </div>
-                {newCat !== 'consumo' && (
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Preço de Venda (R$)</label>
-                    <input type="number" step="0.01" value={newSale} onChange={e => setNewSale(Number(e.target.value))} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none border-yellow-500/50" />
-                  </div>
-                )}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Validade (Opcional)</label>
-                  <input type="date" value={newExpiry} onChange={e => setNewExpiry(e.target.value)} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" />
-                </div>
+              <div className="flex flex-col gap-4 mt-12">
+                <button 
+                  onClick={handleAddProduct} 
+                  className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                >
+                  Confirmar Cadastro
+                </button>
+                <button 
+                  onClick={() => setIsAdding(false)} 
+                  className="w-full py-4 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                >
+                  Cancelar
+                </button>
               </div>
-            </div>
-
-            <div className="flex gap-3 mt-10">
-              <button onClick={() => setIsAdding(false)} className="flex-1 py-4 border border-gray-800 rounded-2xl font-bold text-gray-400 hover:bg-gray-800 transition-all uppercase text-xs tracking-widest">Cancelar</button>
-              <button onClick={handleAddProduct} className="flex-1 py-4 bg-yellow-500 text-black rounded-2xl font-bold hover:bg-yellow-400 transition-all uppercase text-xs tracking-widest shadow-lg shadow-yellow-500/20">Salvar Produto</button>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {/* Rodapé de Movimentação */}
-      <div className="flex justify-between items-center text-[10px] text-gray-500 uppercase font-bold tracking-widest px-4">
-        <p>Última atualização: Agora mesmo</p>
-        <button className="hover:text-yellow-500 transition-colors flex items-center gap-1">
-          Ver Histórico Completo de Movimentações <ArrowUpRight size={10} />
-        </button>
-      </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+
+const InventoryStatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean, warning?: boolean }> = ({ title, value, icon, trend, highlight, warning }) => (
+  <div className={`bg-[#1c1c1e] border border-white/5 p-8 rounded-[32px] hover:bg-[#2c2c2e] transition-all group ${highlight ? 'ring-1 ring-red-500/30 shadow-[0_10px_40px_rgba(239,68,68,0.1)]' : warning ? 'ring-1 ring-orange-500/30' : ''}`}>
+    <div className="flex justify-between items-start mb-6">
+      <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em]">{title}</span>
+      <div className="bg-white/5 p-2 rounded-xl group-hover:bg-white/10 transition-colors">
+        {icon}
+      </div>
+    </div>
+    <div className="flex items-end justify-between">
+      <div className={`text-3xl font-bold tracking-tight ${highlight ? 'text-red-500' : warning ? 'text-orange-500' : 'text-white'}`}>{value}</div>
+      {trend && (
+        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+          {trend}
+        </span>
+      )}
+    </div>
+  </div>
+);
 
 export default InventoryView;

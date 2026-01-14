@@ -1,10 +1,17 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from .models import (
     Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
     Availability, ScheduleException, Transaction, Promotion, Product, Barber, TimeSlot
 )
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
 class BarberSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Barber
         fields = '__all__'
@@ -27,10 +34,11 @@ class CustomerSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     lastVisit = serializers.CharField(source='last_visit')
     totalSpent = serializers.DecimalField(source='total_spent', max_digits=10, decimal_places=2, coerce_to_string=False)
+    user = UserSerializer(read_only=True)
     
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'phone', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'email', 'cpf', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at', 'user']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 class LoyaltyRewardSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import User
 
 
 class Service(models.Model):
@@ -21,6 +22,7 @@ class Service(models.Model):
 
 class Barber(models.Model):
     """Barbeiros da barbearia"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='barber_profile', null=True, blank=True)
     name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
@@ -33,8 +35,11 @@ class Barber(models.Model):
 
 class Customer(models.Model):
     """Clientes da barbearia"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile', null=True, blank=True)
     name = models.CharField(max_length=200)
     phone = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
+    cpf = models.CharField(max_length=14, blank=True, null=True)
     last_visit = models.CharField(max_length=100, default='Primeira vez')
     total_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     notes = models.TextField(blank=True, default='')

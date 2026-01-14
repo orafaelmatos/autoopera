@@ -13,10 +13,15 @@ import {
   CheckCircle,
   X,
   Smartphone,
-  Info
+  Info,
+  CheckCircle2,
+  ChevronRight,
+  TrendingUp,
+  Target
 } from 'lucide-react';
 import { promotionsApi } from '../api';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   services: Service[];
@@ -46,7 +51,7 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
         serviceId: selectedService,
         targetAudience: audience,
         status: 'active',
-        reach: Math.floor(Math.random() * 100) + 1 // Mock de alcance para o exemplo
+        reach: Math.floor(Math.random() * 100) + 1 // Mock de alcance
       });
       setHistory([newPromo, ...history]);
       toast.success(`Promoção "${promoName}" lançada com sucesso!`);
@@ -57,180 +62,214 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
     }
   };
 
+  const activePromos = history.filter(p => p.status === 'active');
+
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <header className="flex justify-between items-end">
+    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Marketing & <span className="text-yellow-500">Promoções</span></h2>
-          <p className="text-gray-400 mt-1">Transforme horários vazios em lucro com o n8n.</p>
+          <h2 className="text-4xl font-bold tracking-tight text-white">Marketing & <span className="text-gray-500">Promoções</span></h2>
+          <p className="text-gray-500 mt-2 font-medium">Automatize suas campanhas e atraia mais clientes.</p>
         </div>
         <button 
           onClick={() => setIsCreating(true)}
-          className="bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20 active:scale-95"
+          className="bg-[#007AFF] text-white px-8 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
         >
-          <Plus size={20} /> Nova Campanha
+          <Plus size={18} />
+          <span>Nova Campanha</span>
         </button>
       </header>
 
       {/* Campanhas Ativas */}
-      <section className="space-y-4">
-        <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2">
-          <CheckCircle className="text-yellow-500" size={20} /> Campanhas em Curso
-        </h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          {history.filter(p => p.status === 'active').map(promo => (
-            <div key={promo.id} className="bg-gray-900 border border-yellow-500/20 p-6 rounded-3xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 bg-yellow-500 text-black px-3 py-1 text-[10px] font-bold uppercase rounded-bl-xl">Ativa</div>
-              <h4 className="text-xl font-bold mb-2">{promo.name}</h4>
-              <div className="flex gap-4 mb-6">
-                <div className="text-center bg-black/40 p-2 rounded-xl border border-gray-800 flex-1">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">Alcance</p>
-                  <p className="text-lg font-oswald text-white">{promo.reach} Cli.</p>
+      <section className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+           <h3 className="text-xl font-bold tracking-tight text-white">Campanhas em Curso</h3>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] bg-[#007AFF]/10 px-3 py-1 rounded-full">{activePromos.length} Ativas</span>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {activePromos.map(promo => (
+            <motion.div 
+              key={promo.id}
+              whileHover={{ y: -4 }}
+              className="bg-[#1c1c1e] border border-white/5 p-8 rounded-[32px] group relative overflow-hidden shadow-xl"
+            >
+              <div className="absolute top-0 right-0 bg-[#007AFF] text-white px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-bl-2xl">Ativa</div>
+              <h4 className="text-2xl font-bold text-white mb-6 tracking-tight">{promo.name}</h4>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-black/40 p-4 rounded-2xl border border-white/5">
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Alcance</p>
+                  <p className="text-2xl font-bold text-white tracking-tight">{promo.reach}</p>
                 </div>
-                <div className="text-center bg-black/40 p-2 rounded-xl border border-gray-800 flex-1">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">Desconto</p>
-                  <p className="text-lg font-oswald text-yellow-500">{promo.discount}%</p>
+                <div className="bg-[#007AFF]/5 p-4 rounded-2xl border border-[#007AFF]/10">
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Desconto</p>
+                  <p className="text-2xl font-bold text-[#007AFF] tracking-tight">{promo.discount}%</p>
                 </div>
               </div>
-              <div className="flex justify-between items-center text-xs text-gray-500">
-                <span>Válido para: <span className="text-white">Terças-feiras</span></span>
-                <button className="text-red-500 font-bold hover:underline">Pausar</button>
+
+              <div className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Público: {promo.targetAudience}</span>
+                <button className="text-red-500 text-[10px] font-black uppercase tracking-widest hover:text-red-400 transition-colors">Pausar</button>
               </div>
-            </div>
+            </motion.div>
           ))}
+          {activePromos.length === 0 && (
+            <div className="md:col-span-2 lg:col-span-3 text-center py-20 bg-[#1c1c1e] border border-dashed border-white/5 rounded-[32px] text-gray-600 font-medium">
+              Nenhuma campanha ativa no momento.
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Histórico e Insights */}
-      <section className="space-y-4">
-        <h3 className="text-xl font-oswald font-bold uppercase flex items-center gap-2">
-          <History className="text-gray-500" size={20} /> Histórico de Disparos
-        </h3>
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-black/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                <th className="p-4">Campanha</th>
-                <th className="p-4">Público</th>
-                <th className="p-4">Serviço</th>
-                <th className="p-4">Resultado</th>
-                <th className="p-4 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {history.map(p => (
-                <tr key={p.id} className="hover:bg-gray-800/30 transition-colors">
-                  <td className="p-4 font-bold text-white text-sm">{p.name}</td>
-                  <td className="p-4 text-xs text-gray-400 capitalize">{p.targetAudience}</td>
-                  <td className="p-4 text-xs text-gray-400">{services.find(s => s.id === p.serviceId)?.name}</td>
-                  <td className="p-4 text-xs font-bold text-green-500">{p.reach} envios</td>
-                  <td className="p-4 text-right">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${p.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-gray-800 text-gray-500'}`}>
-                      {p.status}
-                    </span>
-                  </td>
+      {/* Histórico */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+           <h3 className="text-xl font-bold tracking-tight text-white font-medium">Histórico de Disparos</h3>
+        </div>
+
+        <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Campanha / Público</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Estratégia</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Conversão</th>
+                  <th className="px-8 py-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {history.map(p => (
+                  <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-gray-500">
+                          <Target size={18} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white tracking-tight">{p.name}</p>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{p.targetAudience}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col">
+                        <span className="text-white text-sm font-bold tracking-tight">{services.find(s => s.id === p.serviceId)?.name}</span>
+                        <span className="text-[#007AFF] text-[10px] font-black uppercase tracking-widest">{p.discount}% OFF</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp size={14} className="text-green-500" />
+                        <span className="text-white font-bold tracking-tight">{p.reach} Disparos</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                       <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                         p.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-gray-800 text-gray-600'
+                       }`}>
+                         {p.status}
+                       </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       {/* Modal: Criar Campanha */}
-      {isCreating && (
-        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-scaleIn">
-            <div className="flex h-full flex-col md:flex-row">
-              {/* Lado Esquerdo: Formulário */}
-              <div className="flex-1 p-8 border-r border-gray-800 space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-oswald font-bold uppercase">Configurar <span className="text-yellow-500">Campanha</span></h3>
-                  <button onClick={() => setIsCreating(false)} className="md:hidden text-gray-500"><X /></button>
+      <AnimatePresence>
+        {isCreating && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl relative"
+            >
+              <div className="flex flex-col lg:flex-row">
+                {/* Form Section */}
+                <div className="flex-1 p-12 border-r border-white/5">
+                  <div className="mb-10">
+                    <h3 className="text-3xl font-bold tracking-tight text-white mb-2">Nova Campanha</h3>
+                    <p className="text-gray-500 font-medium font-medium">Configure sua oferta e o público-alvo.</p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome da Promoção</label>
+                      <input value={promoName} onChange={e => setPromoName(e.target.value)} placeholder="Ex: Black Friday 2024" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Serviço de Foco</label>
+                        <select value={selectedService} onChange={e => setSelectedService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium">
+                          {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Desconto (%)</label>
+                        <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Público-Alvo</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['all', 'vip', 'inactive'] as const).map(aud => (
+                          <button key={aud} onClick={() => setAudience(aud)} className={`py-4 text-[10px] font-black rounded-2xl border uppercase transition-all ${audience === aud ? 'bg-[#007AFF] text-white border-[#007AFF] shadow-lg shadow-[#007AFF]/20' : 'bg-black/20 text-gray-600 border-white/5'}`}>{aud === 'all' ? 'Ver Todos' : aud}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4 mt-12">
+                    <button 
+                      onClick={handleLaunch} 
+                      className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                      <Megaphone size={18} /> Lançar Campanha
+                    </button>
+                    <button 
+                      onClick={() => setIsCreating(false)} 
+                      className="w-full py-4 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                    >
+                      Voltar
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Nome da Promoção</label>
-                    <input 
-                      value={promoName}
-                      onChange={e => setPromoName(e.target.value)}
-                      placeholder="Ex: Black Friday Barber" 
-                      className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" 
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Serviço</label>
-                      <select 
-                        value={selectedService}
-                        onChange={e => setSelectedService(e.target.value)}
-                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none"
-                      >
-                        {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                {/* Preview Section */}
+                <div className="hidden lg:flex flex-1 bg-black/40 p-12 flex-col justify-center">
+                  <div className="relative max-w-[320px] mx-auto">
+                    <div className="bg-[#075e54] rounded-[48px] p-6 shadow-2xl border-[10px] border-[#1c1c1e]">
+                       <div className="bg-white/10 rounded-[32px] p-6 text-white space-y-4 backdrop-blur-md border border-white/10 shadow-lg">
+                          <p className="text-xs font-medium opacity-80">Olá! Notamos que faz tempo que não nos vemos... ✂️</p>
+                          <p className="text-sm font-bold text-[#007AFF] bg-white rounded-xl p-3 shadow-md">{promoName || 'Campanha Exclusiva'}</p>
+                          <p className="text-xs font-medium leading-relaxed">Ganhe <span className="font-black text-[#007AFF]">{discount}% de desconto</span> no serviço de {services.find(s => s.id === selectedService)?.name}!</p>
+                          <div className="bg-[#007AFF] rounded-2xl py-3 text-center text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#007AFF]/30">
+                            Agendar Agora
+                          </div>
+                       </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Desconto (%)</label>
-                      <input 
-                        type="number" 
-                        value={discount}
-                        onChange={e => setDiscount(Number(e.target.value))}
-                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 text-white focus:border-yellow-500 outline-none" 
-                      />
+                    <div className="bg-[#1c1c1e] p-6 rounded-[32px] mt-8 border border-white/5">
+                      <div className="flex gap-4 items-center mb-2">
+                        <Info size={18} className="text-[#007AFF]" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#007AFF]">Automatização</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 leading-relaxed font-medium">Os disparos são feitos individualmente para evitar o bloqueio do seu WhatsApp.</p>
                     </div>
                   </div>
-
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-gray-500 mb-2 block tracking-widest">Público-Alvo</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button onClick={() => setAudience('all')} className={`py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${audience === 'all' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black border-gray-800 text-gray-500'}`}>Todos</button>
-                      <button onClick={() => setAudience('vip')} className={`py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${audience === 'vip' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black border-gray-800 text-gray-500'}`}>VIPs</button>
-                      <button onClick={() => setAudience('inactive')} className={`py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${audience === 'inactive' ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-black border-gray-800 text-gray-500'}`}>Inativos</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button onClick={() => setIsCreating(false)} className="flex-1 py-4 border border-gray-800 rounded-2xl font-bold text-gray-400">Cancelar</button>
-                  <button onClick={handleLaunch} className="flex-1 py-4 bg-yellow-500 text-black rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/20">
-                    <Send size={18} /> Disparar n8n
-                  </button>
                 </div>
               </div>
-
-              {/* Lado Direito: Preview WhatsApp */}
-              <div className="flex-1 bg-black/40 p-8 hidden md:flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <h4 className="text-xs font-bold uppercase text-gray-500 flex items-center gap-2">
-                    <Smartphone size={14} /> Prévia da Mensagem
-                  </h4>
-                  <button onClick={() => setIsCreating(false)} className="text-gray-500 hover:text-white"><X size={20}/></button>
-                </div>
-                
-                <div className="bg-[#075e54] rounded-2xl p-4 flex-1 relative overflow-hidden shadow-inner">
-                  <div className="bg-white/10 rounded-xl p-4 text-sm text-white space-y-3 backdrop-blur-sm border border-white/5">
-                    <p>Olá! Notamos que faz tempo que você não vem dar um tapa no visual... ✂️</p>
-                    <p className="font-bold text-yellow-500">Temos uma oferta especial: {promoName || 'Promoção Exclusiva'}</p>
-                    <p>Ganhe <span className="bg-yellow-500 text-black px-1 font-bold">{discount}% de desconto</span> no serviço de {services.find(s => s.id === selectedService)?.name}!</p>
-                    <p>Válido apenas para agendamentos pelo WhatsApp. Clique no botão abaixo para escolher seu horário! 👇</p>
-                    <div className="bg-white rounded-lg p-2 text-center text-[#075e54] font-bold text-xs uppercase cursor-not-allowed">
-                      Agendar com Desconto
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-2xl flex gap-3">
-                  <Info className="text-yellow-500 shrink-0" size={18} />
-                  <p className="text-[10px] text-gray-500 leading-relaxed italic">
-                    O n8n usará essa estrutura para automatizar os envios individuais respeitando as políticas de spam do WhatsApp.
-                  </p>
-                </div>
-              </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

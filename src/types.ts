@@ -1,4 +1,13 @@
 
+export interface Barber {
+  id: string;
+  name: string;
+  email: string;
+  is_active: boolean;
+  buffer_minutes: number;
+  booking_horizon_days: number;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -11,6 +20,8 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  email?: string;
+  cpf?: string;
   lastVisit: string;
   totalSpent: number;
   notes: string;
@@ -28,9 +39,11 @@ export interface Appointment {
   id: string;
   clientName: string;
   serviceId: string;
+  barberId: string;
   date: string; // ISO format
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   platform?: 'manual' | 'whatsapp' | 'web';
+  customer?: string;
 }
 
 export interface WaitingListEntry {

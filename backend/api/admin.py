@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
+    Barber, Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
     Availability, ScheduleException, Transaction, Promotion, Product
 )
 
@@ -68,4 +68,9 @@ class PromotionAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'stock', 'min_stock', 'cost_price', 'sale_price']
     list_filter = ['category']
+    search_fields = ['name']
+
+@admin.register(Barber)
+class BarberAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email']
     search_fields = ['name']

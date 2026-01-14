@@ -7,6 +7,7 @@ import { appointmentsApi, transactionsApi } from '../api';
 import toast from 'react-hot-toast';
 
 interface Props {
+  userName?: string;
   appointments: Appointment[];
   setAppointments: React.Dispatch<React.SetStateAction<Appointment[]>>;
   services: Service[];
@@ -17,6 +18,7 @@ interface Props {
 }
 
 const DashboardView: React.FC<Props> = ({ 
+  userName,
   appointments, 
   setAppointments,
   services, 
@@ -69,7 +71,7 @@ const DashboardView: React.FC<Props> = ({
     <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-white">Olá, <span className="text-gray-500">Willian</span></h2>
+          <h2 className="text-4xl font-bold tracking-tight text-white">Olá, <span className="text-gray-500">{userName || 'Barbeiro'}</span></h2>
           <p className="text-gray-500 mt-2 font-medium">Aqui está o resumo do seu dia.</p>
         </div>
         <button 
