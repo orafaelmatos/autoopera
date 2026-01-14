@@ -6,27 +6,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BarberFlow Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              apple: {
+                black: '#000000',
+                gray: '#1c1c1e',
+                lightGray: '#2c2c2e',
+                accent: '#007AFF', // Apple Blue
+                gold: '#D4AF37'
+              }
+            },
+            borderRadius: {
+              'apple': '20px',
+              'apple-lg': '24px'
+            }
+          }
+        }
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #0a0a0a;
-        color: #e5e5e5;
+        font-family: var(--font-sans);
+        background-color: #000000;
+        color: #f5f5f7;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       .font-oswald {
-        font-family: 'Oswald', sans-serif;
+        font-family: var(--font-sans); /* Overriding Oswald to Inter for clean look */
       }
       .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
+        width: 0px; /* Hidden but scrollable like iOS */
       }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: #1a1a1a;
+      .glass {
+        background: rgba(28, 28, 30, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 10px;
+      .apple-card {
+        background: #1c1c1e;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
       }
     </style>
   <script type="importmap">

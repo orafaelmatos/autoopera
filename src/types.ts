@@ -5,7 +5,6 @@ export interface Service {
   price: number;
   duration: number; // minutes
   description?: string;
-  commission: number; // percentage
 }
 
 export interface Customer {
@@ -45,9 +44,12 @@ export interface WaitingListEntry {
 }
 
 export interface Availability {
+  id: string; // Adicionado para persistência
   dayOfWeek: number; // 0-6
   startTime: string; // "HH:mm"
   endTime: string;   // "HH:mm"
+  lunchStart?: string; // "HH:mm"
+  lunchEnd?: string;   // "HH:mm"
   isActive: boolean;
 }
 

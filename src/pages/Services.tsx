@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Service } from '../types';
 import { Plus, Scissors, DollarSign, Clock, Trash2, Edit2, Percent } from 'lucide-react';
+import { servicesApi } from '../api';
+import toast from 'react-hot-toast';
 
 interface Props {
   services: Service[];
@@ -10,9 +12,47 @@ interface Props {
 
 const ServicesView: React.FC<Props> = ({ services, setServices }) => {
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Estados para o novo serviço
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState(0);
+  const [duration, setDuration] = useState(45);
+  const [description, setDescription] = useState('');
 
-  const removeService = (id: string) => {
-    setServices(services.filter(s => s.id !== id));
+  const handleAddService = async () => {
+    try {
+      const newService = await servicesApi.create({
+        name,
+        price,
+        duration,
+        description
+      });
+      setServices([...services, newService]);
+      setIsAdding(false);
+      resetForm();
+      toast.success("Serviço criado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao criar serviço:", error);
+      toast.error("Erro ao criar serviço");
+    }
+  };
+
+  const resetForm = () => {
+    setName('');
+    setPrice(0);
+    setDuration(45);
+    setDescription('');
+  };
+
+  const removeService = async (id: string) => {
+    if (window.confirm("Deseja realmente excluir este serviço?")) {
+      try {
+        await servicesApi.delete(id);
+        setServices(services.filter(s => s.id !== id));
+      } catch (error) {
+        console.error("Erro ao remover serviço:", error);
+      }
+    }
   };
 
   return (
@@ -20,7 +60,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
       <header className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-oswald font-bold uppercase tracking-tight">Meus <span className="text-yellow-500">Serviços</span></h2>
-          <p className="text-gray-400 mt-1">Configure preços e comissões.</p>
+          <p className="text-gray-400 mt-1">Configure preços e durações.</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
@@ -52,10 +92,6 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
                 <span className="font-oswald text-lg">R$ {service.price}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-blue-500"><Percent size={16} /></div>
-                <span className="text-gray-300 text-sm">{service.commission}% Comiss.</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <div className="text-gray-500"><Clock size={16} /></div>
                 <span className="text-gray-300 text-sm">{service.duration} min</span>
               </div>
@@ -71,30 +107,49 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Nome do Serviço</label>
-                <input type="text" placeholder="Ex: Corte Navalhado" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" />
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Ex: Corte Navalhado" 
+                  className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" 
+                />
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Preço (R$)</label>
-                  <input type="number" placeholder="50" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Comissão (%)</label>
-                  <input type="number" placeholder="50" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" />
+                  <input 
+                    type="number" 
+                    value={price}
+                    onChange={e => setPrice(Number(e.target.value))}
+                    placeholder="50" 
+                    className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" 
+                  />
                 </div>
                 <div className="col-span-1">
                   <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Minutos</label>
-                  <input type="number" placeholder="45" className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" />
+                  <input 
+                    type="number" 
+                    value={duration}
+                    onChange={e => setDuration(Number(e.target.value))}
+                    placeholder="45" 
+                    className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none" 
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Descrição</label>
-                <textarea rows={3} className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none"></textarea>
+                <textarea 
+                  rows={3} 
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  className="w-full bg-black border border-gray-800 rounded-xl px-4 py-3 focus:border-yellow-500 transition-colors focus:outline-none"
+                ></textarea>
               </div>
             </div>
             <div className="flex gap-3 mt-8">
-              <button onClick={() => setIsAdding(false)} className="flex-1 px-4 py-3 border border-gray-800 rounded-xl font-bold hover:bg-gray-800 transition-colors">Cancelar</button>
-              <button onClick={() => setIsAdding(false)} className="flex-1 px-4 py-3 bg-yellow-500 text-black rounded-xl font-bold hover:bg-yellow-400 transition-colors">Salvar</button>
+              <button onClick={() => { setIsAdding(false); resetForm(); }} className="flex-1 px-4 py-3 border border-gray-800 rounded-xl font-bold hover:bg-gray-800 transition-colors">Cancelar</button>
+              <button onClick={handleAddService} className="flex-1 px-4 py-3 bg-yellow-500 text-black rounded-xl font-bold hover:bg-yellow-400 transition-colors">Salvar</button>
             </div>
           </div>
         </div>

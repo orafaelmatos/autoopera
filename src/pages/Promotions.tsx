@@ -15,6 +15,8 @@ import {
   Smartphone,
   Info
 } from 'lucide-react';
+import { promotionsApi } from '../api';
+import toast from 'react-hot-toast';
 
 interface Props {
   services: Service[];
@@ -23,10 +25,12 @@ interface Props {
 
 const PromotionsView: React.FC<Props> = ({ services, customers }) => {
   const [isCreating, setIsCreating] = useState(false);
-  const [history] = useState<Promotion[]>([
-    { id: 'p1', name: 'Terça do Degradê', discount: 20, serviceId: '1', targetDay: 2, targetAudience: 'all', status: 'active', reach: 145 },
-    { id: 'p2', name: 'Combo Fidelidade VIP', discount: 15, serviceId: '3', targetAudience: 'vip', status: 'finished', reach: 42 }
-  ]);
+  const [history, setHistory] = useState<Promotion[]>([]);
+
+  // Carregar histórico ao abrir
+  React.useEffect(() => {
+    promotionsApi.getAll().then(setHistory).catch(console.error);
+  }, []);
 
   // Form State
   const [promoName, setPromoName] = useState('');
@@ -34,10 +38,23 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
   const [selectedService, setSelectedService] = useState(services[0]?.id || '');
   const [audience, setAudience] = useState<'all' | 'vip' | 'inactive'>('all');
 
-  const handleLaunch = () => {
-    // Aqui o app enviaria os dados para o webhook do n8n
-    alert(`Promoção "${promoName}" agendada! O n8n processará o envio para os clientes.`);
-    setIsCreating(false);
+  const handleLaunch = async () => {
+    try {
+      const newPromo = await promotionsApi.create({
+        name: promoName,
+        discount: discount,
+        serviceId: selectedService,
+        targetAudience: audience,
+        status: 'active',
+        reach: Math.floor(Math.random() * 100) + 1 // Mock de alcance para o exemplo
+      });
+      setHistory([newPromo, ...history]);
+      toast.success(`Promoção "${promoName}" lançada com sucesso!`);
+      setIsCreating(false);
+    } catch (error) {
+      console.error("Erro ao lançar promoção:", error);
+      toast.error("Erro ao lançar promoção");
+    }
   };
 
   return (

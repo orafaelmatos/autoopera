@@ -20,22 +20,46 @@ interface Props {
 }
 
 const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToPromotions }) => {
-  // Simulação de dados para os gráficos
-  const daysData = [
-    { day: 'Seg', count: 12, fill: 40 },
-    { day: 'Ter', count: 8, fill: 25 },
-    { day: 'Qua', count: 15, fill: 55 },
-    { day: 'Qui', count: 22, fill: 80 },
-    { day: 'Sex', count: 28, fill: 100 },
-    { day: 'Sáb', count: 30, fill: 100 },
-    { day: 'Dom', count: 5, fill: 15 },
-  ];
+  // Cálculo de dados reais a partir dos agendamentos
+  const daysMap: Record<string, number> = {
+    'Seg': 0, 'Ter': 0, 'Qua': 0, 'Qui': 0, 'Sex': 0, 'Sáb': 0, 'Dom': 0
+  };
+  
+  const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  
+  appointments.forEach(app => {
+    // Tenta parsear a data do backend (ISO ou YYYY-MM-DD)
+    const date = new Date(app.date);
+    if (!isNaN(date.getTime())) {
+      const dayName = dayNames[date.getDay()];
+      if (daysMap[dayName] !== undefined) {
+        daysMap[dayName]++;
+      }
+    }
+  });
+
+  const maxCount = Math.max(...Object.values(daysMap), 1);
+  const daysData = Object.entries(daysMap).map(([day, count]) => ({
+    day,
+    count,
+    fill: (count / maxCount) * 100
+  }));
 
   const platforms = [
     { name: 'WhatsApp (n8n)', value: 65, icon: <Smartphone size={14} className="text-green-500" /> },
     { name: 'Manual', value: 25, icon: <MousePointer2 size={14} className="text-blue-500" /> },
     { name: 'Web/Link', value: 10, icon: <MousePointer2 size={14} className="text-purple-500" /> },
   ];
+
+  // Identificar dia com menor demanda para o insight
+  const weakestDay = Object.entries(daysMap)
+    .filter(([day]) => day !== 'Dom') // Ignora domingo se fechado
+    .sort((a, b) => a[1] - b[1])[0];
+  
+  const weakestDayFull = {
+    'Seg': 'Segunda-feira', 'Ter': 'Terça-feira', 'Qua': 'Quarta-feira', 
+    'Qui': 'Quinta-feira', 'Sex': 'Sexta-feira', 'Sáb': 'Sábado'
+  }[weakestDay?.[0] || 'Ter'];
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -52,7 +76,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
         <div className="flex-1 text-center md:text-left">
           <h4 className="text-xl font-bold text-white mb-1">Oportunidade Detectada!</h4>
           <p className="text-gray-400 text-sm">
-            Suas <span className="text-white font-bold">Terças-feiras</span> possuem 40% menos agendamentos que a média semanal. 
+            Suas <span className="text-white font-bold">{weakestDayFull}s</span> possuem {weakestDay?.[1] === 0 ? 'poucos' : 'menos'} agendamentos que a média semanal. 
             Que tal enviar uma promoção de "Corte + Barba com 20% OFF" para seus clientes via WhatsApp?
           </p>
         </div>

@@ -16,6 +16,7 @@ import {
   X,
   CreditCard
 } from 'lucide-react';
+import { transactionsApi } from '../api';
 
 interface Props {
   transactions: Transaction[];
@@ -26,18 +27,25 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
+  // Form states
+  const [desc, setDesc] = useState('');
+  const [amount, setAmount] = useState(0);
+  const [type, setType] = useState<'income' | 'expense'>('income');
+  const [category, setCategory] = useState('');
+  const [method, setMethod] = useState<'cash' | 'card' | 'pix'>('pix');
+
   // Cálculos de Resumo
   const totalIncome = transactions
     .filter(t => t.type === 'income' && t.status === 'paid')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const totalExpense = transactions
     .filter(t => t.type === 'expense' && t.status === 'paid')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const pendingExpense = transactions
     .filter(t => t.type === 'expense' && t.status === 'pending')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const balance = totalIncome - totalExpense;
 
@@ -46,10 +54,42 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
     filterType === 'all' ? true : t.type === filterType
   );
 
-  const handleToggleStatus = (id: string) => {
-    setTransactions(prev => prev.map(t => 
-      t.id === id ? { ...t, status: t.status === 'paid' ? 'pending' : 'paid' } : t
-    ));
+  const handleToggleStatus = async (id: string) => {
+    const current = transactions.find(t => t.id === id);
+    if (!current) return;
+    
+    try {
+      const newStatus = current.status === 'paid' ? 'pending' : 'paid';
+      const updated = await transactionsApi.update(id, { status: newStatus });
+      setTransactions(prev => prev.map(t => t.id === id ? updated : t));
+    } catch (error) {
+      console.error("Erro ao alterar status:", error);
+    }
+  };
+
+  const handleAddTransaction = async () => {
+    try {
+      const newTrans = await transactionsApi.create({
+        description: desc,
+        amount: amount,
+        type: type,
+        category: category,
+        date: new Date().toISOString(),
+        status: 'paid',
+        paymentMethod: method
+      });
+      setTransactions([newTrans, ...transactions]);
+      setIsAdding(false);
+      resetForm();
+    } catch (error) {
+      console.error("Erro ao criar transação:", error);
+    }
+  };
+
+  const resetForm = () => {
+    setDesc('');
+    setAmount(0);
+    setCategory('');
   };
 
   return (

@@ -18,6 +18,7 @@ import {
   Layers,
   ShoppingBag
 } from 'lucide-react';
+import { productsApi } from '../api';
 
 interface Props {
   products: Product[];
@@ -34,8 +35,8 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   const [newCat, setNewCat] = useState<'consumo' | 'venda' | 'bar'>('venda');
   const [newStock, setNewStock] = useState(0);
   const [newMinStock, setNewMinStock] = useState(2);
-  const [newCost, setNewCost] = useState(0);
-  const [newSale, setNewSale] = useState(0);
+  const [newCost, setTotalCost] = useState(0);
+  const [newSale, setSalePrice] = useState(0);
   const [newExpiry, setNewExpiry] = useState('');
 
   const filtered = products.filter(p => {
@@ -56,32 +57,46 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
     return diffDays <= 30 && diffDays >= 0;
   }).length;
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!newName || newStock < 0 || newCost < 0) return;
     
-    const product: Product = {
-      id: `p${Date.now()}`,
-      name: newName,
-      category: newCat,
-      stock: newStock,
-      minStock: newMinStock,
-      costPrice: newCost,
-      salePrice: newCat === 'venda' || newCat === 'bar' ? newSale : undefined,
-      expiryDate: newExpiry || undefined,
-      lastRestock: new Date().toISOString().split('T')[0]
-    };
+    try {
+      const product = await productsApi.create({
+        name: newName,
+        category: newCat,
+        stock: newStock,
+        minStock: newMinStock,
+        costPrice: newCost,
+        salePrice: newCat === 'venda' || newCat === 'bar' ? newSale : undefined,
+        expiryDate: newExpiry || undefined,
+        lastRestock: new Date().toISOString().split('T')[0]
+      });
 
-    setProducts(prev => [product, ...prev]);
-    setIsAdding(false);
-    resetForm();
+      setProducts(prev => [product, ...prev]);
+      setIsAdding(false);
+      resetForm();
+    } catch (error) {
+      console.error("Erro ao adicionar produto:", error);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (window.confirm("Deseja realmente excluir este produto?")) {
+      try {
+        await productsApi.delete(id);
+        setProducts(products.filter(p => p.id !== id));
+      } catch (error) {
+        console.error("Erro ao excluir produto:", error);
+      }
+    }
   };
 
   const resetForm = () => {
     setNewName('');
     setNewCat('venda');
     setNewStock(0);
-    setNewCost(0);
-    setNewSale(0);
+    setTotalCost(0);
+    setSalePrice(0);
     setNewExpiry('');
   };
 
@@ -220,7 +235,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className="p-2 bg-gray-800 text-gray-400 rounded-lg hover:text-white"><Edit2 size={14} /></button>
                         <button 
-                          onClick={() => setProducts(products.filter(item => item.id !== p.id))}
+                          onClick={() => handleDeleteProduct(p.id)}
                           className="p-2 bg-gray-800 text-red-500/50 rounded-lg hover:text-red-500"
                         >
                           <Trash2 size={14} />

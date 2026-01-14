@@ -16,6 +16,8 @@ import {
   Ticket,
   ChevronRight
 } from 'lucide-react';
+import { customersApi } from '../api';
+import toast from 'react-hot-toast';
 
 interface Props {
   customers: Customer[];
@@ -47,52 +49,66 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
     setIsRedeeming(false);
   };
 
-  const handleSaveNotes = () => {
+  const handleSaveNotes = async () => {
     if (selectedCustomer) {
-      const updated = customers.map(c => 
-        c.id === selectedCustomer.id ? { ...c, notes: tempNotes } : c
-      );
-      setCustomers(updated);
-      setSelectedCustomer({ ...selectedCustomer, notes: tempNotes });
-      setIsEditingNotes(false);
+      try {
+        const updatedCustomer = await customersApi.update(selectedCustomer.id, { notes: tempNotes });
+        const updatedList = customers.map(c => 
+          c.id === selectedCustomer.id ? updatedCustomer : c
+        );
+        setCustomers(updatedList);
+        setSelectedCustomer(updatedCustomer);
+        setIsEditingNotes(false);
+      } catch (error) {
+        console.error("Erro ao salvar notas:", error);
+      }
     }
   };
 
-  const handleRedeem = (pointsCost: number, reward: string) => {
+  const handleRedeem = async (pointsCost: number, reward: string) => {
     if (selectedCustomer && selectedCustomer.points >= pointsCost) {
-      const updated = customers.map(c => 
-        c.id === selectedCustomer.id ? { ...c, points: c.points - pointsCost } : c
-      );
-      setCustomers(updated);
-      setSelectedCustomer({ ...selectedCustomer, points: selectedCustomer.points - pointsCost });
-      alert(`Resgate de "${reward}" realizado com sucesso!`);
-      setIsRedeeming(false);
+      try {
+        await customersApi.redeemPoints(selectedCustomer.id, pointsCost);
+        const updatedCustomer = { ...selectedCustomer, points: selectedCustomer.points - pointsCost };
+        const updatedList = customers.map(c => 
+          c.id === selectedCustomer.id ? updatedCustomer : c
+        );
+        setCustomers(updatedList);
+        setSelectedCustomer(updatedCustomer);
+        toast.success(`Resgate de "${reward}" realizado com sucesso!`);
+        setIsRedeeming(false);
+      } catch (error) {
+        console.error("Erro ao resgatar pontos:", error);
+      }
     } else {
-      alert("Pontos insuficientes para este resgate.");
+      toast.error("Pontos insuficientes para este resgate.");
     }
   };
 
-  const handleAddNewCustomer = () => {
+  const handleAddNewCustomer = async () => {
     if (!newName || !newPhone) {
-      alert("Por favor, preencha o nome e telefone.");
+      toast.error("Por favor, preencha o nome e telefone.");
       return;
     }
 
-    const newEntry: Customer = {
-      id: `c${Date.now()}`,
-      name: newName,
-      phone: newPhone,
-      lastVisit: 'Primeira vez',
-      totalSpent: 0,
-      notes: newNotes || 'Sem notas iniciais.',
-      points: 0
-    };
+    try {
+      const newEntry = await customersApi.create({
+        name: newName,
+        phone: newPhone,
+        notes: newNotes || 'Sem notas iniciais.',
+        points: 0,
+        totalSpent: 0,
+        lastVisit: 'Primeira vez'
+      });
 
-    setCustomers([...customers, newEntry]);
-    setIsAddingNew(false);
-    setNewName('');
-    setNewPhone('');
-    setNewNotes('');
+      setCustomers([...customers, newEntry]);
+      setIsAddingNew(false);
+      setNewName('');
+      setNewPhone('');
+      setNewNotes('');
+    } catch (error) {
+      console.error("Erro ao adicionar cliente:", error);
+    }
   };
 
   const openWhatsApp = (phone: string) => {
