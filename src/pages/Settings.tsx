@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Settings, Shield, Link2, Bell, Smartphone, ExternalLink, 
   Trophy, Star, Plus, Trash2, Clock, Save, Calendar, 
-  AlertCircle, ChevronRight, Check, History, Wifi, Smartphone as Phone,
+  AlertCircle, ChevronRight, Check, History, Wifi,
   Coffee, Globe, Building2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -97,48 +97,48 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-12 pb-20"
+      className="space-y-8 sm:space-y-12 pb-20 px-4 sm:px-0"
     >
-      <header className="flex justify-between items-end">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-white mb-2">Ajustes</h2>
-          <p className="text-white/50 font-medium">Controle sua operação e conexões externas.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2">Ajustes</h2>
+          <p className="text-xs sm:text-sm text-white/50 font-medium">Controle sua operação e conexões externas.</p>
         </div>
         <button 
           onClick={handleSaveAvailability}
-          className="bg-[#007AFF] text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-2 hover:bg-[#007AFF]/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#007AFF]/20"
+          className="w-full sm:w-auto bg-[#007AFF] text-white px-6 py-3.5 rounded-xl sm:rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-[#007AFF]/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#007AFF]/20 text-sm"
         >
           <Save size={18} />
           Salvar Tudo
         </button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
         
         {/* Lado Esquerdo - Configurações de Tempo */}
-        <div className="xl:col-span-8 space-y-8">
+        <div className="xl:col-span-8 space-y-6 sm:space-y-8">
           
           {/* Jornada Semanal */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] overflow-hidden">
-            <div className="p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center text-[#007AFF]">
-                  <Clock size={24} />
+          <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden">
+            <div className="p-5 sm:p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#007AFF]/10 flex items-center justify-center text-[#007AFF]">
+                  <Clock size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Jornada Semanal</h3>
-                  <p className="text-sm text-white/40">Horários de funcionamento por dia</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Jornada Semanal</h3>
+                  <p className="text-[10px] sm:text-sm text-white/40">Horários de funcionamento por dia</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-2">
+            <div className="p-1 sm:p-2">
               {availability.map((day, idx) => (
                 <div 
                   key={idx} 
-                  className={`p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all rounded-2xl ${day.isActive ? 'hover:bg-white/[0.02]' : 'opacity-40'}`}
+                  className={`p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 transition-all rounded-2xl ${day.isActive ? 'hover:bg-white/[0.01]' : 'opacity-40'}`}
                 >
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-4 sm:gap-6">
                     <label className="relative inline-flex items-center cursor-pointer group">
                       <input 
                         type="checkbox" 
@@ -146,10 +146,10 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
                         onChange={() => toggleDay(idx)} 
                         className="sr-only peer" 
                       />
-                      <div className="w-14 h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#34C759]"></div>
+                      <div className="w-12 h-7 sm:w-14 sm:h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:rounded-full after:h-5 sm:after:h-6 after:w-5 sm:after:w-6 after:transition-all peer-checked:bg-[#34C759]"></div>
                     </label>
-                    <div className="w-24">
-                      <span className={`text-lg font-bold ${day.isActive ? 'text-white' : 'text-white/30'}`}>
+                    <div className="w-20 sm:w-24">
+                      <span className={`text-base sm:text-lg font-bold ${day.isActive ? 'text-white' : 'text-white/30'}`}>
                         {DAYS[idx]}
                       </span>
                     </div>
@@ -157,46 +157,50 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
 
                   {day.isActive ? (
                     <motion.div 
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex flex-wrap items-center gap-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6"
                     >
-                      <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                      <div className="flex items-center justify-between sm:justify-start gap-4 bg-white/5 px-4 py-2.5 rounded-xl border border-white/5">
                         <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Expediente</span>
-                        <input 
-                          type="time" 
-                          value={day.startTime} 
-                          onChange={(e) => updateTime(idx, 'startTime', e.target.value)} 
-                          className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                        />
-                        <span className="text-white/20 border-l border-white/10 h-4 mx-1"></span>
-                        <input 
-                          type="time" 
-                          value={day.endTime} 
-                          onChange={(e) => updateTime(idx, 'endTime', e.target.value)} 
-                          className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                        />
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="time" 
+                            value={day.startTime} 
+                            onChange={(e) => updateTime(idx, 'startTime', e.target.value)} 
+                            className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
+                          />
+                          <span className="text-white/20">-</span>
+                          <input 
+                            type="time" 
+                            value={day.endTime} 
+                            onChange={(e) => updateTime(idx, 'endTime', e.target.value)} 
+                            className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
+                          />
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                      <div className="flex items-center justify-between sm:justify-start gap-4 bg-white/5 px-4 py-2.5 rounded-xl border border-white/5">
                         <span className="text-[10px] font-bold text-[#007AFF] uppercase tracking-wider">Almoço</span>
-                        <input 
-                          type="time" 
-                          value={day.lunchStart || ''} 
-                          onChange={(e) => updateTime(idx, 'lunchStart', e.target.value)} 
-                          className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                        />
-                        <span className="text-white/20 border-l border-white/10 h-4 mx-1"></span>
-                        <input 
-                          type="time" 
-                          value={day.lunchEnd || ''} 
-                          onChange={(e) => updateTime(idx, 'lunchEnd', e.target.value)} 
-                          className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                        />
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="time" 
+                            value={day.lunchStart || ''} 
+                            onChange={(e) => updateTime(idx, 'lunchStart', e.target.value)} 
+                            className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
+                          />
+                          <span className="text-white/20">-</span>
+                          <input 
+                            type="time" 
+                            value={day.lunchEnd || ''} 
+                            onChange={(e) => updateTime(idx, 'lunchEnd', e.target.value)} 
+                            className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
+                          />
+                        </div>
                       </div>
                     </motion.div>
                   ) : (
-                    <span className="text-xs font-bold text-white/20 uppercase tracking-[0.2em]">Dia de descanso</span>
+                    <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Dia de descanso</span>
                   )}
                 </div>
               ))}
@@ -204,95 +208,95 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
           </section>
 
           {/* Exceções */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-[#FF3B30]/10 flex items-center justify-center text-[#FF3B30]">
-                <Calendar size={24} />
+          <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] p-5 sm:p-8">
+            <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#FF3B30]/10 flex items-center justify-center text-[#FF3B30]">
+                <Calendar size={20} className="sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Bloqueios & Horários Especiais</h3>
-                <p className="text-sm text-white/40">Feriados, cursos ou atendimentos VIP</p>
+                <h3 className="text-lg sm:text-xl font-bold text-white">Bloqueios & Horários Especiais</h3>
+                <p className="text-[10px] sm:text-sm text-white/40">Feriados, cursos ou atendimentos VIP</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               {/* Form de Nova Exceção */}
-              <div className="bg-white/[0.03] rounded-3xl p-6 border border-white/5 h-fit">
-                <h4 className="text-sm font-bold text-white mb-6 flex items-center gap-2">
-                  <Plus size={16} className="text-[#007AFF]" />
+              <div className="bg-white/[0.03] rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-white/5 h-fit">
+                <h4 className="text-xs sm:text-sm font-bold text-white mb-5 sm:mb-6 flex items-center gap-2">
+                  <Plus size={14} className="text-[#007AFF] sm:w-4 sm:h-4" />
                   Configurar Novo Período
                 </h4>
                 
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-[11px] font-bold text-white/30 uppercase mb-2 block">Tipo de Registro</label>
-                    <select 
-                      value={newException.type}
-                      onChange={(e) => setNewException({...newException, type: e.target.value as any})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] appearance-none"
-                    >
-                      <option value="blocked" className="bg-[#1c1c1e]">Bloqueio total (Folga/Feriado)</option>
-                      <option value="extended" className="bg-[#1c1c1e]">Jornada Específica (Encaixes)</option>
-                    </select>
-                  </div>
+<div className="space-y-4 sm:space-y-6">
+                <div>
+                  <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Tipo de Registro</label>
+                  <select 
+                    value={newException.type}
+                    onChange={(e) => setNewException({...newException, type: e.target.value as any})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] appearance-none"
+                  >
+                    <option value="blocked" className="bg-[#1c1c1e]">Bloqueio total (Folga/Feriado)</option>
+                    <option value="extended" className="bg-[#1c1c1e]">Jornada Específica (Encaixes)</option>
+                  </select>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[11px] font-bold text-white/30 uppercase mb-2 block">Data</label>
-                      <input 
-                        type="date" 
-                        value={newException.date}
-                        onChange={(e) => setNewException({...newException, date: e.target.value})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
-                      />
-                    </div>
-                    {newException.type === 'extended' && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[11px] font-bold text-white/30 uppercase mb-2 block">Início</label>
-                          <input 
-                            type="time" 
-                            value={newException.startTime}
-                            onChange={(e) => setNewException({...newException, startTime: e.target.value})}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[11px] font-bold text-white/30 uppercase mb-2 block">Fim</label>
-                          <input 
-                            type="time" 
-                            value={newException.endTime}
-                            onChange={(e) => setNewException({...newException, endTime: e.target.value})}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] font-bold text-white/30 uppercase mb-2 block">Motivo</label>
+                    <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Data</label>
                     <input 
-                      type="text" 
-                      placeholder="Ex: Feriado Local"
-                      value={newException.reason}
-                      onChange={(e) => setNewException({...newException, reason: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] placeholder:text-white/10"
+                      type="date" 
+                      value={newException.date}
+                      onChange={(e) => setNewException({...newException, date: e.target.value})}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
                     />
                   </div>
-
-                  <button 
-                    onClick={handleAddException}
-                    className="w-full bg-white text-black font-bold py-4 rounded-xl text-sm hover:bg-[#007AFF] hover:text-white transition-all active:scale-95 shadow-lg shadow-white/5"
-                  >
-                    Ativar Exceção
-                  </button>
+                  {newException.type === 'extended' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Início</label>
+                        <input 
+                          type="time" 
+                          value={newException.startTime}
+                          onChange={(e) => setNewException({...newException, startTime: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Fim</label>
+                        <input 
+                          type="time" 
+                          value={newException.endTime}
+                          onChange={(e) => setNewException({...newException, endTime: e.target.value})}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-[#007AFF] [color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Listagem de Exceções */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-white/40 flex items-center justify-between">
+                <div>
+                  <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Motivo</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Feriado Local"
+                    value={newException.reason}
+                    onChange={(e) => setNewException({...newException, reason: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#007AFF] placeholder:text-white/10"
+                  />
+                </div>
+
+                <button 
+                  onClick={handleAddException}
+                  className="w-full bg-white text-black font-bold py-4 rounded-xl text-sm hover:bg-[#007AFF] hover:text-white transition-all active:scale-95 shadow-lg shadow-white/5"
+                >
+                  Ativar Exceção
+                </button>
+              </div>
+            </div>
+
+            {/* Listagem de Exceções */}
+            <div className="space-y-4">
+              <h4 className="text-xs sm:text-sm font-bold text-white/40 flex items-center justify-between">
                   Próximas Datas <span className="bg-white/5 px-2 py-0.5 rounded-md text-[10px] text-white/30">{exceptions.length}</span>
                 </h4>
                 
@@ -360,114 +364,63 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
         </div>
 
         {/* Lado Direito - Perfil, Fidelidade e Integração */}
-        <div className="xl:col-span-4 space-y-8">
+        <div className="xl:col-span-4 space-y-6 sm:space-y-8">
           
           {/* Perfil */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/50">
-                <Building2 size={24} />
+          <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] p-5 sm:p-8">
+            <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 flex items-center justify-center text-white/50">
+                <Building2 size={20} className="sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Barbearia</h3>
-                <p className="text-sm text-white/40">Dados públicos do perfil</p>
+                <h3 className="text-base sm:text-lg font-bold text-white">Barbearia</h3>
+                <p className="text-[10px] sm:text-sm text-white/40">Dados públicos do perfil</p>
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest pl-1">Nome Comercial</label>
-                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-medium flex items-center justify-between">
+                <label className="text-[9px] sm:text-[10px] text-white/30 font-bold uppercase tracking-widest pl-1">Nome Comercial</label>
+                <div className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl p-4 text-white font-medium flex items-center justify-between text-sm sm:text-base">
                   Willian Cut & Co
                   <Check size={14} className="text-[#34C759]" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest pl-1">Endereço</label>
-                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 text-white/60 text-sm leading-relaxed">
+                <label className="text-[9px] sm:text-[10px] text-white/30 font-bold uppercase tracking-widest pl-1">Endereço</label>
+                <div className="bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl p-4 text-white/60 text-xs sm:text-sm leading-relaxed">
                   Av. Central, 123 - Centro <br /> Cep: 01000-000
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Fidelidade */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-[#AF52DE]/10 flex items-center justify-center text-[#AF52DE]">
-                <Trophy size={24} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Fidelidade</h3>
-                <p className="text-sm text-white/40">Gamificação e recompensas</p>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="p-5 bg-[#AF52DE]/5 border border-[#AF52DE]/10 rounded-3xl">
-                <label className="text-[10px] text-[#AF52DE] font-bold uppercase tracking-widest block mb-4">Regra de Pontos</label>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white font-medium">R$ 1,00 =</span>
-                  <div className="flex items-center gap-2">
-                    <input type="number" defaultValue={1} className="w-12 bg-white/10 border-0 rounded-xl px-0 py-2 text-center text-[#AF52DE] font-bold text-lg focus:ring-0" />
-                    <span className="text-sm text-white/40 font-bold">Ponto</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Resgates Ativos</label>
-                  <button className="text-[10px] text-[#007AFF] font-bold uppercase hover:underline">Novo Item</button>
-                </div>
-                
-                <div className="space-y-2">
-                  {[
-                    { name: 'Corte Social', points: 450 },
-                    { name: 'Barba Grátis', points: 350 },
-                    { name: 'Pomada Matte', points: 300 }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.05] transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#AF52DE]/20 flex items-center justify-center text-[#AF52DE] text-[10px] font-black">
-                          {item.points}
-                        </div>
-                        <span className="text-sm text-white/70 font-bold">{item.name}</span>
-                      </div>
-                      <button className="text-white/10 group-hover:text-[#FF3B30] transition-colors"><Trash2 size={14} /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Integrações */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#34C759]/10 flex items-center justify-center text-[#34C759]">
-                  <Wifi size={24} />
+          <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] p-5 sm:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#34C759]/10 flex items-center justify-center text-[#34C759]">
+                  <Wifi size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Integração</h3>
-                  <p className="text-sm text-white/40">WhatsApp & n8n</p>
+                  <h3 className="text-base sm:text-lg font-bold text-white">Integração</h3>
+                  <p className="text-[10px] sm:text-sm text-white/40">WhatsApp & n8n</p>
                 </div>
               </div>
-              <span className="flex items-center gap-1.5 text-[10px] text-[#34C759] font-bold bg-[#34C759]/10 px-3 py-1 rounded-full uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse"></span> Ativo
+              <span className="w-fit flex items-center gap-1.5 text-[9px] sm:text-[10px] text-[#34C759] font-bold bg-[#34C759]/10 px-3 py-1 rounded-full uppercase">
+                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-[#34C759] animate-pulse"></span> Ativo
               </span>
             </div>
             
-            <div className="p-5 bg-white/[0.03] border border-white/5 rounded-3xl space-y-4">
+            <div className="p-4 sm:p-5 bg-white/[0.03] border border-white/5 rounded-2xl sm:rounded-3xl space-y-4">
               <div className="flex justify-between items-center group">
-                <span className="text-[10px] font-mono text-white/20 select-none">API_WEBHOOK_V1</span>
-                <button className="text-[#007AFF] text-[10px] font-bold flex items-center gap-1 hover:underline">
+                <span className="text-[9px] sm:text-[10px] font-mono text-white/20 select-none">API_WEBHOOK_V1</span>
+                <button className="text-[#007AFF] text-[9px] sm:text-[10px] font-bold flex items-center gap-1 hover:underline">
                   Copiar Link
                 </button>
               </div>
               <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                <div className="text-[10px] font-mono text-white/40 break-all leading-relaxed">
+                <div className="text-[9px] sm:text-[10px] font-mono text-white/40 break-all leading-relaxed">
                   https://seu-n8n.com/webhook/barber-flow-v1
                 </div>
               </div>
@@ -475,17 +428,17 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability }) => {
           </section>
 
           {/* Notificações */}
-          <section className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-[#FF9500]/10 flex items-center justify-center text-[#FF9500]">
-                <Bell size={24} />
+          <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] p-5 sm:p-8">
+            <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#FF9500]/10 flex items-center justify-center text-[#FF9500]">
+                <Bell size={20} className="sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Notificações</h3>
-                <p className="text-sm text-white/40">Alertas do sistema</p>
+                <h3 className="text-base sm:text-lg font-bold text-white">Notificações</h3>
+                <p className="text-[10px] sm:text-sm text-white/40">Alertas do sistema</p>
               </div>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <ToggleOption label="Novos Agendamentos" checked={true} />
               <ToggleOption label="Cancelamentos" checked={true} />
               <ToggleOption label="Pontos Expirando" checked={true} />

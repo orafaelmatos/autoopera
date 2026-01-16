@@ -188,32 +188,39 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#1c1c1e] border border-white/5 w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl relative"
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
-              <div className="flex flex-col lg:flex-row">
+              <button 
+                onClick={() => setIsCreating(false)}
+                className="absolute top-6 right-6 p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-all z-20"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex flex-col lg:flex-row min-h-full">
                 {/* Form Section */}
-                <div className="flex-1 p-12 border-r border-white/5">
-                  <div className="mb-10">
-                    <h3 className="text-3xl font-bold tracking-tight text-white mb-2">Nova Campanha</h3>
-                    <p className="text-gray-500 font-medium font-medium">Configure sua oferta e o público-alvo.</p>
+                <div className="flex-1 p-6 sm:p-12 border-r border-white/5">
+                  <div className="mb-8">
+                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Nova Campanha</h3>
+                    <p className="text-gray-500 font-medium text-sm sm:text-base">Configure sua oferta e o público-alvo.</p>
                   </div>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome da Promoção</label>
-                      <input value={promoName} onChange={e => setPromoName(e.target.value)} placeholder="Ex: Black Friday 2024" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                      <input value={promoName} onChange={e => setPromoName(e.target.value)} placeholder="Ex: Black Friday 2024" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Serviço de Foco</label>
-                        <select value={selectedService} onChange={e => setSelectedService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium">
+                        <select value={selectedService} onChange={e => setSelectedService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium">
                           {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Desconto (%)</label>
-                        <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
+                        <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
                       </div>
                     </div>
 
@@ -227,16 +234,16 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4 mt-12">
+                  <div className="flex flex-col gap-3 mt-10">
                     <button 
                       onClick={handleLaunch} 
-                      className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                      className="w-full py-4 sm:py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                       <Megaphone size={18} /> Lançar Campanha
                     </button>
                     <button 
                       onClick={() => setIsCreating(false)} 
-                      className="w-full py-4 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                      className="w-full py-3 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
                     >
                       Voltar
                     </button>

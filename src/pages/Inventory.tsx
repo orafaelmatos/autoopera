@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { productsApi } from '../api';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 interface Props {
   products: Product[];
@@ -39,9 +40,27 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   const [newCat, setNewCat] = useState<'consumo' | 'venda' | 'bar'>('venda');
   const [newStock, setNewStock] = useState(0);
   const [newMinStock, setNewMinStock] = useState(2);
-  const [newCost, setTotalCost] = useState(0);
-  const [newSale, setSalePrice] = useState(0);
+  const [newCost, setTotalCost] = useState('');
+  const [newSale, setSalePrice] = useState('');
   const [newExpiry, setNewExpiry] = useState('');
+
+  const formatCurrency = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    const number = parseFloat(digits) / 100;
+    return number.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTotalCost(formatCurrency(e.target.value));
+  };
+
+  const handleSaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSalePrice(formatCurrency(e.target.value));
+  };
 
   const filtered = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -62,7 +81,13 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   }).length;
 
   const handleAddProduct = async () => {
-    if (!newName || newStock < 0 || newCost < 0) return;
+    if (!newName || !newCost) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    const numericCost = parseFloat(newCost.replace(/\D/g, "")) / 100;
+    const numericSale = newSale ? parseFloat(newSale.replace(/\D/g, "")) / 100 : undefined;
     
     try {
       const product = await productsApi.create({
@@ -70,48 +95,72 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
         category: newCat,
         stock: newStock,
         minStock: newMinStock,
-        costPrice: newCost,
-        salePrice: newCat === 'venda' || newCat === 'bar' ? newSale : undefined,
+        costPrice: numericCost,
+        salePrice: newCat === 'venda' || newCat === 'bar' ? numericSale : undefined,
         expiryDate: newExpiry || undefined,
         lastRestock: new Date().toISOString().split('T')[0]
       });
 
       setProducts(prev => [product, ...prev]);
+      toast.success("Produto cadastrado!");
       setIsAdding(false);
       resetForm();
     } catch (error) {
       console.error("Erro ao adicionar produto:", error);
+      toast.error("Erro ao cadastrar produto");
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
-    try {
-      await productsApi.delete(id);
-      setProducts(products.filter(p => p.id !== id));
-    } catch (error) {
-      console.error("Erro ao excluir produto:", error);
-    }
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-gray-900">Excluir este produto permanentemente?</p>
+        <div className="flex gap-2 justify-end">
+          <button 
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700"
+          >
+            Não
+          </button>
+          <button 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await productsApi.delete(id);
+                setProducts(products.filter(p => p.id !== id));
+                toast.success("Produto removido");
+              } catch (error) {
+                toast.error("Erro ao excluir");
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Sim, Excluir
+          </button>
+        </div>
+      </div>
+    ), { duration: 5000, position: 'top-center' });
   };
 
   const resetForm = () => {
     setNewName('');
     setNewCat('venda');
     setNewStock(0);
-    setTotalCost(0);
-    setSalePrice(0);
+    setTotalCost('');
+    setSalePrice('');
     setNewExpiry('');
   };
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="space-y-8 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-white">Gestão de <span className="text-gray-500">Estoque</span></h2>
-          <p className="text-gray-500 mt-2 font-medium">Produtos, insumos e lucratividade do seu negócio.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-1">Meus <span className="text-gray-500">Produtos</span></h2>
+          <p className="text-gray-500 font-medium text-xs sm:text-sm">Controle de estoque e insumos.</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-[#007AFF] text-white px-8 py-4 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
+          className="bg-[#007AFF] text-white px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl active:scale-95 w-full md:w-auto"
         >
           <Plus size={18} />
           <span>Novo Produto</span>
@@ -119,10 +168,10 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
       </header>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-        <InventoryStatCard title="Valor Total" value={`R$ ${totalInventoryValue.toFixed(2)}`} icon={<DollarSign className="text-green-500" size={20} />} trend="Global" />
-        <InventoryStatCard title="Baixo Estoque" value={lowStockCount.toString()} icon={<AlertTriangle className={lowStockCount > 0 ? 'text-red-500' : 'text-gray-400'} size={20} />} trend="Crítico" highlight={lowStockCount > 0} />
-        <InventoryStatCard title="Validade" value={expiringSoonCount.toString()} icon={<Calendar className={expiringSoonCount > 0 ? 'text-orange-500' : 'text-gray-400'} size={20} />} trend="30 dias" warning={expiringSoonCount > 0} />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <InventoryStatCard title="Total" value={`R$ ${totalInventoryValue.toFixed(0)}`} icon={<DollarSign className="text-green-500" size={18} />} />
+        <InventoryStatCard title="Crítico" value={lowStockCount.toString()} icon={<AlertTriangle className={lowStockCount > 0 ? 'text-red-500' : 'text-gray-400'} size={18} />} highlight={lowStockCount > 0} />
+        <InventoryStatCard title="Vencimento" value={expiringSoonCount.toString()} icon={<Calendar className={expiringSoonCount > 0 ? 'text-orange-500' : 'text-gray-400'} size={18} />} />
       </div>
 
       <div className="space-y-6">
@@ -273,11 +322,24 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Custo Unit.</label>
-                      <input type="number" value={newCost} onChange={e => setTotalCost(Number(e.target.value))} placeholder="0.00" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                      <input 
+                        type="text" 
+                        value={newCost} 
+                        onChange={handleCostChange} 
+                        placeholder="0,00" 
+                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium placeholder:text-gray-700" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">PV (Venda)</label>
-                      <input type="number" value={newSale} onChange={e => setSalePrice(Number(e.target.value))} placeholder="0.00" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" disabled={newCat === 'consumo'} />
+                      <input 
+                        type="text" 
+                        value={newSale} 
+                        onChange={handleSaleChange} 
+                        placeholder="0,00" 
+                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium placeholder:text-gray-700" 
+                        disabled={newCat === 'consumo'} 
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -287,7 +349,12 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                   {newCat !== 'consumo' && (
                     <div className="bg-green-500/5 border border-green-500/10 p-5 rounded-2xl">
                       <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Expectativa de Lucro Unit.</p>
-                      <p className="text-xl font-bold text-green-500 tracking-tight">R$ {(newSale - newCost).toFixed(2)} <span className="text-xs text-gray-600 ml-1">({newSale > 0 ? (((newSale - newCost) / newSale) * 100).toFixed(0) : 0}% margem)</span></p>
+                      <p className="text-xl font-bold text-green-500 tracking-tight">
+                        R$ {((newSale ? parseFloat(newSale.replace(/\D/g, "")) / 100 : 0) - (newCost ? parseFloat(newCost.replace(/\D/g, "")) / 100 : 0)).toFixed(2)} 
+                        <span className="text-xs text-gray-600 ml-1">
+                          ({newSale && parseFloat(newSale.replace(/\D/g, "")) > 0 ? (((parseFloat(newSale.replace(/\D/g, "")) - parseFloat(newCost.replace(/\D/g, ""))) / parseFloat(newSale.replace(/\D/g, ""))) * 100).toFixed(0) : 0}% margem)
+                        </span>
+                      </p>
                     </div>
                   )}
                 </div>
@@ -316,17 +383,17 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
 };
 
 const InventoryStatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean, warning?: boolean }> = ({ title, value, icon, trend, highlight, warning }) => (
-  <div className={`bg-[#1c1c1e] border border-white/5 p-8 rounded-[32px] hover:bg-[#2c2c2e] transition-all group ${highlight ? 'ring-1 ring-red-500/30 shadow-[0_10px_40px_rgba(239,68,68,0.1)]' : warning ? 'ring-1 ring-orange-500/30' : ''}`}>
-    <div className="flex justify-between items-start mb-6">
-      <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em]">{title}</span>
-      <div className="bg-white/5 p-2 rounded-xl group-hover:bg-white/10 transition-colors">
-        {icon}
+  <div className={`bg-[#1c1c1e] border border-white/5 p-4 sm:p-8 rounded-[24px] sm:rounded-[32px] hover:bg-[#2c2c2e] transition-all group ${highlight ? 'ring-1 ring-red-500/30' : warning ? 'ring-1 ring-orange-500/30' : ''}`}>
+    <div className="flex justify-between items-start mb-4 sm:mb-6">
+      <span className="text-gray-500 text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">{title}</span>
+      <div className="bg-white/5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl group-hover:bg-white/10 transition-colors text-gray-400 group-hover:text-white">
+        {React.cloneElement(icon as React.ReactElement, { size: 16, className: "sm:w-5 sm:h-5" })}
       </div>
     </div>
     <div className="flex items-end justify-between">
-      <div className={`text-3xl font-bold tracking-tight ${highlight ? 'text-red-500' : warning ? 'text-orange-500' : 'text-white'}`}>{value}</div>
+      <div className={`text-xl sm:text-3xl font-bold tracking-tight ${highlight ? 'text-red-500' : warning ? 'text-orange-500' : 'text-white'}`}>{value}</div>
       {trend && (
-        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+        <span className="text-[8px] sm:text-[10px] font-black text-gray-600 uppercase tracking-widest">
           {trend}
         </span>
       )}

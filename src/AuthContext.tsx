@@ -5,13 +5,17 @@ interface User {
   id: number;
   username: string;
   name: string;
+  full_name?: string;
+  birth_date?: string;
+  profile_picture?: string;
+  phone?: string;
   role: 'barber' | 'customer';
   profile_id?: number;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (phone: string, password: string, name?: string) => Promise<any>;
+  login: (credentials: any, remember: boolean) => Promise<any>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -23,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       checkAuth();
     } else {
@@ -38,18 +42,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('refresh_token');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (phone: string, password: string, name?: string) => {
+  const login = async (credentials: any, remember: boolean) => {
     try {
-      const response = await api.post('/auth/login/', { phone, password, name });
-      const { access, refresh, role, name: userName } = response.data;
+      const response = await api.post('/auth/login/', credentials);
       
-      localStorage.setItem('token', access);
-      localStorage.setItem('refresh_token', refresh);
+      // Se for apenas uma confirmação de identidade ou pedido de senha, retorna os dados para o componente tratar
+      if (response.data.error === 'CONFIRM_IDENTITY' || response.data.error === 'PASSWORD_REQUIRED' || response.data.error === 'NAME_REQUIRED') {
+        return response.data;
+      }
+
+      const { access, refresh } = response.data;
+      if (!access) return response.data; // Caso retorne algo inesperado mas sem erro 4xx
+
+      const storage = remember ? localStorage : sessionStorage;
+      
+      storage.setItem('token', access);
+      storage.setItem('refresh_token', refresh);
       
       const meResponse = await api.get('/auth/me/');
       setUser(meResponse.data);
@@ -62,6 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('refresh_token');
     setUser(null);
   };
 

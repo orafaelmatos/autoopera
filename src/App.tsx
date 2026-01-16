@@ -19,7 +19,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
-import { Service, Appointment, Availability, Customer, Transaction, Product, WaitingListEntry, ScheduleException } from './types';
+import { Service, Appointment, Availability, Customer, Transaction, Product, ScheduleException } from './types';
 import { 
   servicesApi, 
   customersApi, 
@@ -27,7 +27,6 @@ import {
   transactionsApi, 
   productsApi, 
   availabilityApi, 
-  waitingListApi,
   scheduleExceptionsApi
 } from './api';
 import Dashboard from './pages/Dashboard';
@@ -69,8 +68,19 @@ const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.Re
   </button>
 );
 
-const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode }> = ({ active, onClick, icon }) => (
-  <button onClick={onClick} className={`p-3 rounded-2xl transition-all ${active ? 'bg-[#007AFF] text-white' : 'text-gray-500 hover:text-white'}`}>{icon}</button>
+const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
+  <button 
+    onClick={onClick} 
+    className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all ${active ? 'text-[#007AFF]' : 'text-gray-500'}`}
+  >
+    <div className={`transition-transform duration-300 ${active ? 'scale-110' : ''}`}>
+      {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { 
+        size: 20,
+        strokeWidth: active ? 2.5 : 2
+      }) : icon}
+    </div>
+    <span className={`text-[9px] font-bold uppercase tracking-[0.05em] transition-all ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
+  </button>
 );
 
 const MenuCard: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
@@ -114,7 +124,6 @@ const App: React.FC = () => {
 
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [waitingList, setWaitingList] = useState<WaitingListEntry[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -130,7 +139,6 @@ const App: React.FC = () => {
         const [
           servicesData, 
           appointmentsData, 
-          waitingListData, 
           customersData, 
           transactionsData, 
           productsData, 
@@ -139,7 +147,6 @@ const App: React.FC = () => {
         ] = await Promise.all([
           servicesApi.getAll(),
           appointmentsApi.getAll(),
-          waitingListApi.getAll(),
           customersApi.getAll(),
           transactionsApi.getAll(),
           productsApi.getAll(),
@@ -149,7 +156,6 @@ const App: React.FC = () => {
 
         setServices(servicesData);
         setAppointments(appointmentsData);
-        setWaitingList(waitingListData);
         setCustomers(customersData);
         setTransactions(transactionsData);
         setProducts(productsData);
@@ -166,7 +172,8 @@ const App: React.FC = () => {
   }, [user]);
 
   const getActiveTab = (pathname: string) => {
-    if (pathname === '/') return 'dashboard';
+    if (pathname === '/') return 'calendar';
+    if (pathname === '/dashboard') return 'dashboard';
     return pathname.substring(1);
   };
 
@@ -212,14 +219,12 @@ const App: React.FC = () => {
             <h1 className="text-xl font-bold tracking-tight">Barber<span className="text-[#007AFF]">Flow</span></h1>
           </div>
           <div className="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-2">
-            <NavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/')} icon={<LayoutDashboard size={20} />} label="Início" />
-            <NavButton active={activeTab === 'calendar'} onClick={() => handleNavigation('/calendar')} icon={<Calendar size={20} />} label="Agenda" />
+            <NavButton active={activeTab === 'calendar'} onClick={() => handleNavigation('/')} icon={<Calendar size={20} />} label="Agenda" />
+            <NavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/dashboard')} icon={<LayoutDashboard size={20} />} label="Resumo" />
             <NavButton active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors size={20} />} label="Serviços" />
             <NavButton active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users size={20} />} label="Clientes" />
             <NavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign size={20} />} label="Financeiro" />
             <NavButton active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package size={20} />} label="Estoque" />
-            <NavButton active={activeTab === 'promotions'} onClick={() => handleNavigation('/promotions')} icon={<Megaphone size={20} />} label="Marketing" />
-            <NavButton active={activeTab === 'reports'} onClick={() => handleNavigation('/reports')} icon={<BarChart3 size={20} />} label="Analytics" />
             <NavButton active={activeTab === 'settings'} onClick={() => handleNavigation('/settings')} icon={<Settings size={20} />} label="Ajustes" />
           </div>
           <div className="mt-auto pt-8 border-t border-white/5 space-y-4">
@@ -255,27 +260,10 @@ const App: React.FC = () => {
           
           <Route path="/" element={
             <ProtectedRoute allowedRoles={['barber']}>
-              <Dashboard 
-                userName={user?.name?.split(' ')[0]}
-                appointments={appointments} 
-                setAppointments={setAppointments}
-                services={services} 
-                customers={customers} 
-                setTransactions={setTransactions}
-                waitingListCount={waitingList.length} 
-                onNavigateToPromotions={() => handleNavigation('/promotions')} 
-              />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/calendar" element={
-            <ProtectedRoute allowedRoles={['barber']}>
               <CalendarPage 
                 barberId={user?.profile_id?.toString()}
                 availability={availability} 
                 setAvailability={setAvailability} 
-                waitingList={waitingList} 
-                setWaitingList={setWaitingList} 
                 services={services} 
                 appointments={appointments} 
                 setAppointments={setAppointments}
@@ -284,6 +272,22 @@ const App: React.FC = () => {
               />
             </ProtectedRoute>
           } />
+          
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRoles={['barber']}>
+              <Dashboard 
+                userName={user?.name?.split(' ')[0]}
+                appointments={appointments} 
+                setAppointments={setAppointments}
+                services={services} 
+                customers={customers} 
+                setTransactions={setTransactions}
+                onNavigateToPromotions={() => handleNavigation('/promotions')} 
+              />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/calendar" element={<Navigate to="/" replace />} />
 
           <Route path="/services" element={
             <ProtectedRoute allowedRoles={['barber']}>
@@ -300,18 +304,6 @@ const App: React.FC = () => {
           <Route path="/finance" element={
             <ProtectedRoute allowedRoles={['barber']}>
               <Finance transactions={transactions} setTransactions={setTransactions} />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/reports" element={
-            <ProtectedRoute allowedRoles={['barber']}>
-              <Reports appointments={appointments} services={services} onNavigateToPromotions={() => handleNavigation('/promotions')} />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/promotions" element={
-            <ProtectedRoute allowedRoles={['barber']}>
-              <Promotions services={services} customers={customers} />
             </ProtectedRoute>
           } />
 
@@ -333,16 +325,37 @@ const App: React.FC = () => {
 
       {user?.role === 'barber' && (
         <>
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/5 px-2 py-2 flex justify-around items-center z-50">
-            <MobileNavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/')} icon={<LayoutDashboard size={20} />} />
-            <MobileNavButton active={activeTab === 'calendar'} onClick={() => handleNavigation('/calendar')} icon={<Calendar size={20} />} />
-            <MobileNavButton active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users size={20} />} />
-            <MobileNavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign size={20} />} />
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-2xl border-t border-white/5 h-[72px] px-2 flex justify-around items-center z-50 pb-safe">
+            <MobileNavButton 
+              active={activeTab === 'calendar'} 
+              onClick={() => handleNavigation('/')} 
+              icon={<Calendar />} 
+              label="Agenda"
+            />
+            <MobileNavButton 
+              active={activeTab === 'dashboard'} 
+              onClick={() => handleNavigation('/dashboard')} 
+              icon={<LayoutDashboard />} 
+              label="Resumo"
+            />
+            <MobileNavButton 
+              active={activeTab === 'customers'} 
+              onClick={() => handleNavigation('/customers')} 
+              icon={<Users />} 
+              label="Clientes"
+            />
+            <MobileNavButton 
+              active={activeTab === 'finance'} 
+              onClick={() => handleNavigation('/finance')} 
+              icon={<DollarSign />} 
+              label="Dinheiro"
+            />
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`p-3 rounded-2xl transition-all text-gray-500 hover:text-white`}
+              className={`flex flex-col items-center justify-center flex-1 h-full gap-1 text-gray-500`}
             >
-              <Menu size={20} />
+              <Menu size={20} strokeWidth={2} />
+              <span className="text-[9px] font-bold uppercase tracking-[0.05em] opacity-60">Menu</span>
             </button>
           </nav>
 
@@ -353,10 +366,9 @@ const App: React.FC = () => {
                 <button onClick={() => setIsMobileMenuOpen(false)} className="bg-white/10 p-2 rounded-full"><X size={24} /></button>
               </div>
               <div className="grid grid-cols-2 gap-4 overflow-y-auto pb-10">
-                <MenuCard active={activeTab === 'dashboard'} onClick={() => handleNavigation('/')} icon={<LayoutDashboard />} label="Início" />
+                <MenuCard active={activeTab === 'calendar'} onClick={() => handleNavigation('/')} icon={<Calendar />} label="Agenda" />
+                <MenuCard active={activeTab === 'dashboard'} onClick={() => handleNavigation('/dashboard')} icon={<LayoutDashboard />} label="Resumo" />
                 <MenuCard active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package />} label="Estoque" />
-                <MenuCard active={activeTab === 'promotions'} onClick={() => handleNavigation('/promotions')} icon={<Megaphone />} label="Marketing" />
-                <MenuCard active={activeTab === 'reports'} onClick={() => handleNavigation('/reports')} icon={<BarChart3 />} label="Analytics" />
                 <MenuCard active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Serviços" />
                 <MenuCard active={activeTab === 'settings'} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
               </div>

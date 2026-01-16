@@ -20,8 +20,8 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
-  email?: string;
-  cpf?: string;
+  birth_date?: string;
+  profile_picture?: string;
   lastVisit: string;
   totalSpent: number;
   notes: string;
@@ -44,16 +44,6 @@ export interface Appointment {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   platform?: 'manual' | 'whatsapp' | 'web';
   customer?: string;
-}
-
-export interface WaitingListEntry {
-  id: string;
-  customerName: string;
-  customerPhone: string;
-  serviceId: string;
-  date: string; // YYYY-MM-DD
-  preferredPeriod: 'morning' | 'afternoon' | 'night' | 'any';
-  createdAt: string;
 }
 
 export interface Availability {

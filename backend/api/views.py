@@ -7,12 +7,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
-    Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
+    Service, Customer, LoyaltyReward, Appointment,
     Availability, ScheduleException, Transaction, Promotion, Product, Barber
 )
 from .serializers import (
     ServiceSerializer, CustomerSerializer, LoyaltyRewardSerializer,
-    AppointmentSerializer, WaitingListEntrySerializer, AvailabilitySerializer,
+    AppointmentSerializer, AvailabilitySerializer,
     ScheduleExceptionSerializer, TransactionSerializer, PromotionSerializer,
     ProductSerializer, BarberSerializer
 )
@@ -27,18 +27,38 @@ from django.utils.dateparse import parse_datetime
 def whatsapp_login(request):
     phone = request.data.get('phone')
     password = request.data.get('password')
-    name = request.data.get('name')  # Opcional, para cadastro
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    confirm_identity = request.data.get('confirm_identity', False)
 
-    if not phone or not password:
-        return Response({"error": "Telefone e senha são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
+    if not phone:
+        return Response({"error": "TELEFONE_REQUIRED", "message": "O telefone é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = authenticate(username=phone, password=password)
-
-    if user:
-        refresh = RefreshToken.for_user(user)
-        role = 'customer'
+    try:
+        user = User.objects.get(username=phone)
+        
+        # Se for barbeiro e NÃO enviou senha ou quer confirmar identidade sem senha
         if hasattr(user, 'barber_profile'):
-            role = 'barber'
+            if not password:
+                return Response({"error": "PASSWORD_REQUIRED", "message": "Barbeiros precisam de senha."}, status=status.HTTP_200_OK)
+            
+            user = authenticate(username=phone, password=password)
+            if not user:
+                return Response({"error": "INVALID_PASSWORD", "message": "Senha incorreta."}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            # É um cliente. Pergunta se é ele se ainda não confirmou via flag confirm_identity.
+            if not confirm_identity:
+                full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+                return Response({
+                    "error": "CONFIRM_IDENTITY", 
+                    "name": full_name
+                }, status=status.HTTP_200_OK)
+            
+            # Identidade confirmada, segue para login sem conferência de senha
+            pass
+
+        refresh = RefreshToken.for_user(user)
+        role = 'barber' if hasattr(user, 'barber_profile') else 'customer'
         
         return Response({
             'refresh': str(refresh),
@@ -48,19 +68,31 @@ def whatsapp_login(request):
             'phone': user.username
         })
 
-    # Se o usuário não existe, verifica se deve criar
-    if not User.objects.filter(username=phone).exists():
-        if not name:
+    except User.DoesNotExist:
+        # Primeiro acesso
+        if not first_name or not last_name:
             return Response({
-                "error": "USER_NOT_FOUND", 
-                "message": "Usuário não encontrado. Por favor, informe seu nome para cadastro."
-            }, status=status.HTTP_404_NOT_FOUND)
+                "error": "NAME_REQUIRED", 
+                "message": "Primeiro acesso! Por favor, informe seu nome e sobrenome."
+            }, status=status.HTTP_200_OK)
         
-        # Criar novo usuário (cliente)
-        user = User.objects.create_user(username=phone, password=password, first_name=name)
-        customer, created = Customer.objects.get_or_create(phone=phone, defaults={'name': name, 'user': user})
+        # Criar novo usuário (cliente) sem exigir que ele crie senha
+        # Usamos o próprio telefone como senha interna
+        user = User.objects.create_user(
+            username=phone, 
+            password=phone, 
+            first_name=first_name, 
+            last_name=last_name
+        )
+        
+        full_name = f"{first_name} {last_name}"
+        customer, created = Customer.objects.get_or_create(
+            phone=phone, 
+            defaults={'name': full_name, 'user': user}
+        )
         if not created:
             customer.user = user
+            customer.name = full_name
             customer.save()
             
         refresh = RefreshToken.for_user(user)
@@ -68,11 +100,9 @@ def whatsapp_login(request):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'role': 'customer',
-            'name': name,
+            'name': first_name,
             'phone': phone
         }, status=status.HTTP_201_CREATED)
-
-    return Response({"error": "Credenciais inválidas"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['GET'])
@@ -81,19 +111,29 @@ def get_me(request):
     user = request.user
     role = 'customer'
     profile_id = None
+    extra_data = {}
+    
     if hasattr(user, 'barber_profile'):
         role = 'barber'
         profile_id = user.barber_profile.id
     elif hasattr(user, 'customer_profile'):
         profile_id = user.customer_profile.id
         role = 'customer'
+        customer = user.customer_profile
+        extra_data = {
+            'birth_date': customer.birth_date,
+            'profile_picture': customer.profile_picture.url if customer.profile_picture else None,
+            'phone': customer.phone,
+            'full_name': customer.name
+        }
     
     return Response({
         'id': user.id,
         'username': user.username,
         'name': user.first_name,
         'role': role,
-        'profile_id': profile_id
+        'profile_id': profile_id,
+        **extra_data
     })
 
 
@@ -119,7 +159,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'phone', 'email', 'cpf']
+    search_fields = ['name', 'phone']
     ordering_fields = ['name', 'total_spent', 'points', 'last_visit']
 
     def get_queryset(self):
@@ -134,7 +174,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def redeem_points(self, request, pk=None):
         """Resgatar pontos de fidelidade"""
         customer = self.get_object()
-        points_to_redeem = request.data.get('points', 0)
+        try:
+            points_to_redeem = int(request.data.get('points', 0))
+        except (ValueError, TypeError):
+            return Response({'success': False, 'error': 'Valor de pontos inválido'}, status=400)
         
         if customer.points >= points_to_redeem:
             customer.points -= points_to_redeem
@@ -182,12 +225,21 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         service_id = request.data.get('serviceId')
         customer_id = request.data.get('customer')
         client_name = request.data.get('clientName')
+        client_phone = request.data.get('clientPhone')
         date_str = request.data.get('date')
         platform = request.data.get('platform', 'manual')
         is_override = request.data.get('isOverride', False)
 
         if not all([barber_id, service_id, client_name, date_str]):
             return Response({"error": "MISSING_FIELDS"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Se não tem customer_id mas tem telefone, tenta vincular ou criar cliente
+        if not customer_id and client_phone:
+            customer, _ = Customer.objects.get_or_create(
+                phone=client_phone,
+                defaults={'name': client_name}
+            )
+            customer_id = customer.id
 
         try:
             date_obj = parse_datetime(date_str)
@@ -218,6 +270,13 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         BookingService.cancel_appointment(appointment.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        """Marca um agendamento como concluído e gera transação"""
+        appointment = BookingService.complete_appointment(pk)
+        serializer = self.get_serializer(appointment)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def today(self, request):
         """Retorna os agendamentos de hoje"""
@@ -241,15 +300,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             return Response([s.strftime('%H:%M') for s in slots])
         except Exception as e:
             return Response({"error": str(e)}, status=400)
-
-
-class WaitingListEntryViewSet(viewsets.ModelViewSet):
-    """ViewSet para lista de espera"""
-    queryset = WaitingListEntry.objects.all()
-    serializer_class = WaitingListEntrySerializer
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['date', 'preferred_period']
-    ordering_fields = ['created_at', 'date']
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):

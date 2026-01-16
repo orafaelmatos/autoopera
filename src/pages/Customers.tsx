@@ -34,28 +34,20 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [tempNotes, setTempNotes] = useState('');
-  const [tempEmail, setTempEmail] = useState('');
-  const [tempCpf, setTempCpf] = useState('');
 
   // Estados para o novo cliente
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newCpf, setNewCpf] = useState('');
   const [newNotes, setNewNotes] = useState('');
 
   const filtered = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phone.includes(searchTerm) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.cpf?.includes(searchTerm)
+    c.phone.includes(searchTerm)
   );
 
   const handleOpenProfile = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setTempNotes(customer.notes);
-    setTempEmail(customer.email || '');
-    setTempCpf(customer.cpf || '');
+    setTempNotes(customer.notes || '');
     setIsEditingNotes(false);
     setIsRedeeming(false);
   };
@@ -64,9 +56,7 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
     if (selectedCustomer) {
       try {
         const updatedCustomer = await customersApi.update(selectedCustomer.id, { 
-          notes: tempNotes,
-          email: tempEmail,
-          cpf: tempCpf
+          notes: tempNotes
         });
         const updatedList = customers.map(c => 
           c.id === selectedCustomer.id ? updatedCustomer : c
@@ -112,8 +102,6 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
       const newEntry = await customersApi.create({
         name: newName,
         phone: newPhone,
-        email: newEmail,
-        cpf: newCpf,
         notes: newNotes || 'Sem notas iniciais.',
         points: 0,
         totalSpent: 0,
@@ -124,8 +112,6 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
       setIsAddingNew(false);
       setNewName('');
       setNewPhone('');
-      setNewEmail('');
-      setNewCpf('');
       setNewNotes('');
     } catch (error) {
       console.error("Erro ao adicionar cliente:", error);
@@ -138,66 +124,74 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
   };
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="space-y-8 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-white">Meus <span className="text-gray-500">Clientes</span></h2>
-          <p className="text-gray-500 mt-2 font-medium">Gestão de relacionamento e fidelização.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white line-clamp-1">Meus <span className="text-gray-500">Clientes</span></h2>
+          <p className="text-gray-500 mt-1 sm:mt-2 font-medium text-xs sm:text-sm">Gestão de relacionamento e fidelidade.</p>
         </div>
         <button 
           onClick={() => setIsAddingNew(true)}
-          className="bg-[#007AFF] text-white px-6 py-3 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-[0_10px_20px_rgba(0,122,255,0.2)] active:scale-95"
+          className="bg-[#007AFF] text-white px-5 sm:px-6 py-3.5 sm:py-3 rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl active:scale-95 w-full md:w-auto"
         >
           <UserPlus size={18} />
           <span>Novo Cliente</span>
         </button>
       </header>
 
-      <div className="relative group">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#007AFF] transition-colors" size={20} />
+      <div className="relative group mx-1">
+        <Search className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#007AFF] transition-colors" size={18} />
         <input 
           type="text" 
-          placeholder="Buscar por nome ou celular..."
-          className="w-full bg-[#1c1c1e] border border-white/5 rounded-[24px] pl-16 pr-8 py-5 text-white focus:border-[#007AFF]/50 focus:outline-none transition-all placeholder:text-gray-600 text-lg"
+          placeholder="Buscar cliente..."
+          className="w-full bg-[#1c1c1e] border border-white/5 rounded-[20px] sm:rounded-[24px] pl-12 sm:pl-16 pr-6 sm:pr-8 py-4 sm:py-5 text-white focus:border-[#007AFF]/50 focus:outline-none transition-all placeholder:text-gray-600 text-base sm:text-lg"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {filtered.length > 0 ? filtered.map(customer => (
-          <div key={customer.id} className="bg-[#1c1c1e] border border-white/5 p-6 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-[#2c2c2e] transition-all group">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-[24px] bg-black/40 flex items-center justify-center text-[#007AFF] border border-white/5 group-hover:scale-105 transition-transform">
-                <span className="text-2xl font-bold">{customer.name.charAt(0)}</span>
+          <div key={customer.id} className="bg-[#1c1c1e] border border-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 hover:bg-[#2c2c2e] transition-all group">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] sm:rounded-[24px] bg-black/40 flex items-center justify-center text-[#007AFF] border border-white/5 group-hover:scale-105 transition-transform overflow-hidden">
+                {customer.profile_picture ? (
+                  <img 
+                    src={customer.profile_picture.startsWith('http') ? customer.profile_picture : `http://127.0.0.1:8000${customer.profile_picture}`} 
+                    className="w-full h-full object-cover" 
+                    alt={customer.name} 
+                  />
+                ) : (
+                  <span className="text-xl sm:text-2xl font-bold">{customer.name.charAt(0)}</span>
+                )}
               </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h4 className="text-xl font-bold text-white tracking-tight">{customer.name}</h4>
-                  <div className="flex items-center gap-1 bg-[#007AFF]/10 px-2.5 py-1 rounded-full text-[#007AFF] text-[10px] font-bold uppercase tracking-wider border border-[#007AFF]/20">
-                    <Trophy size={12} /> {customer.points} Pts
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <h4 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">{customer.name}</h4>
+                  <div className="flex items-center gap-1 bg-[#007AFF]/10 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[#007AFF] text-[8px] sm:text-[10px] font-bold uppercase tracking-wider border border-[#007AFF]/20 whitespace-nowrap">
+                    <Trophy size={10} sm:size={12} /> {customer.points} Pts
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-4 mt-2">
-                  <span className="flex items-center gap-1.5 text-sm text-gray-500 font-medium"><Phone size={14} className="text-gray-600" /> {customer.phone}</span>
-                  <span className="flex items-center gap-1.5 text-sm text-gray-500 font-medium"><Calendar size={14} className="text-gray-600" /> {customer.lastVisit}</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 sm:mt-2">
+                  <span className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 font-medium"><Phone size={12} sm:size={14} className="text-gray-600" /> {customer.phone}</span>
+                  <span className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 font-medium"><Calendar size={12} sm:size={14} className="text-gray-600" /> {customer.lastVisit}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button 
                 onClick={() => openWhatsApp(customer.phone)}
-                className="p-4 bg-white/5 text-gray-400 rounded-2xl hover:bg-green-500/10 hover:text-green-500 transition-all border border-transparent hover:border-green-500/20"
+                className="flex-1 md:flex-none p-3.5 sm:p-4 bg-white/5 text-gray-400 rounded-xl sm:rounded-2xl hover:bg-green-500/10 hover:text-green-500 transition-all border border-transparent hover:border-green-500/20 flex items-center justify-center"
                 title="Conversar no WhatsApp"
               >
-                <MessageCircle size={22} />
+                <MessageCircle size={20} sm:size={22} />
               </button>
               <button 
                 onClick={() => handleOpenProfile(customer)}
-                className="px-6 py-4 bg-[#1c1c1e] border border-white/5 hover:border-[#007AFF]/50 text-white rounded-[20px] text-[13px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+                className="flex-[2] md:flex-none px-5 sm:px-6 py-3.5 sm:py-4 bg-[#1c1c1e] border border-white/5 hover:border-[#007AFF]/50 text-white rounded-xl sm:rounded-[20px] text-[11px] sm:text-[13px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg"
               >
-                Ver Perfil
+                Detalhes
               </button>
             </div>
           </div>
@@ -216,126 +210,106 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#1c1c1e] border border-white/5 w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl relative"
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col"
             >
               <button 
                 onClick={() => setSelectedCustomer(null)}
-                className="absolute top-6 right-6 p-3 bg-white/5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all z-10"
+                className="absolute top-4 right-4 md:top-6 md:right-6 p-2 md:p-3 bg-white/5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all z-10"
               >
                 <X size={20} />
               </button>
 
-              <div className="h-40 bg-gradient-to-br from-[#007AFF] to-[#004BB3] relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute -bottom-12 left-10">
-                  <div className="w-24 h-24 rounded-[32px] bg-[#1c1c1e] border-[6px] border-[#1c1c1e] flex items-center justify-center text-[#007AFF] text-4xl font-bold shadow-2xl">
-                    {selectedCustomer.name.charAt(0)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-16 p-10">
-                <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                  <div>
-                    <h3 className="text-3xl font-bold tracking-tight text-white">{selectedCustomer.name}</h3>
-                    <div className="flex flex-wrap items-center gap-4 mt-3">
-                      <p className="text-gray-500 font-medium flex items-center gap-2">
-                        <Phone size={14} className="text-gray-600" /> {selectedCustomer.phone}
-                      </p>
-                      <div className="w-1 h-1 rounded-full bg-white/10"></div>
-                      <p className="text-gray-500 font-medium flex items-center gap-2">
-                        <Calendar size={14} className="text-gray-600" /> Última visita: {selectedCustomer.lastVisit}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-[#007AFF]/10 p-6 rounded-[28px] border border-[#007AFF]/20 min-w-[200px]">
-                    <p className="text-[10px] text-[#007AFF] font-bold uppercase tracking-[0.2em] mb-2 leading-none">Pontos Acumulados</p>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl font-bold text-[#007AFF] leading-none">{selectedCustomer.points}</span>
-                      <span className="text-sm font-bold text-[#007AFF]/60 uppercase tracking-widest mb-1">pts</span>
+              <div className="overflow-y-auto custom-scrollbar">
+                <div className="h-32 md:h-40 bg-gradient-to-br from-[#007AFF] to-[#004BB3] relative overflow-hidden flex-shrink-0">
+                  <div className="absolute inset-0 bg-black/10"></div>
+                  <div className="absolute -bottom-8 md:-bottom-12 left-6 md:left-10">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-[28px] md:rounded-[32px] bg-[#1c1c1e] border-[4px] md:border-[6px] border-[#1c1c1e] flex items-center justify-center text-[#007AFF] text-3xl md:text-4xl font-bold shadow-2xl overflow-hidden">
+                      {selectedCustomer.profile_picture ? (
+                        <img 
+                          src={selectedCustomer.profile_picture.startsWith('http') ? selectedCustomer.profile_picture : `http://127.0.0.1:8000${selectedCustomer.profile_picture}`} 
+                          className="w-full h-full object-cover" 
+                          alt={selectedCustomer.name} 
+                        />
+                      ) : (
+                        selectedCustomer.name.charAt(0)
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mt-12">
-                  <div className="space-y-6">
-                    <div className="bg-black/20 border border-white/5 p-6 rounded-[24px]">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-bold flex items-center gap-2 text-sm text-gray-400 uppercase tracking-wider">
-                          <MessageSquare size={16} className="text-[#007AFF]" /> Perfil Técnico
-                        </h4>
-                        {!isEditingNotes ? (
-                          <button onClick={() => setIsEditingNotes(true)} className="text-[10px] text-[#007AFF] uppercase font-bold tracking-widest hover:text-[#0063CC] transition-colors">Editar</button>
+                <div className="pt-12 md:pt-16 p-6 md:p-10">
+                  <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+                    <div className="w-full">
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-1">{selectedCustomer.name}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
+                        <p className="text-gray-500 text-sm font-medium flex items-center gap-2">
+                          <Phone size={14} className="text-[#007AFF]" /> {selectedCustomer.phone}
+                        </p>
+                        <div className="hidden sm:block w-1 h-1 rounded-full bg-white/10"></div>
+                        <p className="text-gray-500 text-sm font-medium flex items-center gap-2">
+                          <Calendar size={14} className="text-[#007AFF]" /> Visto em: {selectedCustomer.lastVisit}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-full lg:w-auto bg-[#007AFF]/10 p-5 md:p-6 rounded-[24px] md:rounded-[28px] border border-[#007AFF]/20 flex-shrink-0">
+                      <p className="text-[10px] text-[#007AFF] font-bold uppercase tracking-[0.2em] mb-2 leading-none">Pontos Acumulados</p>
+                      <div className="flex items-end gap-2">
+                        <span className="text-3xl md:text-4xl font-bold text-[#007AFF] leading-none">{selectedCustomer.points}</span>
+                        <span className="text-sm font-bold text-[#007AFF]/60 uppercase tracking-widest mb-1">pts</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6 md:gap-8 mt-10 md:mt-12">
+                    <div className="space-y-6">
+                      <div className="bg-black/20 border border-white/5 p-5 md:p-6 rounded-[24px]">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold flex items-center gap-2 text-xs md:text-sm text-gray-400 uppercase tracking-wider">
+                            <MessageSquare size={16} className="text-[#007AFF]" /> Perfil Técnico
+                          </h4>
+                          {!isEditingNotes ? (
+                            <button onClick={() => setIsEditingNotes(true)} className="text-[10px] text-[#007AFF] uppercase font-bold tracking-[0.15em] hover:text-[#0063CC] transition-colors py-1 px-3 bg-[#007AFF]/5 rounded-lg border border-[#007AFF]/10">Editar</button>
+                          ) : (
+                            <button onClick={handleSaveNotes} className="text-[10px] text-green-500 uppercase font-bold tracking-[0.15em] flex items-center gap-1 hover:text-green-400 transition-colors py-1 px-3 bg-green-500/5 rounded-lg border border-green-500/10">
+                              <Save size={12} /> Salvar
+                            </button>
+                          )}
+                        </div>
+                        
+                        {isEditingNotes ? (
+                          <div className="space-y-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Observações</label>
+                              <textarea 
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-[#007AFF]/50 transition-all placeholder:text-gray-700 min-h-[100px] font-medium"
+                                value={tempNotes}
+                                placeholder="Notas técnicas, preferências, alergias..."
+                                onChange={(e) => setTempNotes(e.target.value)}
+                              />
+                            </div>
+                          </div>
                         ) : (
-                          <button onClick={handleSaveNotes} className="text-[10px] text-green-500 uppercase font-bold tracking-widest flex items-center gap-1 hover:text-green-400 transition-colors">
-                            <Save size={12} /> Salvar
-                          </button>
+                          <div className="space-y-5">
+                            <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5">Observações</p>
+                                <div className="bg-black/20 rounded-xl p-3 border border-white/5 min-h-[60px]">
+                                  <p className="text-sm text-gray-400 leading-relaxed italic">
+                                    {selectedCustomer.notes ? selectedCustomer.notes : "Nenhuma observação técnica registrada."}
+                                  </p>
+                                </div>
+                            </div>
+                          </div>
                         )}
                       </div>
                       
-                      {isEditingNotes ? (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Email</label>
-                              <input 
-                                type="email" 
-                                value={tempEmail}
-                                onChange={(e) => setTempEmail(e.target.value)}
-                                className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-[#007AFF]/50"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">CPF</label>
-                              <input 
-                                type="text" 
-                                value={tempCpf}
-                                onChange={(e) => setTempCpf(e.target.value)}
-                                className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-[#007AFF]/50"
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Observações</label>
-                            <textarea 
-                              className="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-[#007AFF]/50 transition-all placeholder:text-gray-700"
-                              rows={3}
-                              value={tempNotes}
-                              placeholder="Observações do cliente..."
-                              onChange={(e) => setTempNotes(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Email</p>
-                                <p className="text-xs text-white truncate">{selectedCustomer.email || 'Não informado'}</p>
-                            </div>
-                            <div>
-                                <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">CPF</p>
-                                <p className="text-xs text-white">{selectedCustomer.cpf || 'Não informado'}</p>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Observações</p>
-                            <p className="text-sm text-gray-400 leading-relaxed italic">
-                              {selectedCustomer.notes ? `"${selectedCustomer.notes}"` : "Nenhuma observação registrada."}
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                      <div className="bg-black/20 border border-white/5 p-5 md:p-6 rounded-[24px] flex items-center justify-between">
+                         <div>
+                           <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Total Vitalício</p>
+                           <p className="text-2xl md:text-3xl font-bold text-white tracking-tight">R$ {selectedCustomer.totalSpent}</p>
+                         </div>
+                         <Trophy size={40} className="text-white/5" />
+                      </div>
                     </div>
-                    
-                    <div className="bg-black/20 border border-white/5 p-6 rounded-[24px] flex items-center justify-between">
-                       <div>
-                         <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Total Vitalício</p>
-                         <p className="text-2xl font-bold text-white tracking-tight">R$ {selectedCustomer.totalSpent}</p>
-                       </div>
-                       <Trophy size={40} className="text-white/5" />
-                    </div>
-                  </div>
 
                   <div className="space-y-6">
                     <h4 className="font-bold flex items-center gap-2 text-sm text-gray-300 uppercase tracking-widest">
@@ -379,7 +353,8 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -392,48 +367,45 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#1c1c1e] border border-white/5 w-full max-w-md rounded-[32px] p-10 shadow-2xl relative"
+              className="bg-[#1c1c1e] border border-white/5 w-full max-w-md rounded-[32px] p-6 sm:p-10 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
-              <div className="mb-10">
-                <h3 className="text-3xl font-bold tracking-tight text-white mb-2">Novo Cliente</h3>
-                <p className="text-gray-500 font-medium">Cadastre um novo cliente na sua base.</p>
+              <button 
+                onClick={() => setIsAddingNew(false)}
+                className="absolute top-4 right-4 p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-all"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Novo Cliente</h3>
+                <p className="text-gray-500 text-sm font-medium">Cadastre um novo cliente na sua base.</p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Nome do Cliente</label>
-                  <input type="text" placeholder="Ex: João da Silva" value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
+                  <input type="text" placeholder="Ex: João da Silva" value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">WhatsApp / Telefone</label>
-                  <input type="text" placeholder="(00) 00000-0000" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Email</label>
-                    <input type="email" placeholder="cliente@email.com" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">CPF</label>
-                    <input type="text" placeholder="000.000.000-00" value={newCpf} onChange={e => setNewCpf(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
-                  </div>
+                  <input type="text" placeholder="(00) 00000-0000" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Observações Iniciais</label>
-                  <textarea placeholder="Preferências, endereço ou detalhes extras..." value={newNotes} onChange={e => setNewNotes(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none resize-none transition-all placeholder:text-gray-700" rows={3} />
+                  <textarea placeholder="Preferências, endereço ou detalhes extras..." value={newNotes} onChange={e => setNewNotes(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none resize-none transition-all placeholder:text-gray-700" rows={3} />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 mt-12">
+              <div className="flex flex-col gap-3 mt-10">
                 <button 
                   onClick={handleAddNewCustomer} 
-                  className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                  className="w-full py-4 sm:py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
                 >
                   Finalizar Cadastro
                 </button>
                 <button 
                   onClick={() => setIsAddingNew(false)} 
-                  className="w-full py-4 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                  className="w-full py-3 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
                 >
                   Cancelar
                 </button>

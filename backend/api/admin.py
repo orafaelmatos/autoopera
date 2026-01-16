@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Barber, Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
+    Barber, Service, Customer, LoyaltyReward, Appointment,
     Availability, ScheduleException, Transaction, Promotion, Product
 )
 
@@ -29,13 +29,6 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ['client_name', 'service', 'date', 'status', 'platform']
     list_filter = ['status', 'platform', 'date']
     search_fields = ['client_name']
-
-
-@admin.register(WaitingListEntry)
-class WaitingListEntryAdmin(admin.ModelAdmin):
-    list_display = ['customer_name', 'service', 'date', 'preferred_period']
-    list_filter = ['date', 'preferred_period']
-    search_fields = ['customer_name', 'customer_phone']
 
 
 @admin.register(Availability)

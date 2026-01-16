@@ -105,6 +105,10 @@ class BookingService:
     @staticmethod
     @transaction.atomic
     def create_appointment(barber_id, service_id, customer_id, client_name, start_time, platform='manual', is_override=False):
+        # Ensure we are working with local time for day of week and working hours logic
+        if timezone.is_aware(start_time):
+            start_time = timezone.localtime(start_time)
+            
         # 1. Select for update barber to avoid concurrency
         barber = Barber.objects.select_for_update().get(id=barber_id)
         service = Service.objects.get(id=service_id)
@@ -205,4 +209,37 @@ class BookingService:
         appointment.save()
         # Slot is automatically kept but linked to cancelled appointment
         # Our overlap check filters by status='confirmed'
+        return appointment
+
+    @staticmethod
+    @transaction.atomic
+    def complete_appointment(appointment_id):
+        from .models import Transaction
+        appointment = Appointment.objects.select_for_update().get(id=appointment_id)
+        
+        if appointment.status == 'completed':
+            return appointment
+            
+        appointment.status = 'completed'
+        appointment.save()
+
+        # Create income transaction
+        Transaction.objects.create(
+            description=f"Atendimento: {appointment.client_name} ({appointment.service.name})",
+            amount=appointment.service.price,
+            type='income',
+            category='Atendimento',
+            date=timezone.now(),
+            status='paid',
+            payment_method='pix' # Defaulting to pix, can be updated later if needed
+        )
+
+        # Update customer stats if possible
+        if appointment.customer:
+            customer = appointment.customer
+            customer.total_spent += appointment.service.price
+            # Add points: R$ 1,00 = 1 point (simple rule for now)
+            customer.points += int(appointment.service.price)
+            customer.save()
+
         return appointment

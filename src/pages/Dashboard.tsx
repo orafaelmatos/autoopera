@@ -13,7 +13,6 @@ interface Props {
   services: Service[];
   customers: Customer[];
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-  waitingListCount: number;
   onNavigateToPromotions?: () => void;
 }
 
@@ -24,7 +23,6 @@ const DashboardView: React.FC<Props> = ({
   services, 
   customers, 
   setTransactions,
-  waitingListCount, 
   onNavigateToPromotions 
 }) => {
   const getServiceName = (id: string) => services.find(s => s.id === id)?.name || 'Serviço';
@@ -40,26 +38,23 @@ const DashboardView: React.FC<Props> = ({
 
   const completedApts = appointments.filter(a => a.status === 'completed');
   const totalRevenue = completedApts.reduce((acc, apt) => acc + getServicePrice(apt.serviceId), 0);
-  const totalPoints = customers.reduce((acc, c) => acc + (c.points || 0), 0);
+  
+  // Estatísticas de serviços prestados
+  const serviceStats = services.map(s => {
+    const count = completedApts.filter(a => a.serviceId === s.id).length;
+    return { name: s.name, count };
+  }).filter(s => s.count > 0).sort((a, b) => b.count - a.count);
 
   const handleFinishAppointment = async (apt: Appointment) => {
     try {
-      await appointmentsApi.update(apt.id, { status: 'completed' });
+      const updated = await appointmentsApi.complete(apt.id);
       
       const price = getServicePrice(apt.serviceId);
-      const newTransaction = await transactionsApi.create({
-        description: `Corte: ${apt.clientName} (${getServiceName(apt.serviceId)})`,
-        amount: price,
-        type: 'income',
-        category: 'Serviço',
-        date: new Date().toISOString(),
-        status: 'paid',
-        paymentMethod: 'pix'
-      });
-
-      setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, status: 'completed' } : a));
-      setTransactions(prev => [newTransaction, ...prev]);
+      setAppointments(prev => prev.map(a => a.id === apt.id ? updated : a));
       
+      // We don't need to manually create transaction here as backend does it
+      // But we might want to refresh transactions if the parent component needs it
+      // For now, let's just show success
       toast.success(`Serviço de ${apt.clientName} finalizado! +R$ ${price}`);
     } catch (error) {
       console.error("Erro ao finalizar:", error);
@@ -68,36 +63,26 @@ const DashboardView: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="space-y-8 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-white">Olá, <span className="text-gray-500">{userName || 'Barbeiro'}</span></h2>
-          <p className="text-gray-500 mt-2 font-medium">Aqui está o resumo do seu dia.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">Resumo <span className="text-gray-500">Hoje</span></h2>
+          <p className="text-gray-500 mt-1 sm:mt-2 font-medium text-xs sm:text-base">Acompanhe seus cortes e desempenho atual.</p>
         </div>
-        <button 
-          onClick={onNavigateToPromotions}
-          className="bg-[#007AFF] text-white px-6 py-3 rounded-2xl text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#0063CC] transition-all shadow-[0_10px_20px_rgba(0,122,255,0.2)] active:scale-95"
-        >
-          <Megaphone size={16} /> 
-          Marketing 
-          <ArrowRight size={14} />
-        </button>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Caixa do Dia" value={`R$ ${totalRevenue}`} icon={<Wallet className="text-[#007AFF]" size={20} />} />
-        <StatCard title="Concluídos" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-[#007AFF]" size={20} />} />
-        <StatCard title="Lista de Espera" value={waitingListCount.toString()} icon={<ListOrdered className="text-[#007AFF]" size={20} />} />
-        <StatCard title="Pontos Ganhos" value={totalPoints > 1000 ? `${(totalPoints/1000).toFixed(1)}k` : totalPoints.toString()} icon={<Trophy className="text-[#007AFF]" size={20} />} />
+      <div className="grid grid-cols-2 gap-4 sm:gap-6">
+        <StatCard title="Faturamento" value={`R$ ${totalRevenue}`} icon={<Wallet className="text-[#007AFF]" size={18} />} />
+        <StatCard title="Cortes" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-[#007AFF]" size={18} />} />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-12 pt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12 pt-4">
         <section className="col-span-1 lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
-              Agenda de Hoje
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">
+              Para Finalizar
             </h3>
-            <span className="text-[10px] font-bold text-[#007AFF] uppercase tracking-[0.2em] bg-[#007AFF]/10 px-3 py-1 rounded-full">Deslize para finalizar</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-[#007AFF] uppercase tracking-[0.2em] bg-[#007AFF]/10 px-3 py-1 rounded-full">Deslize para concluir</span>
           </div>
           
           <div className="space-y-4">
@@ -129,12 +114,28 @@ const DashboardView: React.FC<Props> = ({
 
         <section className="space-y-8">
           <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
-            <h3 className="text-lg font-bold tracking-tight mb-8">
-               Metas do Período
-            </h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] mb-6">Metas do Período</h3>
             <div className="space-y-8">
               <GoalCard label="Atendimentos" current={completedApts.length} target={15} color="bg-[#007AFF]" />
               <GoalCard label="Faturamento" current={totalRevenue} target={1500} color="bg-[#007AFF]" />
+            </div>
+          </div>
+
+          <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] mb-6">Serviços Mais Prestados</h3>
+            <div className="space-y-5">
+              {serviceStats.map(stat => (
+                <div key={stat.name} className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
+                  <span className="text-sm font-bold text-gray-400">{stat.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-white">{stat.count}</span>
+                    <span className="text-[9px] font-black uppercase text-gray-600 tracking-tighter">unid.</span>
+                  </div>
+                </div>
+              ))}
+              {serviceStats.length === 0 && (
+                <p className="text-[11px] text-gray-600 font-medium text-center">Nenhum serviço prestado ainda.</p>
+              )}
             </div>
           </div>
           
@@ -194,10 +195,10 @@ const SwipeableAppointment: React.FC<{ apt: Appointment, serviceName: string, on
           </div>
           <div>
             <h4 className="font-bold text-white text-lg tracking-tight">{apt.clientName}</h4>
-            <div className="flex items-center gap-2 mt-1">
-               <span className="text-[11px] text-gray-500 font-semibold tracking-tight">{serviceName}</span>
-               <div className="w-1 h-1 rounded-full bg-[#007AFF]/30"></div>
-               <span className="text-[10px] text-[#007AFF]/80 font-bold uppercase tracking-widest">{apt.platform}</span>
+            <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3 mt-1.5">
+               <span className="text-[10px] sm:text-[11px] text-white/50 font-bold tracking-tight bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{serviceName}</span>
+               <div className="hidden sm:block w-1 h-1 rounded-full bg-[#007AFF]/30"></div>
+               <span className="text-[9px] sm:text-[10px] text-[#007AFF] font-black uppercase tracking-widest bg-[#007AFF]/10 px-2 py-0.5 rounded-md">{apt.platform}</span>
             </div>
           </div>
         </div>
@@ -216,24 +217,24 @@ const SwipeableAppointment: React.FC<{ apt: Appointment, serviceName: string, on
 };
 
 const StatCard: React.FC<{ title: string, value: string, icon: React.ReactNode }> = ({ title, value, icon }) => (
-  <div className="bg-[#1c1c1e] border border-white/5 p-8 rounded-[32px] hover:bg-[#2c2c2e] transition-all group">
-    <div className="flex justify-between items-start mb-6">
-      <span className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em]">{title}</span>
-      <div className="bg-white/5 p-2 rounded-xl group-hover:bg-white/10 transition-colors">
+  <div className="bg-[#1c1c1e] border border-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] hover:bg-[#2c2c2e] transition-all group">
+    <div className="flex justify-between items-start mb-3 sm:mb-4">
+      <span className="text-gray-500 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em]">{title}</span>
+      <div className="bg-white/5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl group-hover:bg-white/10 transition-colors">
         {icon}
       </div>
     </div>
-    <div className="text-3xl font-bold text-white tracking-tight">{value}</div>
+    <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">{value}</div>
   </div>
 );
 
 const GoalCard: React.FC<{ label: string, current: number, target: number, color: string }> = ({ label, current, target, color }) => (
-  <div className="space-y-4">
-    <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest leading-none">
+  <div className="space-y-3 sm:space-y-4">
+    <div className="flex justify-between text-[10px] sm:text-[11px] font-bold uppercase tracking-widest leading-none">
       <span className="text-gray-500">{label}</span>
       <span className="text-white">{current} <span className="text-gray-600">/ {target}</span></span>
     </div>
-    <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
+    <div className="w-full bg-black/40 h-1 sm:h-1.5 rounded-full overflow-hidden">
       <div 
         className={`${color} h-full transition-all duration-1000`} 
         style={{ width: `${Math.min((current/target)*100, 100)}%` }}

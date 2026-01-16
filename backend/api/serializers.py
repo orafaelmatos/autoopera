@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Service, Customer, LoyaltyReward, Appointment, WaitingListEntry,
+    Service, Customer, LoyaltyReward, Appointment,
     Availability, ScheduleException, Transaction, Promotion, Product, Barber, TimeSlot
 )
 
@@ -32,14 +32,14 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class CustomerSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    lastVisit = serializers.CharField(source='last_visit')
-    totalSpent = serializers.DecimalField(source='total_spent', max_digits=10, decimal_places=2, coerce_to_string=False)
+    lastVisit = serializers.CharField(source='last_visit', read_only=True)
+    totalSpent = serializers.DecimalField(source='total_spent', max_digits=10, decimal_places=2, coerce_to_string=False, read_only=True)
     user = UserSerializer(read_only=True)
     
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'phone', 'email', 'cpf', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at', 'user']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'birth_date', 'profile_picture', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at', 'user']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'points']
 
 class LoyaltyRewardSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -82,28 +82,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
             ret['barberId'] = str(ret['barberId'])
         if 'customer' in ret and ret['customer'] is not None:
             ret['customer'] = str(ret['customer'])
-        return ret
-
-
-class WaitingListEntrySerializer(serializers.ModelSerializer):
-    id = serializers.CharField(read_only=True)
-    customerName = serializers.CharField(source='customer_name')
-    customerPhone = serializers.CharField(source='customer_phone')
-    serviceId = serializers.PrimaryKeyRelatedField(
-        source='service', 
-        queryset=Service.objects.all()
-    )
-    preferredPeriod = serializers.CharField(source='preferred_period')
-    
-    class Meta:
-        model = WaitingListEntry
-        fields = ['id', 'customerName', 'customerPhone', 'serviceId', 'date', 'preferredPeriod', 'created_at']
-        read_only_fields = ['id', 'created_at']
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        if 'serviceId' in ret and ret['serviceId'] is not None:
-            ret['serviceId'] = str(ret['serviceId'])
         return ret
 
 
