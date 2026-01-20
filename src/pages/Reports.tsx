@@ -50,7 +50,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
   }));
 
   const platforms = [
-    { name: 'WhatsApp Bot', value: 65, icon: <Smartphone size={14} className="text-[#007AFF]" />, color: 'bg-[#007AFF]' },
+    { name: 'WhatsApp Bot', value: 65, icon: <Smartphone size={14} className="text-accent" />, color: 'bg-accent' },
     { name: 'Manual', value: 25, icon: <MousePointer2 size={14} className="text-gray-400" />, color: 'bg-gray-500' },
     { name: 'Link Web', value: 10, icon: <Activity size={14} className="text-gray-600" />, color: 'bg-gray-700' },
   ];
@@ -75,14 +75,14 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-[#1c1c1e] border border-[#007AFF]/20 p-5 sm:p-8 rounded-[24px] sm:rounded-[32px] flex flex-col md:flex-row items-center gap-6 sm:gap-8 shadow-2xl shadow-[#007AFF]/5"
+        className="bg-[#1c1c1e] border border-accent/20 p-5 sm:p-8 rounded-[24px] sm:rounded-[32px] flex flex-col md:flex-row items-center gap-6 sm:gap-8 shadow-2xl shadow-accent/5"
       >
-        <div className="bg-[#007AFF]/10 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#007AFF]/20 shadow-xl shadow-[#007AFF]/10 shrink-0">
-          <Lightbulb size={32} className="text-[#007AFF] sm:w-10 sm:h-10" />
+        <div className="bg-accent/10 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-accent/20 shadow-xl shadow-accent/10 shrink-0">
+          <Lightbulb size={32} className="text-accent sm:w-10 sm:h-10" />
         </div>
         <div className="flex-1 text-center md:text-left">
           <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#007AFF]">IA Business Insight</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-accent">IA Business Insight</span>
           </div>
           <h4 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">Otimize suas {weakestDayFull}s</h4>
           <p className="text-gray-500 text-xs sm:text-[13px] font-medium leading-relaxed max-w-xl">
@@ -91,7 +91,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
         </div>
         <button 
           onClick={onNavigateToPromotions}
-          className="w-full md:w-auto bg-[#007AFF] text-white px-8 py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all active:scale-95 whitespace-nowrap shadow-xl shadow-[#007AFF]/20"
+          className="w-full md:w-auto bg-accent text-white px-8 py-4 rounded-xl sm:rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all active:scale-95 whitespace-nowrap shadow-xl shadow-accent/20"
         >
           Agir Agora <ArrowRight size={18} />
         </button>
@@ -105,7 +105,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
                 <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Fluxo Semanal</h3>
                 <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Volume de agendamentos</p>
              </div>
-             <BarChart2 className="text-[#007AFF]" size={20} />
+             <BarChart2 className="text-accent" size={20} />
           </div>
           <div className="flex items-end justify-between h-40 sm:h-56 gap-2 sm:gap-4">
             {daysData.map((d) => (
@@ -115,7 +115,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
                     initial={{ height: 0 }}
                     animate={{ height: `${d.fill}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="w-full bg-[#007AFF]/40 group-hover:bg-[#007AFF] transition-all rounded-t-lg sm:rounded-t-xl"
+                    className="w-full bg-accent/40 group-hover:bg-accent transition-all rounded-t-lg sm:rounded-t-xl"
                   />
                   {d.count > 0 && <span className="absolute top-2 text-[8px] sm:text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">{d.count}</span>}
                 </div>
@@ -132,7 +132,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
                 <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Origem de Tráfego</h3>
                 <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Performance por canal</p>
              </div>
-             <PieChart className="text-[#007AFF]" size={20} />
+             <PieChart className="text-accent" size={20} />
           </div>
           <div className="space-y-6 sm:space-y-8">
             {platforms.map(p => (
@@ -161,13 +161,13 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
                 <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Serviços Estelares</h3>
                 <p className="text-[8px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Ranking de Rentabilidade Global</p>
              </div>
-             <Target className="text-[#007AFF]" size={20} />
+             <Target className="text-accent" size={20} />
           </div>
           <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
             {services.slice(0, 6).map((s, idx) => (
               <div key={s.id} className="bg-black/20 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border border-white/5 flex items-center justify-between hover:bg-black/40 transition-all group">
                 <div className="flex items-center gap-4 sm:gap-5">
-                  <div className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-[#007AFF] transition-colors">0{idx + 1}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-800 group-hover:text-accent transition-colors">0{idx + 1}</div>
                   <div>
                     <h5 className="font-bold text-white text-sm sm:text-base tracking-tight">{s.name}</h5>
                     <p className="text-[8px] sm:text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">{s.duration} MIN • R$ {s.price}</p>

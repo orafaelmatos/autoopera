@@ -75,7 +75,7 @@ const AppointmentCard: React.FC<{
         className="relative z-10 bg-[#1c1c1e] border border-white/5 p-3 sm:p-4 flex items-center justify-between hover:bg-[#232326] transition-colors cursor-grab active:cursor-grabbing backdrop-blur-xl"
       >
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-[18px] bg-black/60 border border-white/5 text-[#007AFF] shadow-inner">
+          <div className="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-[18px] bg-black/60 border border-white/5 text-white/60 shadow-inner">
             <span className="text-[7px] sm:text-[8px] font-black uppercase mb-0.5 opacity-60">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
             <span className="text-sm sm:text-base font-bold tracking-tight leading-none">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
@@ -83,7 +83,7 @@ const AppointmentCard: React.FC<{
             <h4 className="text-sm sm:text-base font-extrabold text-white tracking-tight">{apt.clientName}</h4>
             <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-1 text-white/40 font-bold text-[8px] sm:text-[9px] uppercase tracking-wider">
               <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-md border border-white/5 whitespace-nowrap shadow-sm">
-                <Scissors size={10} className="text-[#007AFF]" /> 
+                <Scissors size={10} className="text-white/20" /> 
                 {services.find(s => s.id === apt.serviceId)?.name || 'Serviço'}
               </span>
               <span className="flex items-center gap-1.5 whitespace-nowrap opacity-80">
@@ -97,7 +97,7 @@ const AppointmentCard: React.FC<{
           <span className={`px-3 sm:px-4 py-1.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest border ${
             apt.status === 'confirmed' 
               ? 'bg-[#34C759]/10 text-[#34C759] border-[#34C759]/20 shadow-[0_0_15px_rgba(52,199,89,0.1)]' 
-              : 'bg-[#007AFF]/10 text-[#007AFF] border-[#007AFF]/20'
+              : 'bg-white/5 text-white/40 border-white/5'
           }`}>
             {getStatusLabel(apt.status)}
           </span>
@@ -214,7 +214,7 @@ const handleCompleteAppointment = async (id: string) => {
         <div className="grid grid-cols-1 sm:flex gap-3">
           <button 
             onClick={() => setIsAddingAppointment(true)}
-            className="bg-[#007AFF] text-white px-4 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[12px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
+            className="bg-accent text-white px-4 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[12px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-95"
           >
             <Plus size={18} />
             <span>Agendar</span>
@@ -227,7 +227,7 @@ const handleCompleteAppointment = async (id: string) => {
         <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">Próximos</h3>
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] bg-[#007AFF]/10 px-3 py-1 rounded-full">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-accent bg-accent/10 px-3 py-1 rounded-full">
               {activeAppointments.length} Ativos
             </span>
           </div>
@@ -288,7 +288,7 @@ const handleCompleteAppointment = async (id: string) => {
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome do Cliente</label>
                       <div className="relative">
                         <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                        <input type="text" value={aptName} onChange={e => setAptName(e.target.value)} placeholder="Ex: João Silva" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                        <input type="text" value={aptName} onChange={e => setAptName(e.target.value)} placeholder="Ex: João Silva" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
                       </div>
                     </div>
 
@@ -296,13 +296,13 @@ const handleCompleteAppointment = async (id: string) => {
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">WhatsApp / Telefone</label>
                       <div className="relative">
                         <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                        <input type="text" value={aptPhone} onChange={e => setAptPhone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                        <input type="text" value={aptPhone} onChange={e => setAptPhone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Serviço</label>
-                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium">
+                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base">
                           {services.map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
                        </select>
                     </div>
@@ -310,11 +310,11 @@ const handleCompleteAppointment = async (id: string) => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Data</label>
-                        <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
+                        <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Horário</label>
-                        <input type="time" value={aptTime} onChange={e => setAptTime(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
+                        <input type="time" value={aptTime} onChange={e => setAptTime(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base" />
                       </div>
                     </div>
 
@@ -329,7 +329,7 @@ const handleCompleteAppointment = async (id: string) => {
                   <div className="flex flex-col gap-3 mt-10">
                     <button 
                       onClick={handleAddAppointment} 
-                      className="w-full py-4 sm:py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                      className="w-full py-4 sm:py-5 bg-accent text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-[0.98]"
                     >
                       Confirmar Horário
                     </button>

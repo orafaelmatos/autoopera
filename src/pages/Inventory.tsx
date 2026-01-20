@@ -160,7 +160,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-[#007AFF] text-white px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl active:scale-95 w-full md:w-auto"
+          className="bg-accent text-white px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl active:scale-95 w-full md:w-auto"
         >
           <Plus size={18} />
           <span>Novo Produto</span>
@@ -183,7 +183,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
               placeholder="Buscar no inventário..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#1c1c1e] border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium"
+              className="w-full bg-[#1c1c1e] border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-white focus:border-white/20 outline-none transition-all placeholder:text-gray-700 font-medium"
             />
           </div>
           <div className="flex bg-[#1c1c1e] p-1.5 rounded-2xl border border-white/5 overflow-x-auto whitespace-nowrap">
@@ -191,7 +191,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
               <button 
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
-                className={`px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${filterCategory === cat ? 'bg-[#007AFF] text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                className={`px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${filterCategory === cat ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
               >
                 {cat === 'all' ? 'Ver Todos' : cat}
               </button>
@@ -235,7 +235,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                           <span className={`text-lg font-bold tracking-tight ${isLow ? 'text-red-500' : 'text-white'}`}>{p.stock}</span>
                           <div className="w-16 h-1.5 bg-black/40 rounded-full mt-2 overflow-hidden border border-white/5">
                              <div 
-                               className={`h-full rounded-full ${isLow ? 'bg-red-500' : 'bg-[#007AFF]'}`} 
+                               className={`h-full rounded-full ${isLow ? 'bg-red-500' : 'bg-white/20'}`} 
                                style={{ width: `${Math.min((p.stock / (p.minStock * 2)) * 100, 100)}%` }}
                              />
                           </div>
@@ -296,24 +296,24 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome do Item</label>
-                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Pomada Efeito Mate" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Pomada Efeito Mate" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Categoria</label>
                     <div className="grid grid-cols-3 gap-2">
                       {['consumo', 'venda', 'bar'].map((cat: any) => (
-                        <button key={cat} onClick={() => setNewCat(cat)} className={`py-4 text-[10px] font-black rounded-2xl border uppercase transition-all ${newCat === cat ? 'bg-[#007AFF] text-white border-[#007AFF] shadow-lg shadow-[#007AFF]/20' : 'bg-black/20 text-gray-600 border-white/5'}`}>{cat}</button>
+                        <button key={cat} onClick={() => setNewCat(cat)} className={`py-4 text-[10px] font-black rounded-2xl border uppercase transition-all ${newCat === cat ? 'bg-accent text-white border-accent shadow-lg shadow-accent/20' : 'bg-black/20 text-gray-600 border-white/5'}`}>{cat}</button>
                       ))}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Estoque Inicial</label>
-                      <input type="number" value={newStock} onChange={e => setNewStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                      <input type="number" value={newStock} onChange={e => setNewStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Mínimo Segura</label>
-                      <input type="number" value={newMinStock} onChange={e => setNewMinStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all" />
+                      <input type="number" value={newMinStock} onChange={e => setNewMinStock(Number(e.target.value))} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all" />
                     </div>
                   </div>
                 </div>
@@ -327,7 +327,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                         value={newCost} 
                         onChange={handleCostChange} 
                         placeholder="0,00" 
-                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium placeholder:text-gray-700" 
+                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all font-medium placeholder:text-gray-700" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -337,14 +337,14 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
                         value={newSale} 
                         onChange={handleSaleChange} 
                         placeholder="0,00" 
-                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium placeholder:text-gray-700" 
+                        className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all font-medium placeholder:text-gray-700" 
                         disabled={newCat === 'consumo'} 
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Data de Validade (Opcional)</label>
-                       <input type="date" value={newExpiry} onChange={e => setNewExpiry(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium" />
+                       <input type="date" value={newExpiry} onChange={e => setNewExpiry(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:border-accent/50 outline-none transition-all font-medium" />
                   </div>
                   {newCat !== 'consumo' && (
                     <div className="bg-green-500/5 border border-green-500/10 p-5 rounded-2xl">
@@ -363,7 +363,7 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
               <div className="flex flex-col gap-4 mt-12">
                 <button 
                   onClick={handleAddProduct} 
-                  className="w-full py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                  className="w-full py-5 bg-accent text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-[0.98]"
                 >
                   Confirmar Cadastro
                 </button>

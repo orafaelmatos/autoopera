@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Service, Customer, LoyaltyReward, Appointment,
+    Barbershop, UserProfile, Service, Customer, CustomerBarbershop, LoyaltyReward, Appointment,
     Availability, ScheduleException, Transaction, Promotion, Product, Barber, TimeSlot
 )
 
@@ -10,11 +10,17 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
+class BarbershopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Barbershop
+        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active']
+
 class BarberSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Barber
         fields = '__all__'
+        read_only_fields = ['barbershop']
 
 class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,18 +34,44 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['id', 'name', 'price', 'duration', 'description', 'is_active', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'barbershop']
 
 class CustomerSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    lastVisit = serializers.CharField(source='last_visit', read_only=True)
-    totalSpent = serializers.DecimalField(source='total_spent', max_digits=10, decimal_places=2, coerce_to_string=False, read_only=True)
+    lastVisit = serializers.SerializerMethodField()
+    totalSpent = serializers.SerializerMethodField()
+    points = serializers.SerializerMethodField()
+    notes = serializers.SerializerMethodField()
     user = UserSerializer(read_only=True)
     
     class Meta:
         model = Customer
         fields = ['id', 'name', 'phone', 'birth_date', 'profile_picture', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at', 'user']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'points']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_lastVisit(self, obj):
+        barbershop = self.context.get('request').barbershop if self.context.get('request') else None
+        if not barbershop: return None
+        cb = CustomerBarbershop.objects.filter(customer=obj, barbershop=barbershop).first()
+        return cb.last_visit if cb else None
+
+    def get_totalSpent(self, obj):
+        barbershop = self.context.get('request').barbershop if self.context.get('request') else None
+        if not barbershop: return 0
+        cb = CustomerBarbershop.objects.filter(customer=obj, barbershop=barbershop).first()
+        return float(cb.total_spent) if cb else 0
+
+    def get_points(self, obj):
+        barbershop = self.context.get('request').barbershop if self.context.get('request') else None
+        if not barbershop: return 0
+        cb = CustomerBarbershop.objects.filter(customer=obj, barbershop=barbershop).first()
+        return cb.points if cb else 0
+
+    def get_notes(self, obj):
+        barbershop = self.context.get('request').barbershop if self.context.get('request') else None
+        if not barbershop: return ""
+        cb = CustomerBarbershop.objects.filter(customer=obj, barbershop=barbershop).first()
+        return cb.notes if cb else ""
 
 class LoyaltyRewardSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -48,7 +80,7 @@ class LoyaltyRewardSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoyaltyReward
         fields = ['id', 'name', 'pointsRequired', 'type', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'barbershop']
 
 class AppointmentSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -61,15 +93,29 @@ class AppointmentSerializer(serializers.ModelSerializer):
         source='barber',
         queryset=Barber.objects.all()
     )
+    service_name = serializers.ReadOnlyField(source='service.name')
+    barber_name = serializers.ReadOnlyField(source='barber.name')
+    service_price = serializers.ReadOnlyField(source='service.price')
     slot = TimeSlotSerializer(read_only=True)
     
     class Meta:
         model = Appointment
-        fields = ['id', 'clientName', 'serviceId', 'barberId', 'date', 'status', 'platform', 'customer', 'slot', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'status', 'created_at', 'updated_at', 'slot']
+        fields = [
+            'id', 'clientName', 'serviceId', 'barberId', 
+            'service_name', 'barber_name', 'service_price',
+            'date', 'status', 'platform', 'customer', 'slot', 
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'status', 'created_at', 'updated_at', 'slot', 'barbershop']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and hasattr(request, 'barbershop'):
+            self.fields['serviceId'].queryset = Service.objects.filter(barbershop=request.barbershop)
+            self.fields['barberId'].queryset = Barber.objects.filter(barbershop=request.barbershop)
 
     def update(self, instance, validated_data):
-        # Impedir alteração de horário ou serviço se já estiver confirmado
         if instance.status == 'confirmed' and ('date' in validated_data or 'service' in validated_data or 'barber' in validated_data):
             raise serializers.ValidationError("Não é permitido alterar horário ou serviço de um agendamento confirmado. Cancele e crie um novo.")
         return super().update(instance, validated_data)
@@ -90,14 +136,12 @@ class AvailabilitySerializer(serializers.ModelSerializer):
     dayOfWeek = serializers.IntegerField(source='day_of_week')
     startTime = serializers.TimeField(source='start_time', format='%H:%M')
     endTime = serializers.TimeField(source='end_time', format='%H:%M')
-    lunchStart = serializers.TimeField(source='lunch_start', format='%H:%M', required=False, allow_null=True)
-    lunchEnd = serializers.TimeField(source='lunch_end', format='%H:%M', required=False, allow_null=True)
     isActive = serializers.BooleanField(source='is_active')
     
     class Meta:
         model = Availability
-        fields = ['id', 'dayOfWeek', 'startTime', 'endTime', 'lunchStart', 'lunchEnd', 'isActive']
-        read_only_fields = ['id']
+        fields = ['id', 'dayOfWeek', 'startTime', 'endTime', 'isActive']
+        read_only_fields = ['id', 'barbershop']
 
 
 class ScheduleExceptionSerializer(serializers.ModelSerializer):
@@ -108,7 +152,7 @@ class ScheduleExceptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleException
         fields = ['id', 'date', 'type', 'startTime', 'endTime', 'reason', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'barbershop']
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -119,7 +163,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['id', 'description', 'amount', 'type', 'category', 'date', 'status', 'paymentMethod', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'barbershop']
 
 
 class PromotionSerializer(serializers.ModelSerializer):
@@ -135,7 +179,13 @@ class PromotionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Promotion
         fields = ['id', 'name', 'discount', 'serviceId', 'targetDay', 'targetAudience', 'status', 'reach', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'barbershop']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and hasattr(request, 'barbershop'):
+            self.fields['serviceId'].queryset = Service.objects.filter(barbershop=request.barbershop)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -155,4 +205,4 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name', 'category', 'stock', 'minStock', 'costPrice', 'salePrice', 'expiryDate', 'lastRestock', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'barbershop']

@@ -7,118 +7,106 @@ from .models import Appointment, TimeSlot, Service, Barber, Availability, Schedu
 
 class BookingService:
     @staticmethod
-    def get_available_slots(barber_id, service_id, target_date):
+    def get_available_slots(barbershop, barber_id, service_id, target_date):
         """
         Calcula horários disponíveis dinamicamente para um barbeiro, serviço e data.
         Considera Jornada Semanal e Exceções (Bloqueios e Horários Estendidos).
         """
-        barber = Barber.objects.get(id=barber_id)
-        service = Service.objects.get(id=service_id)
+        barber = Barber.objects.get(id=barber_id, barbershop=barbershop)
+        service = Service.objects.get(id=service_id, barbershop=barbershop)
         
         if not service.is_active:
             raise exceptions.ValidationError("SERVICE_INACTIVE")
 
         # Prioridade 1: Exceção de Bloqueio
-        exception_blocked = ScheduleException.objects.filter(barber=barber, date=target_date, type='blocked').first()
+        exception_blocked = ScheduleException.objects.filter(barber=barber, barbershop=barbershop, date=target_date, type='blocked').first()
         if exception_blocked:
             return []
 
-        # Prioridade 2: Exceção de Horário Estendido (Substitui a jornada semanal)
-        exception_extended = ScheduleException.objects.filter(barber=barber, date=target_date, type='extended').first()
+        # Prioridade 2: Exceções de Horário Estendido (Substituem a jornada semanal para este dia)
+        exceptions_extended = ScheduleException.objects.filter(
+            barber=barber, barbershop=barbershop, date=target_date, type='extended'
+        )
         
-        start_time = None
-        end_time = None
-        lunch_start = None
-        lunch_end = None
+        working_intervals = []
 
-        if exception_extended:
-            start_time = exception_extended.start_time
-            end_time = exception_extended.end_time
+        if exceptions_extended.exists():
+            for ex in exceptions_extended:
+                working_intervals.append({
+                    'start_time': ex.start_time,
+                    'end_time': ex.end_time
+                })
         else:
-            # Caso não haja horário estendido, busca jornada semanal padrão
+            # Caso não haja horário estendido, busca blocos da jornada semanal padrão
             django_day = (target_date.weekday() + 1) % 7
-            availability = Availability.objects.filter(barber=barber, day_of_week=django_day, is_active=True).first()
-            if not availability:
-                return []
-            start_time = availability.start_time
-            end_time = availability.end_time
-            lunch_start = availability.lunch_start
-            lunch_end = availability.lunch_end
+            availabilities = Availability.objects.filter(
+                barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+            )
+            for av in availabilities:
+                working_intervals.append({
+                    'start_time': av.start_time,
+                    'end_time': av.end_time
+                })
 
-        # Working range definitions
-        start_datetime = timezone.make_aware(datetime.combine(target_date, start_time))
-        end_datetime = timezone.make_aware(datetime.combine(target_date, end_time))
-        
-        # If today, don't show past times
-        now = timezone.localtime()
-        if target_date == now.date():
-            if start_datetime < now:
-                start_datetime = now
-
-        # Lunch break (only if using standard availability or if extended journey doesn't explicitly override it)
-        lunch_start_dt = None
-        lunch_end_dt = None
-        if lunch_start and lunch_end:
-            lunch_start_dt = timezone.make_aware(datetime.combine(target_date, lunch_start))
-            lunch_end_dt = timezone.make_aware(datetime.combine(target_date, lunch_end))
+        if not working_intervals:
+            return []
 
         # Existing appointments
         existing_slots = TimeSlot.objects.filter(
             appointment__barber=barber,
+            appointment__barbershop=barbershop,
             appointment__status='confirmed',
             start_time__date=target_date
         ).order_by('start_time')
 
         slots = []
-        current_time = start_datetime
-        
         duration = timedelta(minutes=service.duration)
         buffer = timedelta(minutes=barber.buffer_minutes)
+        now = timezone.localtime()
 
-        while current_time + duration <= end_datetime:
-            actual_end = current_time + duration
+        # Process each working interval
+        for interval in working_intervals:
+            start_dt = timezone.make_aware(datetime.combine(target_date, interval['start_time']))
+            end_dt = timezone.make_aware(datetime.combine(target_date, interval['end_time']))
             
-            # Check overlap with lunch
-            overlaps_lunch = False
-            if lunch_start_dt and lunch_end_dt:
-                if current_time < lunch_end_dt and actual_end > lunch_start_dt:
-                    overlaps_lunch = True
-            
-            if overlaps_lunch:
-                current_time = lunch_end_dt
-                continue
+            # If today, don't show past times
+            if target_date == now.date():
+                if start_dt < now:
+                    start_dt = now
 
-            # Check overlap with existing slots
-            collision = False
-            for slot in existing_slots:
-                if current_time < slot.end_time + buffer and actual_end + buffer > slot.start_time:
-                    collision = True
-                    current_time = slot.end_time + buffer
-                    break
-            
-            if not collision:
-                slots.append(current_time)
-                current_time += timedelta(minutes=15) # Step for grid
+            current_time = start_dt
+            while current_time + duration <= end_dt:
+                actual_end = current_time + duration
+                
+                # Check overlap with existing slots
+                collision = False
+                for slot in existing_slots:
+                    if current_time < slot.end_time + buffer and actual_end + buffer > slot.start_time:
+                        collision = True
+                        current_time = slot.end_time + buffer
+                        break
+                
+                if not collision:
+                    slots.append(current_time)
+                    current_time += timedelta(minutes=15) # Step for grid
 
-        return slots
+        return sorted(list(set(slots))) # Ensure unique sorted slots
 
     @staticmethod
     @transaction.atomic
-    def create_appointment(barber_id, service_id, customer_id, client_name, start_time, platform='manual', is_override=False):
+    def create_appointment(barbershop, barber_id, service_id, customer_id, client_name, start_time, platform='manual', is_override=False):
         # Ensure we are working with local time for day of week and working hours logic
         if timezone.is_aware(start_time):
             start_time = timezone.localtime(start_time)
             
         # 1. Select for update barber to avoid concurrency
-        barber = Barber.objects.select_for_update().get(id=barber_id)
-        service = Service.objects.get(id=service_id)
+        barber = Barber.objects.select_for_update().get(id=barber_id, barbershop=barbershop)
+        service = Service.objects.get(id=service_id, barbershop=barbershop)
         
         if not service.is_active:
             raise exceptions.ValidationError("SERVICE_INACTIVE")
 
         # 2. Basic date check (cannot book in the past unless override?)
-        # Let's keep past check even with override for data integrity, 
-        # but maybe the user wants to log something that happened 10 mins ago.
         now = timezone.now()
         if not is_override and start_time < now - timedelta(minutes=5): # 5 min grace
             raise exceptions.ValidationError("DATE_IN_PAST")
@@ -131,49 +119,52 @@ class BookingService:
         # 4. Jornada e Exceções (Skip if is_override)
         if not is_override:
             # Check Blocked
-            exception_blocked = ScheduleException.objects.filter(barber=barber, date=start_time.date(), type='blocked').exists()
+            exception_blocked = ScheduleException.objects.filter(barber=barber, barbershop=barbershop, date=start_time.date(), type='blocked').exists()
             if exception_blocked:
                 raise exceptions.ValidationError("DATE_BLOCKED")
 
             # Determine working hours for the day
-            exception_extended = ScheduleException.objects.filter(barber=barber, date=start_time.date(), type='extended').first()
+            exceptions_extended = ScheduleException.objects.filter(
+                barber=barber, barbershop=barbershop, date=start_time.date(), type='extended'
+            )
             
-            work_start = None
-            work_end = None
-            lunch_start = None
-            lunch_end = None
+            working_intervals = []
 
-            if exception_extended:
-                work_start = timezone.make_aware(datetime.combine(start_time.date(), exception_extended.start_time))
-                work_end = timezone.make_aware(datetime.combine(start_time.date(), exception_extended.end_time))
+            if exceptions_extended.exists():
+                for ex in exceptions_extended:
+                    working_intervals.append({
+                        'start': timezone.make_aware(datetime.combine(start_time.date(), ex.start_time)),
+                        'end': timezone.make_aware(datetime.combine(start_time.date(), ex.end_time))
+                    })
             else:
                 django_day = (start_time.date().weekday() + 1) % 7
-                availability = Availability.objects.filter(barber=barber, day_of_week=django_day, is_active=True).first()
-                if not availability:
-                    raise exceptions.ValidationError("OUT_OF_WORKING_HOURS")
-                
-                work_start = timezone.make_aware(datetime.combine(start_time.date(), availability.start_time))
-                work_end = timezone.make_aware(datetime.combine(start_time.date(), availability.end_time))
-                lunch_start = availability.lunch_start
-                lunch_end = availability.lunch_end
+                availabilities = Availability.objects.filter(
+                    barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+                )
+                for av in availabilities:
+                    working_intervals.append({
+                        'start': timezone.make_aware(datetime.combine(start_time.date(), av.start_time)),
+                        'end': timezone.make_aware(datetime.combine(start_time.date(), av.end_time))
+                    })
 
-            # Validate against range
-            if start_time < work_start or end_time > work_end:
-                raise exceptions.ValidationError("OUT_OF_WORKING_HOURS")
+            if not working_intervals:
+                raise exceptions.ValidationError("NOT_WORKING_DAY")
 
-            # Lunch check
-            if lunch_start and lunch_end:
-                lunch_start_dt = timezone.make_aware(datetime.combine(start_time.date(), lunch_start))
-                lunch_end_dt = timezone.make_aware(datetime.combine(start_time.date(), lunch_end))
-                if start_time < lunch_end_dt and end_time > lunch_start_dt:
-                    raise exceptions.ValidationError("LUNCH_BREAK")
+            # Check if appointment fits in any of the working intervals
+            fits = False
+            for interval in working_intervals:
+                if start_time >= interval['start'] and end_time <= interval['end']:
+                    fits = True
+                    break
+            
+            if not fits:
+                raise exceptions.ValidationError("OUTSIDE_WORKING_HOURS")
 
         # 5. Check Overlap (Critical)
-        # Even with override, overlap check is safer, but "encaixe" sometimes means purposeful overlap.
-        # User said "criar encaixes" - usually this means ignoring the overlap error.
         if not is_override:
             overlap = TimeSlot.objects.filter(
                 appointment__barber=barber,
+                appointment__barbershop=barbershop,
                 appointment__status='confirmed',
                 start_time__lt=end_time + buffer,
                 end_time__gt=start_time - buffer
@@ -184,6 +175,7 @@ class BookingService:
 
         # 6. Create Appointment and Slot
         appointment = Appointment.objects.create(
+            barbershop=barbershop,
             barber=barber,
             service=service,
             customer_id=customer_id,
@@ -214,7 +206,7 @@ class BookingService:
     @staticmethod
     @transaction.atomic
     def complete_appointment(appointment_id):
-        from .models import Transaction
+        from .models import Transaction, CustomerBarbershop
         appointment = Appointment.objects.select_for_update().get(id=appointment_id)
         
         if appointment.status == 'completed':
@@ -223,23 +215,27 @@ class BookingService:
         appointment.status = 'completed'
         appointment.save()
 
-        # Create income transaction
+        # Create income transaction within barbershop context
         Transaction.objects.create(
+            barbershop=appointment.barbershop,
             description=f"Atendimento: {appointment.client_name} ({appointment.service.name})",
             amount=appointment.service.price,
             type='income',
             category='Atendimento',
             date=timezone.now(),
             status='paid',
-            payment_method='pix' # Defaulting to pix, can be updated later if needed
+            payment_method='pix'
         )
 
-        # Update customer stats if possible
+        # Update customer stats in the pivot table for THIS barbershop
         if appointment.customer:
-            customer = appointment.customer
-            customer.total_spent += appointment.service.price
-            # Add points: R$ 1,00 = 1 point (simple rule for now)
-            customer.points += int(appointment.service.price)
-            customer.save()
+            cb, created = CustomerBarbershop.objects.get_or_create(
+                customer=appointment.customer,
+                barbershop=appointment.barbershop
+            )
+            cb.total_spent += appointment.service.price
+            cb.points += int(appointment.service.price)
+            cb.last_visit = timezone.now().date()
+            cb.save()
 
         return appointment

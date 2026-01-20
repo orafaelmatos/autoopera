@@ -131,7 +131,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
           </button>
           <button 
             onClick={() => setIsAdding(true)}
-            className="flex-1 sm:flex-none bg-[#007AFF] text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-95"
+            className="flex-1 sm:flex-none bg-accent text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-95"
           >
             <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
             <span>Nova Operação</span>
@@ -141,7 +141,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
 
       {/* Resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <FinanceStatCard title="Receita (30d)" value={`R$ ${totalIncome.toFixed(2)}`} icon={<ArrowUpCircle className="text-[#007AFF]" size={16} />} />
+        <FinanceStatCard title="Receita (30d)" value={`R$ ${totalIncome.toFixed(2)}`} icon={<ArrowUpCircle className="text-white/40" size={16} />} />
         <FinanceStatCard title="Despesas (30d)" value={`R$ ${totalExpense.toFixed(2)}`} icon={<ArrowDownCircle className="text-red-500" size={16} />} />
         <FinanceStatCard title="Pendente" value={`R$ ${pendingExpense.toFixed(2)}`} icon={<Clock className="text-orange-500" size={16} />} />
         <FinanceStatCard title="Saldo Líquido" value={`R$ ${balance.toFixed(2)}`} icon={<TrendingUp className="text-green-500" size={16} />} highlight />
@@ -279,7 +279,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={() => setType('income')}
-                    className={`py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all text-xs uppercase tracking-widest ${type === 'income' ? 'bg-[#007AFF] text-white shadow-lg shadow-[#007AFF]/20' : 'bg-black/20 text-gray-500 border border-white/5'}`}
+                    className={`py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all text-xs uppercase tracking-widest ${type === 'income' ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-black/20 text-gray-500 border border-white/5'}`}
                   >
                     <ArrowUpCircle size={16} /> Entrada
                   </button>
@@ -293,7 +293,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
 
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Descrição</label>
-                  <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Conta de Luz" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                  <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Conta de Luz" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-white/20 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -304,12 +304,12 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
                       value={amount} 
                       onChange={handleAmountChange} 
                       placeholder="0,00" 
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" 
+                      className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-white/20 outline-none transition-all placeholder:text-gray-700 font-medium text-base" 
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Categoria</label>
-                    <input type="text" value={category} onChange={e => setCategory(e.target.value)} placeholder="Ex: Aluguel" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-[#007AFF]/50 outline-none transition-all placeholder:text-gray-700 font-medium" />
+                    <input type="text" value={category} onChange={e => setCategory(e.target.value)} placeholder="Ex: Aluguel" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-white/20 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
                   </div>
                 </div>
 
@@ -332,7 +332,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
               <div className="flex flex-col gap-3 mt-10">
                 <button 
                   onClick={handleAddTransaction} 
-                  className="w-full py-4 sm:py-5 bg-[#007AFF] text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-[#007AFF]/20 active:scale-[0.98]"
+                  className="w-full py-4 sm:py-5 bg-accent text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-[0.98]"
                 >
                   Salvar Lançamento
                 </button>
@@ -352,7 +352,7 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
 };
 
 const FinanceStatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean }> = ({ title, value, icon, trend, highlight }) => (
-  <div className={`bg-[#1c1c1e] border border-white/5 p-4 sm:p-8 rounded-[24px] sm:rounded-[32px] hover:bg-[#2c2c2e] transition-all group ${highlight ? 'ring-1 ring-[#007AFF]/30' : ''}`}>
+  <div className={`bg-[#1c1c1e] border border-white/5 p-4 sm:p-8 rounded-[24px] sm:rounded-[32px] hover:bg-[#2c2c2e] transition-all group ${highlight ? 'ring-1 ring-white/10' : ''}`}>
     <div className="flex justify-between items-start mb-4 sm:mb-6">
       <span className="text-gray-500 text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.2em]">{title}</span>
       <div className="bg-white/5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl group-hover:bg-white/10 transition-colors">
@@ -360,7 +360,7 @@ const FinanceStatCard: React.FC<{ title: string, value: string, icon: React.Reac
       </div>
     </div>
     <div className="flex items-end justify-between">
-      <div className={`text-base sm:text-3xl font-bold tracking-tight ${highlight ? 'text-[#007AFF]' : 'text-white'}`}>{value}</div>
+      <div className={`text-base sm:text-3xl font-bold tracking-tight text-white`}>{value}</div>
       {trend && (
         <span className={`text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg ${trend.startsWith('+') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
           {trend}
@@ -373,7 +373,7 @@ const FinanceStatCard: React.FC<{ title: string, value: string, icon: React.Reac
 const FilterButton: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
   <button 
     onClick={onClick}
-    className={`px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${active ? 'bg-[#007AFF] text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+    className={`px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${active ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
   >
     {label}
   </button>

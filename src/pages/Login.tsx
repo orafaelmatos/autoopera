@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Lock, User, ArrowRight, Scissors, Info } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import brandLogo from '../assets/logo.png';
+import api from '../api';
+import { Barbershop } from '../types';
 
 const LoginPage: React.FC = () => {
     const formatPhone = (value: string) => {
@@ -16,8 +19,16 @@ const LoginPage: React.FC = () => {
         return value.substring(0, 15);
     };
 
+    const getMediaUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http')) return path;
+        const hostname = window.location.hostname;
+        return `http://${hostname}:8000${path}`;
+    };
+
     const [phone, setPhone] = useState(formatPhone(localStorage.getItem('saved_phone') || ''));
     const [password, setPassword] = useState('');
+    const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formatted = formatPhone(e.target.value);
@@ -35,6 +46,29 @@ const LoginPage: React.FC = () => {
     
     const { login } = useAuth();
     const navigate = useNavigate();
+    const { slug: urlSlug } = useParams<{ slug?: string }>();
+
+    useEffect(() => {
+        const fetchShop = async () => {
+            if (urlSlug) {
+                try {
+                    const res = await api.get('config/');
+                    setBarbershop(res.data);
+                } catch (err) {
+                    console.error('Error fetching shop branding', err);
+                }
+            }
+        };
+        fetchShop();
+    }, [urlSlug]);
+
+    const getRedirectPath = (role: string, backendSlug?: string) => {
+        const targetSlug = urlSlug || backendSlug || localStorage.getItem('last_barbershop_slug') || 'default';
+        if (role === 'customer') {
+            return `/b/${targetSlug}/booking`;
+        }
+        return `/b/${targetSlug}`;
+    };
 
     const handleInitialSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,7 +78,11 @@ const LoginPage: React.FC = () => {
         const rawPhone = phone.replace(/\D/g, '');
 
         try {
-            const res = await login({ phone: rawPhone }, rememberMe);
+            // Passa o slug da URL para o login se existir
+            const loginData = { phone: rawPhone };
+            if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
+
+            const res = await login(loginData, rememberMe);
             
             if (res.error === 'CONFIRM_IDENTITY') {
                 setFoundName(res.name);
@@ -54,9 +92,8 @@ const LoginPage: React.FC = () => {
             } else if (res.error === 'PASSWORD_REQUIRED') {
                 setStep('password');
             } else if (res.access) {
-                // Caso login direto ocorra por algum motivo
                 if (rememberMe) localStorage.setItem('saved_phone', phone);
-                navigate('/');
+                navigate(getRedirectPath(res.role, res.barbershop));
             }
         } catch (err: any) {
             setError(err.message || 'Erro ao verificar telefone.');
@@ -69,9 +106,12 @@ const LoginPage: React.FC = () => {
         setLoading(true);
         const rawPhone = phone.replace(/\D/g, '');
         try {
-            await login({ phone: rawPhone, confirm_identity: true }, rememberMe);
+            const loginData = { phone: rawPhone, confirm_identity: true };
+            if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
+
+            const res = await login(loginData, rememberMe);
             if (rememberMe) localStorage.setItem('saved_phone', phone);
-            navigate('/');
+            navigate(getRedirectPath(res.role, res.barbershop));
         } catch (err: any) {
             setError('Erro ao confirmar identidade.');
         } finally {
@@ -84,9 +124,12 @@ const LoginPage: React.FC = () => {
         setLoading(true);
         const rawPhone = phone.replace(/\D/g, '');
         try {
-            await login({ phone: rawPhone, first_name: firstName, last_name: lastName }, rememberMe);
+            const loginData = { phone: rawPhone, first_name: firstName, last_name: lastName };
+            if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
+
+            const res = await login(loginData, rememberMe);
             if (rememberMe) localStorage.setItem('saved_phone', phone);
-            navigate('/');
+            navigate(getRedirectPath(res.role, res.barbershop));
         } catch (err: any) {
             setError(err.message || 'Erro ao realizar cadastro.');
         } finally {
@@ -99,18 +142,33 @@ const LoginPage: React.FC = () => {
         setLoading(true);
         const rawPhone = phone.replace(/\D/g, '');
         try {
-            await login({ phone: rawPhone, password }, rememberMe);
+            const loginData = { phone: rawPhone, password };
+            if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
+
+            const res = await login(loginData, rememberMe);
             if (rememberMe) localStorage.setItem('saved_phone', phone);
-            navigate('/');
+            navigate(getRedirectPath(res.role, res.barbershop));
         } catch (err: any) {
-            setError('Senha incorreta para barbeiro.');
+            setError(err.message || 'Erro ao realizar login.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Background Branding */}
+            {barbershop?.banner && (
+                <div className="absolute inset-0 z-0">
+                    <img 
+                        src={getMediaUrl(barbershop.banner)} 
+                        alt="Background" 
+                        className="w-full h-full object-cover opacity-20 blur-sm scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-[#0a0a0a]/40" />
+                </div>
+            )}
+
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
@@ -122,12 +180,45 @@ const LoginPage: React.FC = () => {
                 className="w-full max-w-md bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 p-8 rounded-[32px] shadow-2xl relative z-10"
             >
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 bg-[#007AFF] rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-[#007AFF]/20">
-                        <Scissors className="text-white" size={32} />
-                    </div>
-                    <h1 className="text-3xl font-bold text-white mb-2 italic">Barber<span className="text-[#007AFF]">Flow</span></h1>
-                    <p className="text-gray-400 text-sm">
-                        {step === 'phone' && 'Entre com seu WhatsApp para agendar'}
+                    {barbershop?.logo ? (
+                        <div className="w-24 h-24 rounded-3xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5">
+                            <img 
+                                src={getMediaUrl(barbershop.logo)} 
+                                alt={barbershop.name} 
+                                className="w-full h-full object-cover rounded-2xl"
+                            />
+                        </div>
+                    ) : barbershop?.banner ? (
+                        <div className="w-24 h-24 rounded-3xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5">
+                            <img 
+                                src={getMediaUrl(barbershop.banner)} 
+                                alt={barbershop.name} 
+                                className="w-full h-full object-cover rounded-2xl"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-4 mb-8 bg-white px-8 py-5 rounded-[32px] shadow-2xl">
+                            <img 
+                                src={brandLogo} 
+                                alt="AutoOpera" 
+                                className="h-8 w-auto object-contain"
+                            />
+                            <div className="w-px h-6 bg-gray-200" />
+                            <span className="text-4xl font-bold text-[#007AFF] tracking-tighter">Barber</span>
+                        </div>
+                    )}
+                    
+                    {barbershop ? (
+                        <h1 className="text-3xl font-black text-white mb-2 tracking-tighter uppercase">
+                            {barbershop.name}
+                        </h1>
+                    ) : (
+                        <h1 className="text-xl md:text-2xl font-bold text-white mb-4 text-center">
+                            Boas-vindas!
+                        </h1>
+                    )}
+                    <p className="text-gray-400 text-sm text-center font-medium">
+                        {step === 'phone' && (barbershop ? `Bem-vindo à área de agendamentos da ${barbershop.name}` : 'Entre com seu WhatsApp para agendar')}
                         {step === 'confirm' && 'Verificação de Identidade'}
                         {step === 'register' && 'Seja bem-vindo! Primeiro acesso.'}
                         {step === 'password' && 'Área restrita para Barbeiros'}
@@ -146,7 +237,7 @@ const LoginPage: React.FC = () => {
                                         value={phone}
                                         onChange={handlePhoneChange}
                                         placeholder="(11) 99999-9999"
-                                        className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium"
+                                        className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
                                         required
                                     />
                                 </div>
@@ -211,7 +302,7 @@ const LoginPage: React.FC = () => {
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
                                             placeholder="Ex: João"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
                                             required
                                         />
                                     </div>
@@ -225,7 +316,7 @@ const LoginPage: React.FC = () => {
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
                                             placeholder="Ex: Silva"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
                                             required
                                         />
                                     </div>
@@ -260,7 +351,7 @@ const LoginPage: React.FC = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="w-full bg-[#007AFF]/5 border border-[#007AFF]/20 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all"
+                                        className="w-full bg-[#007AFF]/5 border border-[#007AFF]/20 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
                                         required
                                         autoFocus
                                     />

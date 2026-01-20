@@ -7,11 +7,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
-    Service, Customer, LoyaltyReward, Appointment,
+    Barbershop, UserProfile, Service, Customer, CustomerBarbershop, LoyaltyReward, Appointment,
     Availability, ScheduleException, Transaction, Promotion, Product, Barber
 )
 from .serializers import (
-    ServiceSerializer, CustomerSerializer, LoyaltyRewardSerializer,
+    BarbershopSerializer, ServiceSerializer, CustomerSerializer, LoyaltyRewardSerializer,
     AppointmentSerializer, AvailabilitySerializer,
     ScheduleExceptionSerializer, TransactionSerializer, PromotionSerializer,
     ProductSerializer, BarberSerializer
@@ -21,15 +21,98 @@ from datetime import datetime
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+class TenantModelViewSet(viewsets.ModelViewSet):
+    """Mixin para filtrar automaticamente por barbearia (tenant)"""
+    def get_queryset(self):
+        barbershop = getattr(self.request, 'barbershop', None)
+        
+        # Tenta resolver pelo slug na URL se o middleware falhou
+        slug_in_url = self.kwargs.get('barbershop_slug')
+        if not barbershop and slug_in_url:
+            barbershop = Barbershop.objects.filter(slug=slug_in_url, is_active=True).first()
+            if barbershop:
+                self.request.barbershop = barbershop
+
+        # Fallback: Usuário autenticado (Barbeiro)
+        if not barbershop and self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'barber_profile'):
+                barbershop = self.request.user.barber_profile.barbershop
+                self.request.barbershop = barbershop # Injeta contextualmente
+
+        if not barbershop:
+            return self.queryset.none()
+        return self.queryset.filter(barbershop=barbershop)
+
+    def perform_create(self, serializer):
+        barbershop = getattr(self.request, 'barbershop', None)
+        
+        slug_in_url = self.kwargs.get('barbershop_slug')
+        if not barbershop and slug_in_url:
+            barbershop = Barbershop.objects.filter(slug=slug_in_url, is_active=True).first()
+
+        if not barbershop and self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'barber_profile'):
+                barbershop = self.request.user.barber_profile.barbershop
+        
+        serializer.save(barbershop=barbershop)
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([AllowAny])
+def current_barbershop(request, barbershop_slug=None):
+    """Retorna ou atualiza os dados da barbearia atual"""
+    if request.method == 'PATCH' and not request.user.is_authenticated:
+        return Response({"detail": "Não autenticado"}, status=401)
+        
+    barbershop = getattr(request, 'barbershop', None)
+    
+    # Se o slug veio na URL mas o middleware não resolveu
+    if not barbershop and barbershop_slug:
+        barbershop = Barbershop.objects.filter(slug=barbershop_slug, is_active=True).first()
+        if barbershop:
+            request.barbershop = barbershop
+
+    # Fallback: Se ainda não resolvido, tenta pelo perfil do usuário
+    if not barbershop and request.user.is_authenticated:
+        if hasattr(request.user, 'barber_profile'):
+            barbershop = request.user.barber_profile.barbershop
+            request.barbershop = barbershop
+            
+    if not barbershop:
+        return Response({"error": "TENANT_REQUIRED", "message": "Contexto de barbearia não encontrado"}, status=404)
+        
+    if request.method == 'GET':
+        serializer = BarbershopSerializer(barbershop, context={'request': request})
+        return Response(serializer.data)
+        
+    elif request.method == 'PATCH':
+        # Apenas barbeiros do próprio shop podem editar
+        if not hasattr(request.user, 'barber_profile') or request.user.barber_profile.barbershop != barbershop:
+            return Response({"detail": "Sem permissão para editar esta barbearia"}, status=403)
+
+        serializer = BarbershopSerializer(barbershop, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+class BarbershopViewSet(viewsets.ModelViewSet):
+    queryset = Barbershop.objects.all()
+    serializer_class = BarbershopSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def whatsapp_login(request):
+def whatsapp_login(request, barbershop_slug=None):
     phone = request.data.get('phone')
     password = request.data.get('password')
     first_name = request.data.get('first_name')
     last_name = request.data.get('last_name')
     confirm_identity = request.data.get('confirm_identity', False)
+
+    # Resolve barbershop from slug if provided in URL or body
+    slug = barbershop_slug or request.data.get('barbershop_slug')
+    barbershop = Barbershop.objects.filter(slug=slug).first()
 
     if not phone:
         return Response({"error": "TELEFONE_REQUIRED", "message": "O telefone é obrigatório"}, status=status.HTTP_400_BAD_REQUEST)
@@ -57,6 +140,12 @@ def whatsapp_login(request):
             # Identidade confirmada, segue para login sem conferência de senha
             pass
 
+        # Vincular cliente à barbearia se logou nela
+        if barbershop:
+            customer = Customer.objects.filter(user=user).first()
+            if customer:
+                CustomerBarbershop.objects.get_or_create(customer=customer, barbershop=barbershop)
+
         refresh = RefreshToken.for_user(user)
         role = 'barber' if hasattr(user, 'barber_profile') else 'customer'
         
@@ -65,7 +154,8 @@ def whatsapp_login(request):
             'access': str(refresh.access_token),
             'role': role,
             'name': user.first_name or user.username,
-            'phone': user.username
+            'phone': user.username,
+            'barbershop': barbershop.slug if barbershop else None
         })
 
     except User.DoesNotExist:
@@ -76,8 +166,6 @@ def whatsapp_login(request):
                 "message": "Primeiro acesso! Por favor, informe seu nome e sobrenome."
             }, status=status.HTTP_200_OK)
         
-        # Criar novo usuário (cliente) sem exigir que ele crie senha
-        # Usamos o próprio telefone como senha interna
         user = User.objects.create_user(
             username=phone, 
             password=phone, 
@@ -94,6 +182,9 @@ def whatsapp_login(request):
             customer.user = user
             customer.name = full_name
             customer.save()
+        
+        if barbershop:
+            CustomerBarbershop.objects.get_or_create(customer=customer, barbershop=barbershop)
             
         refresh = RefreshToken.for_user(user)
         return Response({
@@ -101,13 +192,140 @@ def whatsapp_login(request):
             'access': str(refresh.access_token),
             'role': 'customer',
             'name': first_name,
-            'phone': phone
+            'phone': phone,
+            'barbershop': barbershop.slug if barbershop else None
         }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def barber_register(request):
+    """Cria barbeiro, usuário e barbearia de uma vez"""
+    data = request.data
+    phone = data.get('phone')
+    password = data.get('password')
+    name = data.get('name')
+    shop_name = data.get('shop_name')
+    shop_slug = data.get('shop_slug')
+    shop_address = data.get('address', '')
+    shop_instagram = data.get('instagram', '')
+    shop_description = data.get('description', '')
+    banner = request.FILES.get('banner')
+
+    if not all([phone, password, name, shop_name, shop_slug]):
+        return Response({"error": "REQUIRED_FIELDS", "message": "Todos os campos são obrigatórios"}, status=400)
+    
+    # ... logic continues ...
+    if User.objects.filter(username=phone).exists():
+        return Response({"error": "USER_EXISTS", "message": "Este telefone já está cadastrado"}, status=400)
+    
+    if Barbershop.objects.filter(slug=shop_slug).exists():
+        return Response({"error": "SLUG_EXISTS", "message": "Este endereço de barbearia já está em uso"}, status=400)
+
+    # Criar Usuário
+    user = User.objects.create_user(
+        username=phone,
+        password=password,
+        first_name=name.split(' ')[0],
+        last_name=' '.join(name.split(' ')[1:]) if ' ' in name else ''
+    )
+
+    # Criar Barbearia
+    barbershop = Barbershop.objects.create(
+        name=shop_name,
+        slug=shop_slug,
+        owner=user,
+        address=shop_address,
+        instagram=shop_instagram,
+        description=shop_description,
+        banner=banner
+    )
+
+    # Criar Perfil de Barbeiro
+    Barber.objects.create(
+        user=user,
+        barbershop=barbershop,
+        name=name,
+        email=f"{phone}@auto.com" # Email placeholder
+    )
+
+    # Criar Perfil Universal
+    UserProfile.objects.create(user=user, role='BARBER')
+
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+        'role': 'barber',
+        'name': name,
+        'phone': phone,
+        'barbershop': barbershop.slug
+    }, status=201)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def n8n_today_summary(request):
+    """Resumo simplificado para n8n/IA"""
+    barbershop = request.barbershop
+    if not barbershop:
+        return Response({"error": "TENANT_REQUIRED"}, status=400)
+    
+    from datetime import date
+    from django.db.models import Count, Sum
+    
+    today = date.today()
+    appointments = Appointment.objects.filter(barbershop=barbershop, date__date=today)
+    
+    summary = {
+        "barbershop": barbershop.name,
+        "date": today.isoformat(),
+        "total_appointments": appointments.count(),
+        "confirmed": appointments.filter(status='confirmed').count(),
+        "completed": appointments.filter(status='completed').count(),
+        "cancelled": appointments.filter(status='cancelled').count(),
+        "revenue_today": Transaction.objects.filter(
+            barbershop=barbershop, 
+            date__date=today, 
+            type='income', 
+            status='paid'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+    }
+    
+    return Response(summary)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def n8n_next_appointments(request):
+    """Próximos agendamentos formatados para IA ler facilmente"""
+    barbershop = request.barbershop
+    if not barbershop:
+        return Response({"error": "TENANT_REQUIRED"}, status=400)
+    
+    now = timezone.now()
+    appointments = Appointment.objects.filter(
+        barbershop=barbershop, 
+        date__gte=now, 
+        status='confirmed'
+    ).order_by('date')[:10]
+    
+    data = []
+    for app in appointments:
+        data.append({
+            "id": str(app.id),
+            "client": app.client_name,
+            "service": app.service.name,
+            "barber": app.barber.name,
+            "time": app.date.strftime("%H:%M"),
+            "date": app.date.strftime("%d/%m/%Y"),
+            "whatsapp": app.customer.phone if app.customer else "N/A"
+        })
+        
+    return Response({"appointments": data})
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_me(request):
+def get_me(request, **kwargs):
     user = request.user
     role = 'customer'
     profile_id = None
@@ -115,16 +333,30 @@ def get_me(request):
     
     if hasattr(user, 'barber_profile'):
         role = 'barber'
-        profile_id = user.barber_profile.id
+        barber = user.barber_profile
+        profile_id = barber.id
+        extra_data = {
+            'profile_picture': barber.profile_picture.url if barber.profile_picture else None,
+            'full_name': barber.name,
+            'email': barber.email,
+            'description': barber.description,
+            'barbershop_slug': barber.barbershop.slug if barber.barbershop else None,
+            'barbershop_name': barber.barbershop.name if barber.barbershop else None,
+            'barbershop_banner': barber.barbershop.banner.url if barber.barbershop and barber.barbershop.banner else None,
+            'barbershop_logo': barber.barbershop.logo.url if barber.barbershop and barber.barbershop.logo else None,
+        }
     elif hasattr(user, 'customer_profile'):
         profile_id = user.customer_profile.id
         role = 'customer'
         customer = user.customer_profile
+        # Pega a barbearia mais recente associada como fallback através do modelo intermédio
+        last_stat = customer.barbershop_stats.select_related('barbershop').first()
         extra_data = {
             'birth_date': customer.birth_date,
             'profile_picture': customer.profile_picture.url if customer.profile_picture else None,
             'phone': customer.phone,
-            'full_name': customer.name
+            'full_name': customer.name,
+            'barbershop_slug': last_stat.barbershop.slug if last_stat else None
         }
     
     return Response({
@@ -137,13 +369,13 @@ def get_me(request):
     })
 
 
-class BarberViewSet(viewsets.ModelViewSet):
+class BarberViewSet(TenantModelViewSet):
     queryset = Barber.objects.all()
     serializer_class = BarberSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(TenantModelViewSet):
     """ViewSet para gerenciar serviços"""
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
@@ -154,39 +386,53 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
-    """ViewSet para gerenciar clientes"""
+    """ViewSet para gerenciar clientes (Global, mas vinculado ao Tenant)"""
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'phone']
-    ordering_fields = ['name', 'total_spent', 'points', 'last_visit']
+    ordering_fields = ['name']
 
     def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'barber_profile'):
-            return Customer.objects.all()
-        elif hasattr(user, 'customer_profile'):
-            return Customer.objects.filter(id=user.customer_profile.id)
-        return Customer.objects.none()
+        barbershop = getattr(self.request, 'barbershop', None)
+        
+        # Fallback para usuário autenticado (Barbeiro)
+        if not barbershop and self.request.user.is_authenticated:
+            if hasattr(self.request.user, 'barber_profile'):
+                barbershop = self.request.user.barber_profile.barbershop
+                self.request.barbershop = barbershop
+
+        if not barbershop:
+            return Customer.objects.none()
+        
+        # Filtra clientes que possuem vínculo com esta barbearia
+        customer_ids = CustomerBarbershop.objects.filter(barbershop=barbershop).values_list('customer_id', flat=True)
+        return Customer.objects.filter(id__in=customer_ids)
 
     @action(detail=True, methods=['post'])
     def redeem_points(self, request, pk=None):
-        """Resgatar pontos de fidelidade"""
+        """Resgatar pontos de fidelidade na barbearia atual"""
         customer = self.get_object()
+        barbershop = request.barbershop
+        cb = CustomerBarbershop.objects.filter(customer=customer, barbershop=barbershop).first()
+        
+        if not cb:
+            return Response({'success': False, 'error': 'Cliente não vinculado a esta barbearia'}, status=400)
+
         try:
             points_to_redeem = int(request.data.get('points', 0))
         except (ValueError, TypeError):
             return Response({'success': False, 'error': 'Valor de pontos inválido'}, status=400)
         
-        if customer.points >= points_to_redeem:
-            customer.points -= points_to_redeem
-            customer.save()
-            return Response({'success': True, 'remaining_points': customer.points})
+        if cb.points >= points_to_redeem:
+            cb.points -= points_to_redeem
+            cb.save()
+            return Response({'success': True, 'remaining_points': cb.points})
         return Response({'success': False, 'error': 'Pontos insuficientes'}, status=400)
 
 
-class LoyaltyRewardViewSet(viewsets.ModelViewSet):
+class LoyaltyRewardViewSet(TenantModelViewSet):
     """ViewSet para recompensas de fidelidade"""
     queryset = LoyaltyReward.objects.all()
     serializer_class = LoyaltyRewardSerializer
@@ -194,31 +440,24 @@ class LoyaltyRewardViewSet(viewsets.ModelViewSet):
     ordering_fields = ['points_required', 'created_at']
 
 
-class AppointmentViewSet(viewsets.ModelViewSet):
+class AppointmentViewSet(TenantModelViewSet):
     """ViewSet para gerenciar agendamentos"""
+    queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'platform', 'date']
     ordering_fields = ['date', 'created_at']
 
-    def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'barber_profile'):
-            return Appointment.objects.filter(barber=user.barber_profile)
-        elif hasattr(user, 'customer_profile'):
-            return Appointment.objects.filter(customer=user.customer_profile)
-        return Appointment.objects.none()
-
     def create(self, request, *args, **kwargs):
+        barbershop = request.barbershop
         barber_id = request.data.get('barberId')
-        # Se for barbeiro e não enviou ID, usa o dele
+        
         if not barber_id and hasattr(request.user, 'barber_profile'):
             barber_id = request.user.barber_profile.id
             
-        # Fallback para o primeiro
         if not barber_id:
-            first_barber = Barber.objects.first()
+            first_barber = Barber.objects.filter(barbershop=barbershop).first()
             if first_barber:
                 barber_id = first_barber.id
         
@@ -241,6 +480,10 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             )
             customer_id = customer.id
 
+        # Garantir vínculo do cliente com a barbearia
+        if customer_id:
+            CustomerBarbershop.objects.get_or_create(customer_id=customer_id, barbershop=barbershop)
+
         try:
             date_obj = parse_datetime(date_str)
             if not date_obj:
@@ -250,6 +493,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 date_obj = timezone.make_aware(date_obj)
 
             appointment = BookingService.create_appointment(
+                barbershop=barbershop,
                 barber_id=barber_id,
                 service_id=service_id,
                 customer_id=customer_id,
@@ -281,12 +525,13 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def today(self, request):
         """Retorna os agendamentos de hoje"""
         from datetime import date
-        today_appointments = self.queryset.filter(date__date=date.today())
+        today_appointments = self.get_queryset().filter(date__date=date.today())
         serializer = self.get_serializer(today_appointments, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def available_slots(self, request):
+        barbershop = request.barbershop
         barber_id = request.query_params.get('barberId')
         service_id = request.query_params.get('serviceId')
         date_str = request.query_params.get('date')
@@ -296,75 +541,53 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         try:
             target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            slots = BookingService.get_available_slots(barber_id, service_id, target_date)
+            slots = BookingService.get_available_slots(barbershop, barber_id, service_id, target_date)
             return Response([s.strftime('%H:%M') for s in slots])
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
 
-class AvailabilityViewSet(viewsets.ModelViewSet):
-    """ViewSet para disponibilidade semanal"""
+class AvailabilityViewSet(TenantModelViewSet):
+    """ViewSet para disponibilidade semanal per-barbershop"""
+    queryset = Availability.objects.all()
     serializer_class = AvailabilitySerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['day_of_week']
 
-    def get_queryset(self):
-        user = self.request.user
-        if not hasattr(user, 'barber_profile'):
-            return Availability.objects.none()
+    @action(detail=False, methods=['post'])
+    def sync(self, request):
+        """Sincroniza todas as disponibilidades do barbeiro logado"""
+        barber = request.user.barber_profile
+        data = request.data  # Lista de novos horários
         
-        barber = user.barber_profile
+        # Remove horários atuais
+        Availability.objects.filter(barber=barber).delete()
         
-        # Garante que os 7 dias existam
-        default_work = [
-            {'day': 0, 'start': '09:00', 'end': '12:00', 'l_start': None, 'l_end': None, 'active': False}, # Dom
-            {'day': 1, 'start': '09:00', 'end': '19:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Seg
-            {'day': 2, 'start': '09:00', 'end': '19:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Ter
-            {'day': 3, 'start': '09:00', 'end': '19:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Qua
-            {'day': 4, 'start': '09:00', 'end': '19:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Qui
-            {'day': 5, 'start': '09:00', 'end': '19:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Sex
-            {'day': 6, 'start': '09:00', 'end': '17:00', 'l_start': '12:00', 'l_end': '13:00', 'active': True}, # Sab
-        ]
+        # Cria novos
+        created = []
+        for item in data:
+            serializer = self.get_serializer(data=item)
+            if serializer.is_valid():
+                serializer.save(barber=barber)
+                created.append(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        for dw in default_work:
-            Availability.objects.get_or_create(
-                barber=barber,
-                day_of_week=dw['day'],
-                defaults={
-                    'start_time': dw['start'],
-                    'end_time': dw['end'],
-                    'lunch_start': dw['l_start'],
-                    'lunch_end': dw['l_end'],
-                    'is_active': dw['active']
-                }
-            )
-            
-        return Availability.objects.filter(barber=barber)
-
-    def perform_create(self, serializer):
-        serializer.save(barber=self.request.user.barber_profile)
+        return Response(created, status=status.HTTP_201_CREATED)
 
 
-class ScheduleExceptionViewSet(viewsets.ModelViewSet):
+class ScheduleExceptionViewSet(TenantModelViewSet):
     """ViewSet para exceções na agenda"""
+    queryset = ScheduleException.objects.all()
     serializer_class = ScheduleExceptionSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['type', 'date']
     ordering_fields = ['date', 'created_at']
 
-    def get_queryset(self):
-        user = self.request.user
-        if not hasattr(user, 'barber_profile'):
-            return ScheduleException.objects.none()
-        return ScheduleException.objects.filter(barber=user.barber_profile)
 
-    def perform_create(self, serializer):
-        serializer.save(barber=self.request.user.barber_profile)
-
-
-class TransactionViewSet(viewsets.ModelViewSet):
+class TransactionViewSet(TenantModelViewSet):
     """ViewSet para transações financeiras"""
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
@@ -376,12 +599,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def summary(self, request):
         """Retorna resumo financeiro"""
-        from django.db.models import Sum, Q
+        from django.db.models import Sum
         from datetime import date, timedelta
         
-        # Últimos 30 dias
+        barbershop = request.barbershop
         thirty_days_ago = date.today() - timedelta(days=30)
-        recent_transactions = self.queryset.filter(date__gte=thirty_days_ago)
+        recent_transactions = self.get_queryset().filter(date__gte=thirty_days_ago)
         
         total_income = recent_transactions.filter(
             type='income', status='paid'
@@ -403,11 +626,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
         })
 
 
-class PromotionViewSet(viewsets.ModelViewSet):
+class PromotionViewSet(TenantModelViewSet):
     """ViewSet para promoções"""
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'target_audience', 'target_day']
     ordering_fields = ['created_at', 'reach']
@@ -415,13 +638,13 @@ class PromotionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def active(self, request):
         """Retorna promoções ativas"""
-        active_promotions = self.queryset.filter(status='active')
+        active_promotions = self.get_queryset().filter(status='active')
         serializer = self.get_serializer(active_promotions, many=True)
         return Response(serializer.data)
 
 
-class ProductViewSet(viewsets.ModelViewSet):
-    """ViewSet para produtos"""
+class ProductViewSet(TenantModelViewSet):
+    """ViewSet para controle de estoque per-barbershop"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
@@ -434,6 +657,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     def low_stock(self, request):
         """Retorna produtos com estoque baixo"""
         from django.db.models import F
-        low_stock_products = self.queryset.filter(stock__lte=F('min_stock'))
+        low_stock_products = self.get_queryset().filter(stock__lte=F('min_stock'))
         serializer = self.get_serializer(low_stock_products, many=True)
         return Response(serializer.data)

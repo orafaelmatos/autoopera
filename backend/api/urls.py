@@ -1,11 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    ServiceViewSet, CustomerViewSet, LoyaltyRewardViewSet,
-    AppointmentViewSet, AvailabilityViewSet,
+    BarbershopViewSet, BarberViewSet, ServiceViewSet, CustomerViewSet, 
+    LoyaltyRewardViewSet, AppointmentViewSet, AvailabilityViewSet,
     ScheduleExceptionViewSet, TransactionViewSet, PromotionViewSet,
-    ProductViewSet, BarberViewSet, whatsapp_login, get_me
+    ProductViewSet, whatsapp_login, get_me, current_barbershop,
+    n8n_today_summary, n8n_next_appointments, barber_register
 )
+from .webhooks import cacto_webhook
 from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
@@ -22,7 +24,17 @@ router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
     path('auth/login/', whatsapp_login, name='whatsapp-login'),
+    path('auth/register-barber/', barber_register, name='barber-register'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('auth/me/', get_me, name='get-me'),
+    
+    # n8n / AI Endpoints
+    path('n8n/today-summary/', n8n_today_summary, name='n8n-today-summary'),
+    path('n8n/next-appointments/', n8n_next_appointments, name='n8n-next-appointments'),
+    
+    # Webhooks
+    path('webhooks/cacto/', cacto_webhook, name='cacto-webhook'),
+    
+    path('config/', current_barbershop, name='current-barbershop'),
     path('', include(router.urls)),
 ]

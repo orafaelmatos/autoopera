@@ -11,6 +11,10 @@ interface User {
   phone?: string;
   role: 'barber' | 'customer';
   profile_id?: number;
+  barbershop_slug?: string;
+  barbershop_name?: string;
+  barbershop_banner?: string;
+  barbershop_logo?: string;
 }
 
 interface AuthContextType {
@@ -18,6 +22,7 @@ interface AuthContextType {
   login: (credentials: any, remember: boolean) => Promise<any>;
   logout: () => void;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,7 +42,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = async () => {
     try {
-      const response = await api.get('/auth/me/');
+      const response = await api.get('auth/me/');
+      if (response.data.barbershop_slug) {
+        localStorage.setItem('last_barbershop_slug', response.data.barbershop_slug);
+      }
       setUser(response.data);
     } catch (error) {
       localStorage.removeItem('token');
@@ -51,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (credentials: any, remember: boolean) => {
     try {
-      const response = await api.post('/auth/login/', credentials);
+      const response = await api.post('auth/login/', credentials);
       
       // Se for apenas uma confirmação de identidade ou pedido de senha, retorna os dados para o componente tratar
       if (response.data.error === 'CONFIRM_IDENTITY' || response.data.error === 'PASSWORD_REQUIRED' || response.data.error === 'NAME_REQUIRED') {
@@ -66,7 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       storage.setItem('token', access);
       storage.setItem('refresh_token', refresh);
       
-      const meResponse = await api.get('/auth/me/');
+      if (response.data.barbershop) {
+        localStorage.setItem('last_barbershop_slug', response.data.barbershop);
+      }
+      
+      const meResponse = await api.get('auth/me/');
       setUser(meResponse.data);
       return response.data;
     } catch (error: any) {
@@ -83,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, refreshUser: checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

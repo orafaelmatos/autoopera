@@ -1,8 +1,22 @@
 
+export interface Barbershop {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  logo?: string;
+  banner?: string;
+  primary_color: string;
+}
+
 export interface Barber {
   id: string;
   name: string;
   email: string;
+  description?: string;
+  profile_picture?: string;
   is_active: boolean;
   buffer_minutes: number;
   booking_horizon_days: number;
@@ -51,8 +65,6 @@ export interface Availability {
   dayOfWeek: number; // 0-6
   startTime: string; // "HH:mm"
   endTime: string;   // "HH:mm"
-  lunchStart?: string; // "HH:mm"
-  lunchEnd?: string;   // "HH:mm"
   isActive: boolean;
 }
 

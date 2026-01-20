@@ -72,8 +72,8 @@ const DashboardView: React.FC<Props> = ({
       </header>
 
       <div className="grid grid-cols-2 gap-4 sm:gap-6">
-        <StatCard title="Faturamento" value={`R$ ${totalRevenue}`} icon={<Wallet className="text-[#007AFF]" size={18} />} />
-        <StatCard title="Cortes" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-[#007AFF]" size={18} />} />
+        <StatCard title="Faturamento" value={`R$ ${totalRevenue}`} icon={<Wallet className="text-white/60" size={18} />} />
+        <StatCard title="Cortes" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-white/60" size={18} />} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12 pt-4">
@@ -82,7 +82,7 @@ const DashboardView: React.FC<Props> = ({
             <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">
               Para Finalizar
             </h3>
-            <span className="text-[9px] sm:text-[10px] font-bold text-[#007AFF] uppercase tracking-[0.2em] bg-[#007AFF]/10 px-3 py-1 rounded-full">Deslize para concluir</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] bg-white/5 px-3 py-1 rounded-full border border-white/5">Deslize para concluir</span>
           </div>
           
           <div className="space-y-4">
@@ -103,7 +103,7 @@ const DashboardView: React.FC<Props> = ({
                      animate={{ opacity: 1 }}
                      className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-20 text-center"
                    >
-                      <CheckCircle2 size={48} className="text-[#007AFF]/20 mx-auto mb-6" />
+                      <CheckCircle2 size={48} className="text-white/10 mx-auto mb-6" />
                       <p className="text-gray-400 text-sm font-semibold">Tudo em dia!</p>
                       <p className="text-gray-600 text-xs mt-2">Nenhum atendimento pendente no momento.</p>
                    </motion.div>
@@ -114,15 +114,15 @@ const DashboardView: React.FC<Props> = ({
 
         <section className="space-y-8">
           <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] mb-6">Metas do Período</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6 font-bold">Metas do Período</h3>
             <div className="space-y-8">
-              <GoalCard label="Atendimentos" current={completedApts.length} target={15} color="bg-[#007AFF]" />
-              <GoalCard label="Faturamento" current={totalRevenue} target={1500} color="bg-[#007AFF]" />
+              <GoalCard label="Atendimentos" current={completedApts.length} target={15} color="bg-accent" />
+              <GoalCard label="Faturamento" current={totalRevenue} target={1500} color="bg-accent" />
             </div>
           </div>
 
           <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#007AFF] mb-6">Serviços Mais Prestados</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6 font-bold">Serviços Mais Prestados</h3>
             <div className="space-y-5">
               {serviceStats.map(stat => (
                 <div key={stat.name} className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -139,12 +139,12 @@ const DashboardView: React.FC<Props> = ({
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-[#007AFF]/10 to-transparent border border-[#007AFF]/5 rounded-[32px] p-8">
-             <h4 className="text-[#007AFF] font-bold text-sm mb-3 flex items-center gap-2">
+          <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8">
+             <h4 className="text-white/60 font-bold text-sm mb-3 flex items-center gap-2">
                 <TrendingUp size={16} /> Insights
              </h4>
              <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                Seus clientes VIPs estão retornando menos este mês. <span className="text-[#007AFF] cursor-pointer hover:underline underline-offset-4 font-semibold">Agendar lembretes?</span>
+                Seus clientes VIPs estão retornando menos este mês. <span className="text-accent cursor-pointer hover:underline underline-offset-4 font-semibold">Agendar lembretes?</span>
              </p>
           </div>
         </section>
@@ -191,14 +191,14 @@ const SwipeableAppointment: React.FC<{ apt: Appointment, serviceName: string, on
       >
         <div className="flex items-center gap-5">
           <div className="bg-black/40 p-3.5 rounded-2xl border border-white/5">
-            <User size={24} className="text-[#007AFF]" />
+            <User size={24} className="text-white/60" />
           </div>
           <div>
             <h4 className="font-bold text-white text-lg tracking-tight">{apt.clientName}</h4>
             <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3 mt-1.5">
                <span className="text-[10px] sm:text-[11px] text-white/50 font-bold tracking-tight bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{serviceName}</span>
-               <div className="hidden sm:block w-1 h-1 rounded-full bg-[#007AFF]/30"></div>
-               <span className="text-[9px] sm:text-[10px] text-[#007AFF] font-black uppercase tracking-widest bg-[#007AFF]/10 px-2 py-0.5 rounded-md">{apt.platform}</span>
+               <div className="hidden sm:block w-1 h-1 rounded-full bg-white/20"></div>
+               <span className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{apt.platform}</span>
             </div>
           </div>
         </div>

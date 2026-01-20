@@ -3,8 +3,48 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 
 
+class Barbershop(models.Model):
+    """Representa uma empresa/estabelecimento (Tenant)"""
+    PLAN_CHOICES = [
+        ('BASIC', 'Básico'),
+        ('TEAM', 'Equipe'),
+        ('PRO', 'IA Pro'),
+    ]
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_barbershops')
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='BASIC')
+    logo = models.ImageField(upload_to='barbershops/logos/', null=True, blank=True)
+    banner = models.ImageField(upload_to='barbershops/banners/', null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    instagram = models.CharField(max_length=100, blank=True, null=True)
+    primary_color = models.CharField(max_length=7, default='#007AFF')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UserProfile(models.Model):
+    """Extensão do User para controle de papéis no SaaS"""
+    ROLE_CHOICES = [
+        ('OWNER', 'Dono'),
+        ('BARBER', 'Barbeiro'),
+        ('CLIENT', 'Cliente'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CLIENT')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+
+
 class Service(models.Model):
     """Serviços oferecidos pela barbearia"""
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='services', null=True)
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration = models.IntegerField(help_text="Duração em minutos")
@@ -17,41 +57,50 @@ class Service(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.barbershop.name if self.barbershop else 'Global'})"
 
 
 class Barber(models.Model):
     """Barbeiros da barbearia"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='barber_profile', null=True, blank=True)
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='barbers', null=True)
     name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
+    description = models.TextField(blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='barbers/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     buffer_minutes = models.IntegerField(default=5)
     booking_horizon_days = models.IntegerField(default=30)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} @ {self.barbershop.name if self.barbershop else 'N/A'}"
 
 
 class Customer(models.Model):
-    """Clientes da barbearia"""
+    """Clientes da barbearia (Perfil Global)"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile', null=True, blank=True)
     name = models.CharField(max_length=200)
     phone = models.CharField(max_length=20)
     birth_date = models.DateField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class CustomerBarbershop(models.Model):
+    """Dados do cliente em uma barbearia específica (pontos, histórico local)"""
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='barbershop_stats')
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='customers')
     last_visit = models.CharField(max_length=100, default='Primeira vez')
     total_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     notes = models.TextField(blank=True, default='')
     points = models.IntegerField(default=0, help_text="Pontos de fidelidade")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-total_spent']
-
-    def __str__(self):
-        return self.name
+        unique_together = ['customer', 'barbershop']
 
 
 class LoyaltyReward(models.Model):
@@ -61,6 +110,7 @@ class LoyaltyReward(models.Model):
         ('product', 'Produto'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='loyalty_rewards', null=True)
     name = models.CharField(max_length=200)
     points_required = models.IntegerField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
@@ -70,7 +120,7 @@ class LoyaltyReward(models.Model):
         ordering = ['points_required']
 
     def __str__(self):
-        return f"{self.name} ({self.points_required} pts)"
+        return f"{self.name} ({self.points_required} pts) - {self.barbershop.name if self.barbershop else 'Global'}"
 
 
 class Appointment(models.Model):
@@ -88,6 +138,7 @@ class Appointment(models.Model):
         ('web', 'Web'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='appointments', null=True)
     client_name = models.CharField(max_length=200)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='appointments')
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='appointments')
@@ -121,7 +172,8 @@ class TimeSlot(models.Model):
 
 
 class Availability(models.Model):
-    """Disponibilidade semanal"""
+    """Disponibilidade semanal (Base para a agenda)"""
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='availabilities', null=True)
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='availability', null=True)
     day_of_week = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(6)],
@@ -129,17 +181,14 @@ class Availability(models.Model):
     )
     start_time = models.TimeField()
     end_time = models.TimeField()
-    lunch_start = models.TimeField(null=True, blank=True, help_text="Início do almoço")
-    lunch_end = models.TimeField(null=True, blank=True, help_text="Fim do almoço")
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['day_of_week']
-        unique_together = ['barber', 'day_of_week']
+        ordering = ['day_of_week', 'start_time']
 
     def __str__(self):
         days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-        return f"{days[self.day_of_week]} - {self.start_time} às {self.end_time} (Almoço: {self.lunch_start}-{self.lunch_end})"
+        return f"{days[self.day_of_week]} - {self.start_time} às {self.end_time}"
 
 
 class ScheduleException(models.Model):
@@ -149,6 +198,7 @@ class ScheduleException(models.Model):
         ('blocked', 'Bloqueado'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='schedule_exceptions', null=True)
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='exceptions', null=True)
     date = models.DateField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
@@ -182,6 +232,7 @@ class Transaction(models.Model):
         ('pix', 'PIX'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='transactions', null=True)
     description = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
@@ -196,7 +247,7 @@ class Transaction(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.description} - R$ {self.amount}"
+        return f"{self.description} - R$ {self.amount} ({self.barbershop.name if self.barbershop else 'Global'})"
 
 
 class Promotion(models.Model):
@@ -213,6 +264,7 @@ class Promotion(models.Model):
         ('inactive', 'Inativos'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='promotions', null=True)
     name = models.CharField(max_length=200)
     discount = models.DecimalField(
         max_digits=5, 
@@ -235,7 +287,7 @@ class Promotion(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.barbershop.name if self.barbershop else 'Global'}"
 
 
 class Product(models.Model):
@@ -246,6 +298,7 @@ class Product(models.Model):
         ('bar', 'Bar'),
     ]
     
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='products', null=True)
     name = models.CharField(max_length=200)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     stock = models.IntegerField(default=0)
@@ -261,4 +314,4 @@ class Product(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.barbershop.name if self.barbershop else 'Global'})"
