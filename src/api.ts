@@ -5,8 +5,8 @@ import {
 } from './types';
 
 const getBaseURL = () => {
-  const hostname = window.location.hostname;
-  const apiRoot = `http://${hostname}:8000/api`;
+  const origin = window.location.origin;
+  const apiRoot = `${origin}/api`;
   
   const pathParts = window.location.pathname.split('/');
   const bIndex = pathParts.indexOf('b');
