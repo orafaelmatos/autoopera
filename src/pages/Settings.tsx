@@ -8,8 +8,8 @@ import {
   Mail, Info, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Availability, ScheduleException, Barbershop } from '../types';
-import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi } from '../api';
+import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
+import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi, dailyAvailabilityApi } from '../api';
 import { useAuth } from '../AuthContext';
 import toast from 'react-hot-toast';
 
@@ -39,6 +39,10 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     }
   }, [location]);
   const [exceptions, setExceptions] = useState<ScheduleException[]>([]);
+  // Daily availability (per-date shifts)
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
+  const [dailyShifts, setDailyShifts] = useState<Array<{startTime:string,endTime:string,isActive:boolean,id?:string}>>([]);
+  const [loadingDaily, setLoadingDaily] = useState(false);
   const logoInputRef = React.useRef<HTMLInputElement>(null);
   const profilePicInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -87,9 +91,91 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     endTime: '19:00'
   });
 
+  // Calendar states for month overview
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [availMap, setAvailMap] = useState<Record<string, DailyAvailability[]>>({});
+  const [showDayModal, setShowDayModal] = useState(false);
+
+  const formatDate = (d: Date) => d.toISOString().slice(0,10);
+
+  const calendarMatrix = (month: Date) => {
+    const year = month.getFullYear();
+    const m = month.getMonth();
+    const first = new Date(year, m, 1);
+    const firstWeekday = first.getDay();
+    const daysInMonth = new Date(year, m+1, 0).getDate();
+    const cells: Array<{day:number,date:string,isCurrentMonth:boolean}> = [];
+    // previous month blanks
+    for (let i=0;i<firstWeekday;i++) {
+      const prevDate = new Date(year, m, 1 - (firstWeekday - i));
+      cells.push({ day: prevDate.getDate(), date: formatDate(prevDate), isCurrentMonth: false });
+    }
+    for (let d=1; d<=daysInMonth; d++) {
+      const dd = new Date(year, m, d);
+      cells.push({ day: d, date: formatDate(dd), isCurrentMonth: true });
+    }
+    // fill to complete weeks
+    while (cells.length % 7 !== 0) {
+      const nextDayIndex = cells.length - (firstWeekday) + 1;
+      const nextDate = new Date(year, m, daysInMonth + (cells.length - (firstWeekday)) + 1);
+      cells.push({ day: nextDate.getDate(), date: formatDate(nextDate), isCurrentMonth: false });
+    }
+    return cells;
+  };
+
+  const loadMonthAvailabilities = async (month: Date) => {
+    const year = month.getFullYear();
+    const m = month.getMonth();
+    const start = new Date(year, m, 1);
+    const end = new Date(year, m+1, 0);
+    try {
+      const res = await dailyAvailabilityApi.getForRange(formatDate(start), formatDate(end));
+      const map: Record<string, DailyAvailability[]> = {};
+      res.forEach((d: DailyAvailability) => {
+        if (!map[d.date]) map[d.date] = [];
+        map[d.date].push(d);
+      });
+      setAvailMap(map);
+    } catch (err) {
+      setAvailMap({});
+    }
+  };
+
+  useEffect(() => {
+    loadMonthAvailabilities(currentMonth);
+  }, [currentMonth]);
+
+  const openDay = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    const existing = availMap[dateStr] || [];
+    setDailyShifts(existing.map(d => ({ startTime: d.start_time ? (d as any).start_time : d.startTime, endTime: d.end_time ? (d as any).end_time : d.endTime, isActive: d.is_active !== undefined ? d.is_active : d.isActive, id: d.id })));
+    setShowDayModal(true);
+  };
+
   useEffect(() => {
     loadExceptions();
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoadingDaily(true);
+      try {
+        const res = await dailyAvailabilityApi.getForDate(selectedDate);
+        if (!mounted) return;
+        setDailyShifts(res.map((d: DailyAvailability) => ({ startTime: d.startTime, endTime: d.endTime, isActive: d.isActive, id: d.id })));
+      } catch (e) {
+        setDailyShifts([]);
+      } finally {
+        setLoadingDaily(false);
+      }
+    };
+    load();
+    return () => { mounted = false };
+  }, [selectedDate]);
 
   const loadExceptions = async () => {
     try {
@@ -582,6 +668,98 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     );
                   })}
                 </div>
+              </section>
+
+              {/* Calendário para configurar disponibilidades por data */}
+              <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold">Calendário de Disponibilidades</h3>
+                    <p className="text-sm text-white/40">Clique em um dia para adicionar turnos pontuais (não altera a jornada semanal).</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} className="bg-white/5 text-white/60 px-3 py-2 rounded-xl">‹ Mês</button>
+                    <div className="text-sm font-bold">{currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</div>
+                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} className="bg-white/5 text-white/60 px-3 py-2 rounded-xl">Mês ›</button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 text-center text-xs text-white/40 mb-3">
+                  {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
+                    <div key={d} className="py-2">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                  {calendarMatrix(currentMonth).map((cell, idx) => (
+                    <div key={idx} className={`p-3 h-20 rounded-xl ${cell.isCurrentMonth ? 'bg-white/2 hover:bg-white/3 cursor-pointer' : 'opacity-20'}`} onClick={() => cell.isCurrentMonth && openDay(cell.date)}>
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-white">{cell.day}</span>
+                          {availMap[cell.date] && availMap[cell.date].length > 0 && (
+                            <span className="text-[11px] bg-accent/10 text-accent px-2 py-0.5 rounded-full">{availMap[cell.date].length}</span>
+                          )}
+                        </div>
+                        <div className="mt-2 text-[12px] text-white/30 flex-1 flex flex-col justify-end">
+                          {availMap[cell.date] && availMap[cell.date].slice(0,2).map((a, i) => (
+                            <div key={i} className="text-[12px] truncate">{a.startTime} - {a.endTime}</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Day Modal */}
+                <AnimatePresence>
+                  {showDayModal && (
+                    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+                      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-[#1c1c1e] w-full max-w-lg rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="text-lg font-bold">{selectedDate}</h4>
+                            <p className="text-sm text-white/40">Defina os turnos para este dia</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => { setShowDayModal(false); }} className="text-white/40">Cancelar</button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {dailyShifts.map((s, idx) => (
+                            <div key={idx} className="flex items-center gap-3">
+                              <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
+                              <span className="text-gray-400">até</span>
+                              <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
+                              <label className="ml-2 flex items-center gap-2 text-sm">
+                                <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} />
+                                <span className="text-gray-300">Ativo</span>
+                              </label>
+                              <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="ml-auto text-red-400 px-3 py-2 rounded-xl border border-red-500/20">Remover</button>
+                            </div>
+                          ))}
+
+                          <div className="flex items-center gap-3 mt-2">
+                            <button onClick={() => setDailyShifts(ds => [...ds, { startTime: '09:00', endTime: '12:00', isActive: true }])} className="bg-white/5 text-white px-4 py-2 rounded-2xl">Adicionar Turno</button>
+                            <button onClick={async () => {
+                              try {
+                                const payload = dailyShifts.map(s => ({ date: selectedDate, startTime: s.startTime, endTime: s.endTime, isActive: s.isActive }));
+                                await dailyAvailabilityApi.sync(payload);
+                                toast.success('Salvo');
+                                await loadMonthAvailabilities(currentMonth);
+                                setShowDayModal(false);
+                              } catch (err) {
+                                console.error(err);
+                                toast.error('Erro ao salvar');
+                              }
+                            }} className="bg-[#007AFF] text-white px-4 py-2 rounded-2xl font-bold">Salvar</button>
+                            <button onClick={async () => { try { await dailyAvailabilityApi.clearDate(selectedDate); await loadMonthAvailabilities(currentMonth); setDailyShifts([]); toast.success('Removido'); setShowDayModal(false); } catch (err) { console.error(err); toast.error('Erro ao remover'); } }} className="text-red-400 px-3 py-2">Remover Tudo</button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
               </section>
 
               {/* Exceções */}

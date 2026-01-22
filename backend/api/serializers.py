@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     Barbershop, UserProfile, Service, Customer, CustomerBarbershop, LoyaltyReward, Appointment,
-    Availability, ScheduleException, Transaction, Promotion, Product, Barber, TimeSlot
+    Availability, ScheduleException, Transaction, Promotion, Product, Barber, TimeSlot, DailyAvailability
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -134,8 +134,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class AvailabilitySerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     dayOfWeek = serializers.IntegerField(source='day_of_week')
-    startTime = serializers.TimeField(source='start_time', format='%H:%M')
-    endTime = serializers.TimeField(source='end_time', format='%H:%M')
+    startTime = serializers.TimeField(source='start_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'])
+    endTime = serializers.TimeField(source='end_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'])
     isActive = serializers.BooleanField(source='is_active')
     
     class Meta:
@@ -144,10 +144,23 @@ class AvailabilitySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'barbershop']
 
 
+class DailyAvailabilitySerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    date = serializers.DateField()
+    startTime = serializers.TimeField(source='start_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'])
+    endTime = serializers.TimeField(source='end_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'])
+    isActive = serializers.BooleanField(source='is_active')
+
+    class Meta:
+        model = DailyAvailability
+        fields = ['id', 'date', 'startTime', 'endTime', 'isActive']
+        read_only_fields = ['id', 'barbershop']
+
+
 class ScheduleExceptionSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
-    startTime = serializers.TimeField(source='start_time', format='%H:%M', required=False, allow_null=True)
-    endTime = serializers.TimeField(source='end_time', format='%H:%M', required=False, allow_null=True)
+    startTime = serializers.TimeField(source='start_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'], required=False, allow_null=True)
+    endTime = serializers.TimeField(source='end_time', format='%H:%M', input_formats=['%H:%M', '%H:%M:%S'], required=False, allow_null=True)
     
     class Meta:
         model = ScheduleException

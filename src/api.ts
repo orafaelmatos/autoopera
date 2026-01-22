@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { 
   Service, Customer, Appointment, Transaction, Barber,
-  Product, Promotion, Availability, ScheduleException 
+  Product, Promotion, Availability, ScheduleException, 
+  Barbershop
 } from './types';
 
 const getBaseURL = () => {
@@ -165,6 +166,13 @@ export const availabilityApi = {
   getAll: () => api.get<Availability[]>('availability/').then(r => r.data),
   update: (id: string, data: Partial<Availability>) => api.put<Availability>(`availability/${id}/`, data).then(r => r.data),
   sync: (data: Partial<Availability>[]) => api.post<Availability[]>('availability/sync/', data).then(r => r.data),
+};
+
+export const dailyAvailabilityApi = {
+  sync: (data: any[]) => api.post<any[]>('dailyavailability/sync/', data).then(r => r.data),
+  getForDate: (date: string) => api.get<any[]>(`dailyavailability/?date=${date}`).then(r => r.data),
+  getForRange: (start: string, end: string) => api.get<any[]>(`dailyavailability/?start=${start}&end=${end}`).then(r => r.data),
+  clearDate: (date: string) => api.delete(`dailyavailability/?date=${date}`).then(r => r.data),
 };
 
 export default api;

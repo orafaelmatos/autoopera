@@ -1,4 +1,10 @@
+import logging
+import traceback
+
+# Ensure basic logging to stdout so docker logs capture backend messages
+logging.basicConfig(level=logging.INFO)
 from rest_framework import viewsets, filters, status
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -8,13 +14,13 @@ from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
     Barbershop, UserProfile, Service, Customer, CustomerBarbershop, LoyaltyReward, Appointment,
-    Availability, ScheduleException, Transaction, Promotion, Product, Barber
+    Availability, ScheduleException, Transaction, Promotion, Product, Barber, DailyAvailability
 )
 from .serializers import (
     BarbershopSerializer, ServiceSerializer, CustomerSerializer, LoyaltyRewardSerializer,
     AppointmentSerializer, AvailabilitySerializer,
     ScheduleExceptionSerializer, TransactionSerializer, PromotionSerializer,
-    ProductSerializer, BarberSerializer
+    ProductSerializer, BarberSerializer, DailyAvailabilitySerializer
 )
 from .services import BookingService
 from datetime import datetime
@@ -530,7 +536,7 @@ class AppointmentViewSet(TenantModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
-    def available_slots(self, request):
+    def available_slots(self, request, *args, **kwargs):
         barbershop = request.barbershop
         barber_id = request.query_params.get('barberId')
         service_id = request.query_params.get('serviceId')
@@ -544,7 +550,10 @@ class AppointmentViewSet(TenantModelViewSet):
             slots = BookingService.get_available_slots(barbershop, barber_id, service_id, target_date)
             return Response([s.strftime('%H:%M') for s in slots])
         except Exception as e:
-            return Response({"error": str(e)}, status=400)
+            import traceback
+            tb = traceback.format_exc()
+            logging.error("Error in available_slots: %s", tb)
+            return Response({"error": "INTERNAL_ERROR", "message": str(e), "trace": tb}, status=500)
 
 
 class AvailabilityViewSet(TenantModelViewSet):
@@ -556,25 +565,134 @@ class AvailabilityViewSet(TenantModelViewSet):
     ordering_fields = ['day_of_week']
 
     @action(detail=False, methods=['post'])
-    def sync(self, request):
+    def sync(self, request, *args, **kwargs):
         """Sincroniza todas as disponibilidades do barbeiro logado"""
-        barber = request.user.barber_profile
+        barber = getattr(request.user, 'barber_profile', None)
+        if not barber:
+            return Response({"error": "NOT_A_BARBER", "message": "Usuário não possui perfil de barbeiro."}, status=status.HTTP_403_FORBIDDEN)
+
         data = request.data  # Lista de novos horários
-        
+        # Debug print for docker stdout (helps when logging config isn't picked up)
+        try:
+            print("[availability.sync] incoming payload:", data)
+        except Exception:
+            logging.info("[availability.sync] could not print payload")
+
+        if not isinstance(data, list):
+            return Response({"error": "INVALID_PAYLOAD", "message": "Payload deve ser uma lista de disponibilidades."}, status=status.HTTP_400_BAD_REQUEST)
+
         # Remove horários atuais
         Availability.objects.filter(barber=barber).delete()
-        
+
         # Cria novos
         created = []
-        for item in data:
-            serializer = self.get_serializer(data=item)
-            if serializer.is_valid():
-                serializer.save(barber=barber)
-                created.append(serializer.data)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+        try:
+            for idx, item in enumerate(data):
+                serializer = self.get_serializer(data=item)
+                try:
+                    serializer.is_valid(raise_exception=True)
+                    # garante associação com barbershop também
+                    serializer.save(barber=barber, barbershop=barber.barbershop)
+                    created.append(serializer.data)
+                except DRFValidationError as e:
+                    return Response({"error": "VALIDATION_ERROR", "index": idx, "details": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            tb = traceback.format_exc()
+            logging.error("Erro inesperado na sincronização de disponibilidades: %s", tb)
+            return Response({
+                "error": "INTERNAL_ERROR",
+                "message": str(e),
+                "trace": tb,
+                "request_payload": data
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         return Response(created, status=status.HTTP_201_CREATED)
+
+
+class DailyAvailabilityViewSet(TenantModelViewSet):
+    """ViewSet para disponibilidades por data específica (overrides semanais)"""
+    queryset = DailyAvailability.objects.all()
+    serializer_class = DailyAvailabilitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # filtra pelo tenant via TenantModelViewSet
+        qs = DailyAvailability.objects.all()
+        barbershop = getattr(self.request, 'barbershop', None)
+        if not barbershop and self.request.user.is_authenticated and hasattr(self.request.user, 'barber_profile'):
+            barbershop = self.request.user.barber_profile.barbershop
+            self.request.barbershop = barbershop
+        if not barbershop:
+            return qs.none()
+        qs = qs.filter(barbershop=barbershop)
+
+        # Allow filtering by exact date or range via query params
+        date_exact = self.request.query_params.get('date')
+        date_start = self.request.query_params.get('start')
+        date_end = self.request.query_params.get('end')
+
+        if date_exact:
+            qs = qs.filter(date=date_exact)
+            return qs
+
+        if date_start and date_end:
+            qs = qs.filter(date__gte=date_start, date__lte=date_end)
+
+        return qs
+
+    @action(detail=False, methods=['post'])
+    def sync(self, request, *args, **kwargs):
+        """Sincroniza disponibilidades pontuais por data para o barbeiro logado.
+
+        Payload: lista de {date, startTime, endTime, isActive}
+        """
+        barber = getattr(request.user, 'barber_profile', None)
+        if not barber:
+            return Response({"error": "NOT_A_BARBER"}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        if not isinstance(data, list):
+            return Response({"error": "INVALID_PAYLOAD"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # coletar datas do payload e remover entradas já existentes para essas datas
+        dates = [item.get('date') for item in data if isinstance(item, dict) and 'date' in item]
+        try:
+            DailyAvailability.objects.filter(barber=barber, date__in=dates).delete()
+        except Exception:
+            pass
+
+        created = []
+        for idx, item in enumerate(data):
+            serializer = self.get_serializer(data=item)
+            try:
+                serializer.is_valid(raise_exception=True)
+                serializer.save(barber=barber, barbershop=barber.barbershop)
+                created.append(serializer.data)
+            except DRFValidationError as e:
+                return Response({"error": "VALIDATION_ERROR", "index": idx, "details": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                logging.exception("Erro ao sincronizar daily availability")
+                return Response({"error": "INTERNAL_ERROR", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(created, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['delete'])
+    def clear(self, request, *args, **kwargs):
+        """Remove all daily availabilities for the barber on a given date. Expects query param `date=YYYY-MM-DD`."""
+        barber = getattr(request.user, 'barber_profile', None)
+        if not barber:
+            return Response({"error": "NOT_A_BARBER"}, status=status.HTTP_403_FORBIDDEN)
+
+        date = request.query_params.get('date')
+        if not date:
+            return Response({"error": "MISSING_DATE"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            DailyAvailability.objects.filter(barber=barber, date=date).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            logging.exception("Erro ao limpar daily availability")
+            return Response({"error": "INTERNAL_ERROR", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ScheduleExceptionViewSet(TenantModelViewSet):

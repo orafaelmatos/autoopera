@@ -191,6 +191,22 @@ class Availability(models.Model):
         return f"{days[self.day_of_week]} - {self.start_time} às {self.end_time}"
 
 
+class DailyAvailability(models.Model):
+    """Disponibilidade para uma data específica (substitui/acompanha a jornada semanal)"""
+    barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='daily_availabilities', null=True)
+    barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='daily_availability', null=True)
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['date', 'start_time']
+
+    def __str__(self):
+        return f"{self.date} - {self.start_time} às {self.end_time}"
+
+
 class ScheduleException(models.Model):
     """Exceções na agenda (feriados, horários estendidos)"""
     TYPE_CHOICES = [

@@ -68,6 +68,14 @@ export interface Availability {
   isActive: boolean;
 }
 
+export interface DailyAvailability {
+  id: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  isActive: boolean;
+}
+
 export interface ScheduleException {
   id: string;
   date: string; // "YYYY-MM-DD"

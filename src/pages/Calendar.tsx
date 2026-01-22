@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Availability, ScheduleException, Service, Appointment } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Availability, ScheduleException, Service, Appointment, DailyAvailability } from '../types';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -19,7 +19,7 @@ import {
   Scissors,
   Check
 } from 'lucide-react';
-import { appointmentsApi, scheduleExceptionsApi, transactionsApi } from '../api';
+import { appointmentsApi, scheduleExceptionsApi, transactionsApi, dailyAvailabilityApi } from '../api';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -125,6 +125,30 @@ const CalendarView: React.FC<Props> = ({
   const [aptError, setAptError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Daily availability (per-date shifts)
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
+  const [dailyShifts, setDailyShifts] = useState<Array<{startTime:string,endTime:string,isActive:boolean,id?:string}>>([]);
+  const [loadingDaily, setLoadingDaily] = useState(false);
+
+  useEffect(() => {
+    // load daily availability for selected date
+    let mounted = true;
+    const load = async () => {
+      setLoadingDaily(true);
+      try {
+        const res = await dailyAvailabilityApi.getForDate(selectedDate);
+        if (!mounted) return;
+        setDailyShifts(res.map((d: DailyAvailability) => ({ startTime: d.startTime, endTime: d.endTime, isActive: d.isActive, id: d.id })));
+      } catch (e) {
+        setDailyShifts([]);
+      } finally {
+        setLoadingDaily(false);
+      }
+    };
+    load();
+    return () => { mounted = false };
+  }, [selectedDate]);
+
   // Estados para nova exceção
   const [excDate, setExcDate] = useState('');
   const [excType, setExcType] = useState<'extended' | 'blocked'>('blocked');
@@ -221,6 +245,53 @@ const handleCompleteAppointment = async (id: string) => {
           </button>
         </div>
       </header>
+
+      {/* Daily availability manager */}
+      <div className="bg-[#1c1c1e] border border-white/5 rounded-[24px] p-5 sm:p-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-base font-bold">Disponibilidade por Data</h4>
+            <p className="text-sm text-gray-500">Escolha um dia e defina os turnos pontuais (não afeta a jornada semanal).</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="bg-black/40 border border-white/5 rounded-2xl px-4 py-2 text-white" />
+            <button onClick={() => setDailyShifts([...dailyShifts, { startTime: '09:00', endTime: '12:00', isActive: true }])} className="bg-accent text-white px-4 py-2 rounded-2xl font-bold">Adicionar Turno</button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {loadingDaily && <div className="text-sm text-gray-400">Carregando...</div>}
+          {dailyShifts.length === 0 && !loadingDaily && (
+            <div className="text-sm text-gray-500">Nenhum turno definido para esta data.</div>
+          )}
+          {dailyShifts.map((s, idx) => (
+            <div key={idx} className="flex items-center gap-3">
+              <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
+              <span className="text-gray-400">até</span>
+              <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
+              <label className="ml-2 flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} />
+                <span className="text-gray-300">Ativo</span>
+              </label>
+              <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="ml-auto text-red-400 px-3 py-2 rounded-xl border border-red-500/20">Remover</button>
+            </div>
+          ))}
+
+          <div className="flex items-center gap-3 mt-2">
+            <button onClick={async () => {
+              try {
+                const payload = dailyShifts.map(s => ({ date: selectedDate, startTime: s.startTime, endTime: s.endTime, isActive: s.isActive }));
+                await dailyAvailabilityApi.sync(payload);
+                toast.success('Disponibilidades salvas para ' + selectedDate);
+              } catch (e: any) {
+                console.error('Erro ao salvar daily availability', e);
+                toast.error('Erro ao salvar. Veja o console para detalhes.');
+              }
+            }} className="bg-[#007AFF] text-white px-4 py-2 rounded-2xl font-bold">Salvar Turnos</button>
+            <button onClick={() => { setDailyShifts([]); toast('Limpo localmente'); }} className="text-gray-400 px-3 py-2">Limpar</button>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-8">
         {/* Main Column: Appointments */}

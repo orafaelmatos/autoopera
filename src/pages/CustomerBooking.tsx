@@ -271,7 +271,7 @@ const CustomerBooking: React.FC = () => {
     return (
         <div key="booking-main-content" className="min-h-screen bg-[#0a0a0a] flex flex-col">
             {/* Banner da Barbearia (Substituído por um fundo de layout moderno) */}
-            <div className="relative w-full h-[280px] overflow-hidden bg-[#007AFF]/5">
+            <div className="relative w-full h-[200px] overflow-hidden bg-[#007AFF]/5">
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0a0a0a]" />
                 
@@ -280,7 +280,7 @@ const CustomerBooking: React.FC = () => {
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-24 h-24 sm:w-32 sm:h-32 bg-white/5 rounded-[40px] flex items-center justify-center border border-white/10 shadow-2xl mb-6 backdrop-blur-xl"
+                        className="w-20 h-20 sm:w-28 sm:h-28 bg-white/5 rounded-[28px] flex items-center justify-center border border-white/10 shadow-2xl mb-4 backdrop-blur-xl"
                     >
                         {barbershop?.logo ? (
                              <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain p-4" />
@@ -291,7 +291,7 @@ const CustomerBooking: React.FC = () => {
                 </div>
 
                 {/* Overlay do Nome em Destaque */}
-                <div className="absolute bottom-6 left-0 right-0 text-center px-6">
+                <div className="absolute bottom-4 left-0 right-0 text-center px-6">
                     <motion.h1 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -305,7 +305,7 @@ const CustomerBooking: React.FC = () => {
                 </div>
             </div>
 
-            <main className="flex-1 px-6 pt-10 pb-32">
+            <main className="flex-1 px-6 pt-8 pb-20">
                 <AnimatePresence mode="wait">
                     {tab === 'booking' && (
                         <motion.div 
@@ -337,10 +337,10 @@ const CustomerBooking: React.FC = () => {
                                             <button 
                                                 key={barber.id}
                                                 onClick={() => { setSelectedBarber(barber); setStep(2); }}
-                                                className="w-full bg-[#1c1c1e] p-6 rounded-[32px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+                                                className="w-full bg-[#1c1c1e] p-4 rounded-[24px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
                                             >
                                                 <div className="flex items-center gap-5">
-                                                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#0a0a0a] rounded-[28px] flex items-center justify-center border-2 border-white/5 group-hover:border-[#007AFF]/50 overflow-hidden transition-all shadow-xl">
+                                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#0a0a0a] rounded-[20px] flex items-center justify-center border-2 border-white/5 group-hover:border-[#007AFF]/50 overflow-hidden transition-all shadow-xl">
                                                         {barber.profile_picture ? (
                                                             <img 
                                                                 src={getMediaUrl(barber.profile_picture)} 
@@ -352,7 +352,7 @@ const CustomerBooking: React.FC = () => {
                                                         )}
                                                     </div>
                                                     <div className="text-left">
-                                                        <p className="font-black text-white text-xl leading-tight uppercase italic">{barber.name}</p>
+                                                        <p className="font-black text-white text-lg leading-tight uppercase italic">{barber.name}</p>
                                                         <div className="mt-2 flex flex-col gap-1.5">
                                                             <div className="flex items-center gap-1 bg-white/5 w-fit px-2 py-0.5 rounded-full">
                                                                 <Star size={10} fill="#FFB800" className="text-[#FFB800]" />
@@ -381,12 +381,12 @@ const CustomerBooking: React.FC = () => {
                                             <button 
                                                 key={service.id}
                                                 onClick={() => { setSelectedService(service); setStep(3); }}
-                                                className="w-full bg-[#1c1c1e] p-4 rounded-[28px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+                                                className="w-full bg-[#1c1c1e] p-3 rounded-[20px] border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
                                             >
                                                 <div className="text-left space-y-1">
                                                     <p className="font-bold text-white text-base leading-tight">{service.name}</p>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{service.duration} min</span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{service.duration} min</span>
                                                         <span className="text-base font-black text-[#007AFF]">R$ {service.price}</span>
                                                     </div>
                                                 </div>
@@ -414,16 +414,16 @@ const CustomerBooking: React.FC = () => {
                                                         <button 
                                                             key={i}
                                                             onClick={() => setSelectedDate(date)}
-                                                            className={`min-w-[70px] aspect-[4/5] rounded-[24px] flex flex-col items-center justify-center gap-1 transition-all border ${
+                                                            className={`min-w-[64px] aspect-[4/5] rounded-[20px] flex flex-col items-center justify-center gap-1 transition-all border ${
                                                                 isActive 
                                                                 ? 'bg-[#007AFF] border-[#007AFF] text-white shadow-xl shadow-[#007AFF]/30 scale-105' 
                                                                 : 'bg-[#1c1c1e] border-white/5 text-gray-500'
                                                             }`}
                                                         >
-                                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                                                                {isSameDay(date, startOfToday()) ? "HJ" : isTomorrow(date) ? "AM" : format(date, 'EEE', { locale: ptBR }).substring(0, 2)}
+                                                            <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
+                                                                {isSameDay(date, startOfToday()) ? 'HOJE' : isTomorrow(date) ? 'AMANHÃ' : format(date, 'EEE', { locale: ptBR }).toUpperCase()}
                                                             </span>
-                                                            <span className="text-xl font-black">{format(date, 'dd')}</span>
+                                                            <span className="text-lg font-black">{format(date, 'dd')}</span>
                                                         </button>
                                                     );
                                                 })}
@@ -443,7 +443,7 @@ const CustomerBooking: React.FC = () => {
                                                         <button 
                                                             key={time}
                                                             onClick={() => setSelectedTime(time)}
-                                                            className={`py-3 rounded-xl font-black text-xs transition-all border ${
+                                                            className={`py-2 rounded-xl font-black text-sm transition-all border ${
                                                                 selectedTime === time 
                                                                 ? 'bg-[#007AFF] border-[#007AFF] text-white shadow-lg shadow-[#007AFF]/20' 
                                                                 : 'bg-[#1c1c1e] border-white/10 text-gray-400 active:bg-white/5'
@@ -454,9 +454,17 @@ const CustomerBooking: React.FC = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-10 bg-red-500/5 border border-red-500/10 rounded-[32px] text-center">
-                                                    <Info size={24} className="text-red-500/50 mx-auto mb-3" />
-                                                    <p className="text-xs font-bold text-red-500/50 uppercase tracking-widest">Sem horários para hoje</p>
+                                                <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-[24px] text-center space-y-3">
+                                                    <Info size={20} className="text-red-500/50 mx-auto" />
+                                                    <p className="text-xs font-bold text-red-500/50 uppercase tracking-widest">Sem horários para esta data</p>
+                                                    <div className="flex gap-2 justify-center mt-2">
+                                                        <button
+                                                            onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+                                                            className="px-3 py-1 bg-white/5 text-white/80 rounded-xl font-bold text-xs"
+                                                        >
+                                                            Próximo
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

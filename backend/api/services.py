@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
 from rest_framework import exceptions
-from .models import Appointment, TimeSlot, Service, Barber, Availability, ScheduleException
+from .models import Appointment, TimeSlot, Service, Barber, Availability, ScheduleException, DailyAvailability
 
 class BookingService:
     @staticmethod
@@ -23,30 +23,38 @@ class BookingService:
         if exception_blocked:
             return []
 
-        # Prioridade 2: Exceções de Horário Estendido (Substituem a jornada semanal para este dia)
-        exceptions_extended = ScheduleException.objects.filter(
-            barber=barber, barbershop=barbershop, date=target_date, type='extended'
-        )
-        
+        # Prioridade 2: DailyAvailability (configuração pontual do barbeiro)
+        daily = DailyAvailability.objects.filter(barber=barber, barbershop=barbershop, date=target_date, is_active=True)
         working_intervals = []
 
-        if exceptions_extended.exists():
-            for ex in exceptions_extended:
+        if daily.exists():
+            for d in daily:
                 working_intervals.append({
-                    'start_time': ex.start_time,
-                    'end_time': ex.end_time
+                    'start_time': d.start_time,
+                    'end_time': d.end_time
                 })
         else:
-            # Caso não haja horário estendido, busca blocos da jornada semanal padrão
-            django_day = (target_date.weekday() + 1) % 7
-            availabilities = Availability.objects.filter(
-                barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+            # Em seguida, exceções de Horário Estendido (substituem a jornada semanal para este dia)
+            exceptions_extended = ScheduleException.objects.filter(
+                barber=barber, barbershop=barbershop, date=target_date, type='extended'
             )
-            for av in availabilities:
-                working_intervals.append({
-                    'start_time': av.start_time,
-                    'end_time': av.end_time
-                })
+            if exceptions_extended.exists():
+                for ex in exceptions_extended:
+                    working_intervals.append({
+                        'start_time': ex.start_time,
+                        'end_time': ex.end_time
+                    })
+            else:
+                # Caso não haja horário estendido, busca blocos da jornada semanal padrão
+                django_day = (target_date.weekday() + 1) % 7
+                availabilities = Availability.objects.filter(
+                    barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+                )
+                for av in availabilities:
+                    working_intervals.append({
+                        'start_time': av.start_time,
+                        'end_time': av.end_time
+                    })
 
         if not working_intervals:
             return []
@@ -124,28 +132,35 @@ class BookingService:
                 raise exceptions.ValidationError("DATE_BLOCKED")
 
             # Determine working hours for the day
-            exceptions_extended = ScheduleException.objects.filter(
-                barber=barber, barbershop=barbershop, date=start_time.date(), type='extended'
-            )
-            
+            # Primeiro, ver se há DailyAvailability para a data (sobrescreve jornada semanal)
+            daily = DailyAvailability.objects.filter(barber=barber, barbershop=barbershop, date=start_time.date(), is_active=True)
             working_intervals = []
-
-            if exceptions_extended.exists():
-                for ex in exceptions_extended:
+            if daily.exists():
+                for d in daily:
                     working_intervals.append({
-                        'start': timezone.make_aware(datetime.combine(start_time.date(), ex.start_time)),
-                        'end': timezone.make_aware(datetime.combine(start_time.date(), ex.end_time))
+                        'start': timezone.make_aware(datetime.combine(start_time.date(), d.start_time)),
+                        'end': timezone.make_aware(datetime.combine(start_time.date(), d.end_time))
                     })
             else:
-                django_day = (start_time.date().weekday() + 1) % 7
-                availabilities = Availability.objects.filter(
-                    barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+                exceptions_extended = ScheduleException.objects.filter(
+                    barber=barber, barbershop=barbershop, date=start_time.date(), type='extended'
                 )
-                for av in availabilities:
-                    working_intervals.append({
-                        'start': timezone.make_aware(datetime.combine(start_time.date(), av.start_time)),
-                        'end': timezone.make_aware(datetime.combine(start_time.date(), av.end_time))
-                    })
+                if exceptions_extended.exists():
+                    for ex in exceptions_extended:
+                        working_intervals.append({
+                            'start': timezone.make_aware(datetime.combine(start_time.date(), ex.start_time)),
+                            'end': timezone.make_aware(datetime.combine(start_time.date(), ex.end_time))
+                        })
+                else:
+                    django_day = (start_time.date().weekday() + 1) % 7
+                    availabilities = Availability.objects.filter(
+                        barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True
+                    )
+                    for av in availabilities:
+                        working_intervals.append({
+                            'start': timezone.make_aware(datetime.combine(start_time.date(), av.start_time)),
+                            'end': timezone.make_aware(datetime.combine(start_time.date(), av.end_time))
+                        })
 
             if not working_intervals:
                 raise exceptions.ValidationError("NOT_WORKING_DAY")

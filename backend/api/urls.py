@@ -5,7 +5,7 @@ from .views import (
     LoyaltyRewardViewSet, AppointmentViewSet, AvailabilityViewSet,
     ScheduleExceptionViewSet, TransactionViewSet, PromotionViewSet,
     ProductViewSet, whatsapp_login, get_me, current_barbershop,
-    n8n_today_summary, n8n_next_appointments, barber_register
+    n8n_today_summary, n8n_next_appointments, barber_register, DailyAvailabilityViewSet
 )
 from .webhooks import cacto_webhook
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -17,6 +17,7 @@ router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'loyalty-rewards', LoyaltyRewardViewSet, basename='loyalty-reward')
 router.register(r'appointments', AppointmentViewSet, basename='appointment')
 router.register(r'availability', AvailabilityViewSet, basename='availability')
+router.register(r'dailyavailability', DailyAvailabilityViewSet, basename='dailyavailability')
 router.register(r'schedule-exceptions', ScheduleExceptionViewSet, basename='schedule-exception')
 router.register(r'transactions', TransactionViewSet, basename='transaction')
 router.register(r'promotions', PromotionViewSet, basename='promotion')
