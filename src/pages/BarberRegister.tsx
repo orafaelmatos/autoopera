@@ -161,310 +161,351 @@ const BarberRegister: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden font-sans">
+            {/* Background Branding Decorativo */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.03]">
+                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary blur-[160px] rounded-full" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cta blur-[160px] rounded-full" />
+                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '48px 48px' }} />
             </div>
 
             <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-xl bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 p-5 md:p-6 rounded-[32px] shadow-2xl relative z-10"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full max-w-xl bg-white p-8 md:p-12 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(15,76,92,0.15)] border border-border relative z-10"
             >
-                <div className="flex flex-col items-center mb-4">
-                    <div className="flex items-center gap-4 mb-4 bg-white px-8 py-4 rounded-[28px] shadow-2xl">
-                        <img 
-                            src={brandLogo} 
-                            alt="AutoOpera" 
-                            className="h-7 w-auto object-contain"
-                        />
-                        <div className="w-px h-6 bg-gray-200" />
-                        <span className="text-3xl font-bold text-[#007AFF] tracking-tighter">Barber</span>
+                <div className="flex flex-col items-center mb-10">
+                    <div className="mb-6 group">
+                        <div className="flex flex-col items-center">
+                            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transform rotate-3 group-hover:rotate-0 transition-transform">
+                                <Scissors className="text-white w-8 h-8" />
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-black text-text tracking-tighter uppercase font-title">Barber</span>
+                                <span className="text-2xl font-light text-primary italic lowercase font-title">Flow</span>
+                            </div>
+                        </div>
                     </div>
-                    <p className="text-gray-400 text-[10px]">Monte sua barbearia digital em segundos</p>
+                    <p className="text-text/40 text-[10px] font-black uppercase tracking-[0.3em] italic">Nova Barbearia Profissional</p>
                 </div>
 
-                <div className="flex gap-2 mb-5 items-center justify-center">
+                {/* Progress Steps */}
+                <div className="flex gap-3 mb-12 items-center justify-center">
                     {[1, 2].map(i => (
-                        <div key={i} className={`h-1 rounded-full transition-all duration-500 ${step >= i ? 'w-10 bg-[#007AFF]' : 'w-3 bg-white/10'}`} />
+                        <div key={i} className="flex items-center gap-2">
+                             <div className={`h-2 rounded-full transition-all duration-700 ${step >= i ? 'w-16 bg-primary shadow-[0_0_15px_rgba(15,76,92,0.3)]' : 'w-4 bg-background border border-border'}`} />
+                             {i === 1 && <span className={`text-[9px] font-black uppercase ${step === 1 ? 'text-primary' : 'text-text/20 hover:text-text/40'}`}>Perfil</span>}
+                             {i === 2 && <span className={`text-[9px] font-black uppercase ${step === 2 ? 'text-primary' : 'text-text/20 hover:text-text/40'}`}>Negócio</span>}
+                        </div>
                     ))}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {step === 1 ? (
-                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2.5">
-                            <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">CPF (se já recebeu usuário)</label>
-                                <div className="relative flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={formData.cpf}
-                                        onChange={e => setFormData({...formData, cpf: e.target.value})}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-4 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                        placeholder="000.000.000-00"
-                                    />
-                                    <button type="button" onClick={checkCpf} className="px-3 py-2 bg-[#007AFF] text-white rounded-xl text-xs">Buscar CPF</button>
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">CPF para verificação</label>
+                                <div className="relative flex items-center gap-3">
+                                    <div className="relative flex-1 group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                            <User size={18} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={formData.cpf}
+                                            onChange={e => setFormData({...formData, cpf: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                            placeholder="000.000.000-00"
+                                        />
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={checkCpf} 
+                                        className="px-6 py-4 bg-primary/5 border border-primary/20 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+                                    >
+                                        Buscar
+                                    </button>
                                 </div>
                             </div>
 
                             {existingUser ? (
-                                <>
-                                    <div className="p-3 rounded-lg bg-green-900/20 border border-green-800/30">
-                                        <p className="text-sm text-white font-bold">Olá, {formData.name || 'Usuário'}</p>
-                                        <p className="text-[11px] text-gray-300">Login: {formData.phone}</p>
-                                        <button type="button" onClick={() => { setExistingUser(false); setFormData({...formData, cpf: '', name: '', phone: ''}); }} className="mt-2 text-xs text-[#FFCCCB]">Não é você? Buscar outro CPF</button>
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="p-6 rounded-3xl bg-primary/5 border border-primary/10 shadow-inner space-y-4"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
+                                            <User size={24} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-text font-black font-title uppercase italic">Olá, {formData.name}!</p>
+                                            <p className="text-[11px] text-text/40 font-medium">{formData.phone}</p>
+                                        </div>
                                     </div>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => { setExistingUser(false); setFormData({...formData, cpf: '', name: '', phone: ''}); }} 
+                                        className="text-[10px] font-black uppercase tracking-widest text-cta hover:underline italic"
+                                    >
+                                        Não é você? Trocar CPF
+                                    </button>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Senha</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Nova Senha</label>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={16} />
                                                 <input 
                                                     type="password" required
                                                     value={formData.password}
                                                     onChange={e => setFormData({...formData, password: e.target.value})}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    className="w-full bg-white border border-border rounded-xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-sm shadow-sm"
                                                     placeholder="••••••••"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Confirmar</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Confirmar</label>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={16} />
                                                 <input 
                                                     type="password" required
                                                     value={formData.confirmPassword}
                                                     onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    className="w-full bg-white border border-border rounded-xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-sm shadow-sm"
                                                     placeholder="••••••••"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                </>
+                                </motion.div>
                             ) : (
-                                <>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Nome Completo</label>
-                                        <div className="relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Nome Completo</label>
+                                        <div className="relative group">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                             <input 
                                                 type="text" required
                                                 value={formData.name}
                                                 onChange={e => setFormData({...formData, name: e.target.value})}
-                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
                                                 placeholder="Seu nome"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp (Login)</label>
-                                        <div className="relative">
-                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">WhatsApp Profissional</label>
+                                        <div className="relative group">
+                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                             <input 
                                                 type="text" required
                                                 value={formData.phone}
                                                 onChange={handlePhoneChange}
-                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                                placeholder="(11) 99999-9999"
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                                placeholder="(00) 00000-0000"
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Senha</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Senha</label>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                                 <input 
                                                     type="password" required
                                                     value={formData.password}
                                                     onChange={e => setFormData({...formData, password: e.target.value})}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
                                                     placeholder="••••••••"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Confirmar</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Confirmar</label>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                                 <input 
                                                     type="password" required
                                                     value={formData.confirmPassword}
                                                     onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
                                                     placeholder="••••••••"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                </>
+                                </div>
                             )}
+
                             <button 
-                                type="button"
+                                type="button" 
                                 onClick={() => {
-                                    if (step === 1) {
-                                        if (existingUser) {
-                                            if (!formData.password) {
-                                                toast.error('Por favor, insira sua senha.');
-                                                return;
-                                            }
-                                            if (formData.password !== formData.confirmPassword) {
-                                                toast.error('As senhas não coincidem!');
-                                                return;
-                                            }
-                                        } else {
-                                            if (!formData.name || !formData.phone || !formData.password) {
-                                                toast.error('Por favor, preencha todos os campos!');
-                                                return;
-                                            }
-                                            if (formData.password !== formData.confirmPassword) {
-                                                toast.error('As senhas não coincidem!');
-                                                return;
-                                            }
+                                    if (existingUser) {
+                                        if (!formData.password) {
+                                            toast.error('Por favor, insira sua senha.');
+                                            return;
                                         }
-                                        setStep(2);
+                                        if (formData.password !== formData.confirmPassword) {
+                                            toast.error('As senhas não coincidem!');
+                                            return;
+                                        }
+                                    } else {
+                                        if (!formData.name || !formData.phone || !formData.password) {
+                                            toast.error('Por favor, preencha todos os campos!');
+                                            return;
+                                        }
+                                        if (formData.password !== formData.confirmPassword) {
+                                            toast.error('As senhas não coincidem!');
+                                            return;
+                                        }
                                     }
+                                    setStep(2);
                                 }}
-                                className="w-full bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-[#007AFF]/20 mt-2 text-sm"
+                                className="w-full mt-6 bg-primary text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-3"
                             >
-                                Próximo Passo <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                Próxima Etapa
+                                <ArrowRight size={18} />
                             </button>
                         </motion.div>
                     ) : (
-                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2.5">
-                            {/* Logo Upload (Substituindo Banner para maior clareza conforme pedido) */}
-                            <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Logo da Barbearia</label>
-                                <div 
-                                    onClick={() => document.getElementById('logo-upload')?.click()}
-                                    className="relative h-20 md:h-24 w-20 md:w-24 mx-auto bg-black/40 border border-white/5 border-dashed rounded-[32px] overflow-hidden cursor-pointer hover:border-[#007AFF]/50 transition-all flex items-center justify-center group"
-                                >
-                                    {formData.bannerPreview ? (
-                                        <>
-                                            <img src={formData.bannerPreview} alt="Logo Preview" className="w-full h-full object-contain p-2" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <Camera className="text-white" size={20} />
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                            <div className="space-y-6">
+                                {/* Logo Upload */}
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Logo da Barbearia</label>
+                                    <div 
+                                        onClick={() => document.getElementById('logo-upload')?.click()}
+                                        className="relative h-28 w-28 mx-auto bg-background border-2 border-dashed border-border rounded-[32px] overflow-hidden cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all flex items-center justify-center group shadow-inner"
+                                    >
+                                        {formData.bannerPreview ? (
+                                            <>
+                                                <img src={formData.bannerPreview} alt="Logo Preview" className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110" />
+                                                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                    <Camera className="text-white" size={24} />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex flex-col items-center text-text/20">
+                                                <Store size={28} className="mb-2" />
+                                                <span className="text-[9px] font-black uppercase italic">Upload</span>
                                             </div>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col items-center text-gray-500">
-                                            <Store size={20} className="mb-0.5" />
-                                            <span className="text-[8px]">Logo</span>
+                                        )}
+                                        <input 
+                                            id="logo-upload"
+                                            type="file" 
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageChange}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Nome da Barbearia</label>
+                                    <div className="relative group">
+                                        <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors" size={18} />
+                                        <input 
+                                            type="text" required
+                                            value={formData.shop_name}
+                                            onChange={handleShopNameChange}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                            placeholder="Ex: Barber Shop Premium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Instagram</label>
+                                        <div className="relative group">
+                                            <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <input 
+                                                type="text"
+                                                value={formData.instagram}
+                                                onChange={e => setFormData({...formData, instagram: e.target.value})}
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                                placeholder="@suabarbearia"
+                                            />
                                         </div>
-                                    )}
-                                    <input 
-                                        id="logo-upload"
-                                        type="file" 
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleImageChange}
-                                    />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Localização</label>
+                                        <div className="relative group">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <input 
+                                                type="text"
+                                                value={formData.address}
+                                                onChange={e => setFormData({...formData, address: e.target.value})}
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                                placeholder="Cidade, Estado"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-center text-[8px] text-gray-500 font-medium">Recomendado: Logo com fundo transparente</p>
-                            </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Nome da Barbearia</label>
-                                <div className="relative">
-                                    <Store className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                    <input 
-                                        type="text" required
-                                        value={formData.shop_name}
-                                        onChange={handleShopNameChange}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                        placeholder="Ex: Barbearia do William"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Instagram</label>
-                                    <div className="relative">
-                                        <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                        <input 
-                                            type="text"
-                                            value={formData.instagram}
-                                            onChange={e => setFormData({...formData, instagram: e.target.value})}
-                                            className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                            placeholder="@sua"
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Bio do Negócio</label>
+                                    <div className="relative group">
+                                        <AlignLeft className="absolute left-4 top-4 text-text/20 group-focus-within:text-primary" size={18} />
+                                        <textarea 
+                                            rows={2}
+                                            value={formData.description}
+                                            onChange={e => setFormData({...formData, description: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-2xl pt-4 pb-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-medium text-sm resize-none italic"
+                                            placeholder="Conte o diferencial da sua barbearia..."
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Endereço</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+
+                                <div className="space-y-2 p-6 bg-primary/5 rounded-[32px] border border-primary/10 shadow-inner">
+                                    <label className="text-[10px] uppercase font-black text-primary ml-1 tracking-widest">Seu Link de Agendamento</label>
+                                    <div className="relative group mt-2">
+                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary" size={18} />
                                         <input 
-                                            type="text"
-                                            value={formData.address}
-                                            onChange={e => setFormData({...formData, address: e.target.value})}
-                                            className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                            placeholder="Rua, Número, Bairro - Cidade"
+                                            type="text" required
+                                            value={formData.shop_slug}
+                                            onChange={handleSlugChange}
+                                            className="w-full bg-white border border-primary/20 rounded-2xl py-4 pl-12 pr-4 text-primary font-mono text-sm outline-none shadow-sm"
+                                            placeholder="minha-barbearia"
                                         />
                                     </div>
+                                    <p className="text-[10px] text-text/40 font-bold italic mt-2 px-2">
+                                        Visualização: <span className="text-primary italic">barberflow.com/b/{formData.shop_slug || '...'}</span>
+                                    </p>
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Bio / Descrição</label>
-                                <div className="relative">
-                                    <AlignLeft className="absolute left-4 top-3 text-gray-500" size={14} />
-                                    <textarea 
-                                        rows={2}
-                                        value={formData.description}
-                                        onChange={e => setFormData({...formData, description: e.target.value})}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl pt-2.5 pb-2.5 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base resize-none"
-                                        placeholder="Conte um pouco sobre sua barbearia..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1 bg-[#007AFF]/5 p-4 rounded-2xl border border-[#007AFF]/10">
-                                <label className="text-[9px] uppercase font-bold text-[#007AFF] ml-2 tracking-widest">Link para Agendamentos</label>
-                                <div className="relative">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-[#007AFF]" size={14} />
-                                    <input 
-                                        type="text" required
-                                        value={formData.shop_slug}
-                                        onChange={handleSlugChange}
-                                        className="w-full bg-black/20 border border-[#007AFF]/20 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                        placeholder="Ex: minha-barbearia"
-                                    />
-                                </div>
-                                <p className="text-[10px] px-2 text-[#007AFF]/70 truncate mt-1 font-bold">
-                                    Seu link: autoopera.com/b/<span className="underline">{formData.shop_slug || '...'}</span>
-                                </p>
                             </div>
                             
-                            <div className="flex gap-2 pt-1">
+                            <div className="flex gap-4 pt-4">
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     onClick={() => setStep(1)}
-                                    className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all text-xs"
+                                    className="px-8 py-5 bg-background border border-border text-text/40 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-text transition-all italic shadow-sm"
                                 >
                                     Voltar
                                 </button>
                                 <button 
-                                    type="submit"
+                                    type="submit" 
                                     disabled={loading}
-                                    className="flex-1 bg-[#007AFF] hover:bg-[#0063CC] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#007AFF]/20 text-xs"
+                                    className="flex-1 bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)]"
                                 >
-                                    {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Criar Barbearia"}
+                                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Cadastro <CheckCircle2 size={18} /></>}
                                 </button>
                             </div>
                         </motion.div>
                     )}
                 </form>
 
-                <div className="mt-4 pt-4 border-t border-white/5 text-center">
-                    <p className="text-gray-500 text-[9px]">
-                        Já tem uma conta? <button onClick={() => navigate('/login')} className="text-[#007AFF] font-bold">Entrar</button>
-                    </p>
+                <div className="mt-12 pt-10 border-t border-border flex flex-col items-center">
+                    <p className="text-text/40 text-[10px] font-medium mb-4 italic">Já possui uma conta?</p>
+                    <button 
+                        onClick={() => navigate('/login')}
+                        className="text-primary font-black uppercase tracking-[0.2em] text-[10px] hover:underline italic"
+                    >
+                        Acessar Painel Profissional
+                    </button>
                 </div>
             </motion.div>
         </div>

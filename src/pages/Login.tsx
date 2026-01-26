@@ -197,156 +197,192 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden">
-            {/* Background Branding */}
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden font-sans">
+            {/* Background Branding Decorativo */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.03]">
+                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary blur-[160px] rounded-full" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cta blur-[160px] rounded-full" />
+                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '48px 48px' }} />
+            </div>
+
+            {/* Banner Background (se houver) */}
             {barbershop?.banner && (
                 <div className="absolute inset-0 z-0">
                     <img 
                         src={getMediaUrl(barbershop.banner)} 
                         alt="Background" 
-                        className="w-full h-full object-cover opacity-20 blur-sm scale-105"
+                        className="w-full h-full object-cover opacity-10 blur-[2px]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-[#0a0a0a]/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent" />
                 </div>
             )}
 
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#007AFF]/10 blur-[120px] rounded-full" />
-            </div>
-
             <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 p-6 sm:p-8 rounded-[28px] sm:rounded-[32px] shadow-2xl relative z-10"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full max-w-md bg-white p-8 sm:p-12 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(15,76,92,0.15)] border border-border relative z-10"
             >
-                <div className="flex flex-col items-center mb-8">
-                    {barbershop?.logo ? (
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5 flex items-center justify-center">
-                            <img 
-                                src={getMediaUrl(barbershop.logo)} 
-                                alt={barbershop.name} 
-                                className="max-w-full max-h-full object-contain rounded-lg"
-                            />
-                        </div>
-                    ) : barbershop?.banner ? (
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5 flex items-center justify-center">
-                            <img 
-                                src={getMediaUrl(barbershop.banner)} 
-                                alt={barbershop.name} 
-                                className="max-w-full max-h-full object-contain rounded-lg"
-                            />
-                        </div>
-                    ) : (
-                        <div className="w-full max-w-xs sm:max-w-none flex items-center justify-center gap-3 mb-6 bg-white px-6 py-3 rounded-[28px] shadow-2xl overflow-hidden">
-                            <img 
-                                src={brandLogo} 
-                                alt="AutoOpera" 
-                                className="h-7 sm:h-8 w-auto object-contain max-w-[55%]"
-                            />
-                            <div className="w-px h-6 bg-gray-200" />
-                            <span className="text-2xl sm:text-4xl font-bold text-[#007AFF] tracking-tighter">Barber</span>
-                        </div>
-                    )}
+                <div className="flex flex-col items-center mb-10">
+                    {/* Logo Area */}
+                    <div className="mb-8 group">
+                        {barbershop?.logo ? (
+                            <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl border-4 border-white p-2 bg-background flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                                <img 
+                                    src={getMediaUrl(barbershop.logo)} 
+                                    alt={barbershop.name} 
+                                    className="max-w-full max-h-full object-contain"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transform rotate-3 group-hover:rotate-0 transition-transform">
+                                    <Scissors className="text-white w-8 h-8" />
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-black text-text tracking-tighter uppercase font-title">Barber</span>
+                                    <span className="text-3xl font-light text-primary italic lowercase font-title">Flow</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     
-                    {barbershop ? (
-                        <h1 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tighter uppercase text-center">
-                            {barbershop.name}
-                        </h1>
-                    ) : (
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-center">
-                            Boas-vindas!
-                        </h1>
-                    )}
-                    <p className="text-gray-400 text-sm text-center font-medium">
-                        {step === 'phone' && (barbershop ? `Bem-vindo à área de agendamentos da ${barbershop.name}` : 'Entre com seu WhatsApp para agendar')}
-                        {step === 'confirm' && 'Verificação de Identidade'}
-                        {step === 'register' && 'Seja bem-vindo! Primeiro acesso.'}
-                        {step === 'password' && 'Área restrita para Barbeiros'}
-                    </p>
+                    <div className="text-center space-y-2">
+                        {barbershop ? (
+                            <h1 className="text-2xl font-bold text-text tracking-tight font-title italic uppercase">
+                                {barbershop.name}
+                            </h1>
+                        ) : (
+                            <h1 className="text-2xl font-bold text-text tracking-tight font-title">
+                                Central de Agendamento
+                            </h1>
+                        )}
+                        <p className="text-text/40 text-sm font-medium italic">
+                            {step === 'phone' && (barbershop ? `Bem-vindo à área de agendamentos.` : 'Entre para gerenciar seus horários')}
+                            {step === 'confirm' && 'Verificação de Identidade'}
+                            {step === 'register' && 'Seja bem-vindo! Criar sua conta.'}
+                            {step === 'password' && 'Área restrita de acesso'}
+                        </p>
+                    </div>
                 </div>
 
-                <div className="flex justify-center gap-3 mb-4">
-                    <button onClick={() => { setMode('client'); setStep('phone'); }} className={`px-3 py-2 rounded-full text-sm ${mode==='client' ? 'bg-[#007AFF] text-white' : 'bg-white/5 text-gray-300'}`}>Cliente</button>
-                    <button onClick={() => { setMode('owner'); setStep('phone'); }} className={`px-3 py-2 rounded-full text-sm ${mode==='owner' ? 'bg-[#007AFF] text-white' : 'bg-white/5 text-gray-300'}`}>Barbeiro</button>
+                {/* Role Toggle */}
+                <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-10">
+                    <button 
+                        onClick={() => { setMode('client'); setStep('phone'); }} 
+                        className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='client' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
+                    >
+                        Sou Cliente
+                    </button>
+                    <button 
+                        onClick={() => { setMode('owner'); setStep('phone'); }} 
+                        className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='owner' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
+                    >
+                        Sou Barbeiro
+                    </button>
                 </div>
 
                 <AnimatePresence mode="wait">
                     {step === 'phone' && (
-                        <motion.form key="phone" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={handleInitialSubmit} className="space-y-6">
-                            <div className="space-y-2">
+                        <motion.form 
+                            key="phone" 
+                            initial={{ opacity: 0, x: 20 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            exit={{ opacity: 0, x: -20 }} 
+                            onSubmit={handleInitialSubmit} 
+                            className="space-y-8"
+                        >
+                            <div className="space-y-4">
                                 {mode === 'client' ? (
-                                    <>
-                                        <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp</label>
-                                        <div className="relative">
-                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Seu WhatsApp</label>
+                                        <div className="relative group">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                                <Smartphone size={20} />
+                                            </div>
                                             <input 
                                                 type="text"
                                                 value={phone}
                                                 onChange={handlePhoneChange}
-                                                placeholder="(11) 99999-9999"
-                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                                placeholder="(00) 00000-0000"
+                                                className="w-full bg-background border border-border rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
                                                 required
                                             />
                                         </div>
-                                    </>
+                                    </div>
                                 ) : (
-                                    <>
-                                        <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">CPF</label>
-                                        <div className="relative">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Seu CPF</label>
+                                        <div className="relative group">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                                <User size={20} />
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={ownerCpf}
                                                 onChange={(e) => setOwnerCpf(e.target.value)}
                                                 placeholder="000.000.000-00"
-                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-4 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                                className="w-full bg-background border border-border rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
                                                 required
                                             />
                                         </div>
-                                    </>
+                                    </div>
                                 )}
                             </div>
 
                             <div className="flex items-center justify-between px-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
+                                <label className="flex items-center gap-2 cursor-pointer group">
                                     <input 
-                                        type="checkbox"
-                                        checked={rememberMe}
-                                        onChange={(e) => setRememberMe(e.target.checked)}
-                                        className="w-4 h-4 rounded border-white/10 bg-black/40 text-[#007AFF] focus:ring-0"
+                                        type="checkbox" 
+                                        checked={rememberMe} 
+                                        onChange={e => setRememberMe(e.target.checked)} 
+                                        className="w-5 h-5 rounded-lg border-border text-primary focus:ring-primary/20 transition-all cursor-pointer"
                                     />
-                                    <span className="text-xs text-gray-500">Lembrar de mim</span>
+                                    <span className="text-[11px] font-bold text-text/40 group-hover:text-text transition-colors">Lembrar de mim</span>
                                 </label>
                             </div>
 
                             <button 
-                                type="submit"
+                                type="submit" 
                                 disabled={loading}
-                                className="w-full bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-[#007AFF]/20"
+                                className="w-full bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)]"
                             >
-                                {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Continuar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        Continuar
+                                        <ArrowRight size={18} />
+                                    </>
+                                )}
                             </button>
                         </motion.form>
                     )}
 
                     {step === 'confirm' && (
-                        <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 text-center">
-                            <div className="p-6 bg-white/5 rounded-[24px] border border-white/5 shadow-inner">
-                                <p className="text-gray-400 text-xs uppercase tracking-widest font-black mb-3">Identificamos você como:</p>
-                                <p className="text-2xl font-black text-white tracking-tight">{foundName}</p>
+                        <motion.div 
+                            key="confirm" 
+                            initial={{ opacity: 0, x: 20 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            exit={{ opacity: 0, x: -20 }} 
+                            className="space-y-10 text-center py-4"
+                        >
+                            <div className="p-8 bg-primary/5 rounded-[40px] border border-primary/10 shadow-inner">
+                                <p className="text-primary/40 text-[10px] uppercase tracking-[0.3em] font-black mb-4 italic">Identificamos seu perfil como:</p>
+                                <p className="text-3xl font-black text-text tracking-tighter italic font-title">{foundName}</p>
                             </div>
                             
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 <button 
                                     onClick={handleConfirmSubmit}
                                     disabled={loading}
-                                    className="w-full bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-2"
+                                    className="w-full bg-primary text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs shadow-xl shadow-primary/20"
                                 >
                                     {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Sim, sou eu"}
                                 </button>
                                 <button 
                                     onClick={() => setStep('phone')}
-                                    className="w-full py-3 text-gray-500 hover:text-white font-bold transition-colors text-xs uppercase tracking-[0.2em]"
+                                    className="w-full py-3 text-text/30 hover:text-text font-bold transition-colors text-[10px] uppercase tracking-[0.2em] italic"
                                 >
                                     Não sou eu / Trocar número
                                 </button>
@@ -355,32 +391,36 @@ const LoginPage: React.FC = () => {
                     )}
 
                     {step === 'register' && (
-                        <motion.form key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={handleRegisterSubmit} className="space-y-5">
-                            <div className="grid grid-cols-1 gap-4">
+                        <motion.form key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={handleRegisterSubmit} className="space-y-8">
+                            <div className="bg-cta/5 border border-cta/10 p-6 rounded-2xl flex gap-3">
+                                <Info className="text-cta shrink-0" size={18} />
+                                <p className="text-[11px] text-cta font-bold leading-relaxed italic">Primeira vez por aqui? Complete seus dados para prosseguir.</p>
+                            </div>
+                            <div className="space-y-5">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Seu Nome</label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Nome</label>
+                                    <div className="relative group">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                         <input 
                                             type="text"
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
                                             placeholder="Ex: João"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
                                             required
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Seu Sobrenome</label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Sobrenome</label>
+                                    <div className="relative group">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                         <input 
                                             type="text"
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
                                             placeholder="Ex: Silva"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
                                             required
                                         />
                                     </div>
@@ -390,14 +430,14 @@ const LoginPage: React.FC = () => {
                             <button 
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-[#007AFF]/20"
+                                className="w-full bg-primary text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 uppercase tracking-widest text-xs"
                             >
                                 {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Concluir Cadastro"}
                             </button>
                             <button 
                                 type="button"
                                 onClick={() => setStep('phone')}
-                                className="w-full py-2 text-gray-600 hover:text-gray-400 font-bold transition-colors text-xs uppercase tracking-widest"
+                                className="w-full py-2 text-text/30 hover:text-text/60 font-bold transition-colors text-[10px] uppercase tracking-widest italic"
                             >
                                 Voltar
                             </button>
@@ -405,17 +445,17 @@ const LoginPage: React.FC = () => {
                     )}
 
                     {step === 'password' && (
-                        <motion.form key="password" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={mode === 'owner' ? handleOwnerSubmit : handlePasswordSubmit} className="space-y-6">
+                        <motion.form key="password" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={mode === 'owner' ? handleOwnerSubmit : handlePasswordSubmit} className="space-y-10">
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-bold text-[#007AFF] ml-4 tracking-widest">Senha Administrativa</label>
-                                <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#007AFF]" size={18} />
+                                <label className="text-[10px] uppercase font-black text-primary ml-1 tracking-[0.2em]">Senha de Acesso</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
                                     <input 
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="w-full bg-[#007AFF]/5 border border-[#007AFF]/20 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                        className="w-full bg-primary/5 border border-primary/20 rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
                                         required
                                         autoFocus
                                     />
@@ -425,32 +465,41 @@ const LoginPage: React.FC = () => {
                             <button 
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-[#007AFF] hover:bg-[#0066CC] text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                                className="w-full bg-primary text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 uppercase tracking-widest text-xs font-title"
                             >
                                 {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Acessar Painel"}
                             </button>
                             <button 
                                 type="button"
                                 onClick={() => setStep('phone')}
-                                className="w-full py-2 text-gray-600 hover:text-gray-400 font-bold transition-colors text-xs uppercase tracking-widest"
+                                className="w-full py-3 text-text/30 hover:text-text/60 font-bold transition-colors text-[10px] uppercase tracking-widest italic"
                             >
-                                Não sou barbeiro
+                                Não sou barbeiro / Voltar
                             </button>
                         </motion.form>
                     )}
                 </AnimatePresence>
 
                 {error && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl text-[11px] font-bold uppercase flex gap-3 items-center">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 bg-red-50 border border-red-100 text-red-600 p-5 rounded-2xl text-[11px] font-bold uppercase flex gap-3 items-center italic shadow-sm">
                         <Info size={16} />
                         {error}
                     </motion.div>
                 )}
 
-                <div className="mt-8 pt-8 border-t border-white/5 text-center">
-                    <p className="text-gray-500 text-xs">
-                        Ao entrar você concorda com nossos termos de uso.
+                <div className="mt-12 pt-10 border-t border-border text-center">
+                    <p className="text-text/30 text-[10px] font-medium leading-relaxed italic">
+                        Ao entrar você concorda com nossos <br/> termos de uso e política de privacidade.
                     </p>
+                    {!barbershop && (
+                        <button 
+                            onClick={() => navigate('/register')}
+                            className="mt-6 text-primary font-black uppercase tracking-[0.2em] text-[10px] hover:underline flex items-center justify-center gap-2 group italic mx-auto"
+                        >
+                            Criar minha barbearia agora
+                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    )}
                 </div>
             </motion.div>
         </div>

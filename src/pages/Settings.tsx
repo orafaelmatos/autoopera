@@ -5,7 +5,7 @@ import {
   Settings, Link2, ExternalLink, 
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
-  Mail, Info, Sparkles
+  Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
@@ -316,173 +316,179 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8 sm:space-y-12 pb-20 px-4 sm:px-0"
-    >
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
         <div>
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2">
-            {activeTab === 'shop' ? 'Ajustes da Barbearia' : 
-             activeTab === 'schedule' ? 'Gestão de Horários' : 'Meu Perfil Profissional'}
+          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-2">
+            Configurações <span className="text-cta">Elite</span>
           </h2>
-          <p className="text-xs sm:text-sm text-white/50 font-medium">
-            {activeTab === 'shop' ? 'Gerencie as informações públicas e visuais do seu estabelecimento.' : 
-             activeTab === 'schedule' ? 'Configure sua jornada de trabalho semanal e bloqueios de agenda.' :
-             'Personalize sua identidade como profissional dentro da plataforma.'}
-          </p>
+          <div className="flex items-center gap-3">
+             <div className="h-[2px] w-12 bg-cta/30 rounded-full" />
+             <p className="text-primary/60 font-black italic text-xs sm:text-sm uppercase tracking-widest font-title">Gestão de Identidade & Fluxo</p>
+          </div>
         </div>
         <button 
           onClick={handleSaveAvailability}
-          className="w-full sm:w-auto bg-accent text-white px-6 py-3.5 rounded-xl sm:rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-accent/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-accent/20 text-sm"
+          className="bg-primary text-white px-8 sm:px-10 py-5 sm:py-6 rounded-[24px] text-xs sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-[0_20px_40px_-10px_rgba(15,76,92,0.3)] active:scale-95 font-title group"
         >
-          <Save size={18} />
-          Salvar Alterações
+          <Save size={20} strokeWidth={3} className="group-hover:scale-110 transition-transform duration-500" />
+          <span>Salvar Alterações</span>
         </button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
+      {/* Navegação Elite */}
+      <div className="px-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-primary/5 p-2 rounded-[32px] border border-primary/5">
+          {[
+            { id: 'shop', label: 'BARBEARIA', icon: Building2 },
+            { id: 'profile', label: 'MEU PERFIL', icon: User },
+            { id: 'schedule', label: 'AGENDA & JORNADA', icon: Clock }
+          ].map((tab) => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[24px] text-[10px] sm:text-xs font-black italic uppercase tracking-widest transition-all duration-300 ${
+                activeTab === tab.id 
+                  ? 'bg-white text-primary shadow-[0_12px_24px_-8px_rgba(15,76,92,0.15)] scale-105 z-10' 
+                  : 'text-primary/40 hover:text-primary hover:bg-white/50'
+              }`}
+            >
+              <tab.icon size={18} strokeWidth={activeTab === tab.id ? 3 : 2} />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-12 px-4">
         
         {/* Lado Esquerdo - Configurações Principais */}
-        <div className="xl:col-span-8 space-y-6 sm:space-y-8">
+        <div className="xl:col-span-8 space-y-8 sm:space-y-12">
           
           {activeTab === 'shop' && (
             /* Perfil da Barbearia */
-            <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden">
+            <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
                 {/* Header Estilizado com Banner e Logo */}
-                <div className="relative h-48 sm:h-64 bg-accent/10 overflow-hidden">
+                <div className="relative h-64 sm:h-80 bg-background overflow-hidden border-b border-primary/5">
                     {/* Fundo Decorativo do Banner */}
-                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#1c1c1e]" />
+                    <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-white" />
                     
-                    {/* Botão para Alterar Banner (Simulado ou Real se houver campo) */}
-                    <div className="absolute top-6 right-8">
-                        <button className="bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-2">
-                            <Camera size={14} />
-                            Alterar Banner
+                    {/* Botão para Alterar Banner */}
+                    <div className="absolute top-8 right-8">
+                        <button className="bg-white/90 backdrop-blur-md border border-primary/10 px-6 py-3 rounded-[20px] text-[10px] font-black italic uppercase tracking-widest text-primary hover:text-cta transition-all flex items-center gap-3 shadow-xl">
+                            <Camera size={16} strokeWidth={2.5} />
+                            Alterar Banner Elite
                         </button>
                     </div>
 
                     {/* Logo Preview Centralizado e Elevado */}
-                    <div className="absolute -bottom-10 left-8 flex items-end gap-6 h-fit">
+                    <div className="absolute -bottom-12 left-10 flex items-end gap-8 h-fit">
                         <div 
-                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-[40px] bg-[#1c1c1e] border-8 border-[#0a0a0a] overflow-hidden shadow-2xl group/logo cursor-pointer relative"
+                            className="w-40 h-40 sm:w-56 sm:h-56 rounded-[40px] bg-white border-[12px] border-white overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] group/logo cursor-pointer relative transition-transform duration-500 hover:scale-105"
                             onClick={(e) => { e.stopPropagation(); logoInputRef.current?.click(); }}
                         >
                             {barbershop?.logo ? (
-                                <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain" />
+                                <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain p-4 transition-transform duration-700 group-hover/logo:scale-110" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <Building2 size={48} className="text-white/10" />
+                                <div className="w-full h-full flex items-center justify-center bg-background">
+                                    <Building2 size={64} className="text-primary/10" />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                <Camera size={24} className="mb-2" />
-                                <span className="text-[9px] font-black uppercase tracking-tighter text-center px-4">Trocar Logo</span>
+                            <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
+                                <Camera size={32} className="text-white mb-2" strokeWidth={3} />
+                                <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-6">Trocar Logo</span>
                             </div>
                         </div>
-                        <div className="mb-10 hidden sm:block">
-                            <h3 className="text-xl font-black text-white italic uppercase tracking-tight">{shopData.name || 'Sua Barbearia'}</h3>
+                        <div className="mb-20 hidden sm:block">
+                            <h3 className="text-3xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2">{shopData.name || 'Sua Barbearia'}</h3>
                             <button 
                                 onClick={() => logoInputRef.current?.click()}
-                                className="text-accent text-[10px] font-black uppercase tracking-widest mt-1 hover:underline flex items-center gap-1"
+                                className="text-cta text-[10px] font-black italic uppercase tracking-[0.2em] hover:text-primary transition-colors flex items-center gap-2"
                             >
-                                <Plus size={12} /> Alterar imagem do perfil
+                                <Plus size={14} strokeWidth={3} /> Atualizar Identidade
                             </button>
                         </div>
                     </div>
                     <input type="file" ref={logoInputRef} className="hidden" onChange={(e) => handleFileChange('logo', e)} accept="image/*" />
                 </div>
 
-                <div className="pt-20 p-8 space-y-8">
+                <div className="pt-24 p-8 sm:p-16 space-y-12">
                     {/* Informativo de Identidade Visual */}
-                    <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
-                            <Sparkles size={18} />
+                    <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 flex items-start gap-6">
+                        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-cta shrink-0 shadow-lg">
+                            <Sparkles size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-white mb-1 tracking-tight">Identidade Visual</h4>
-                            <p className="text-xs text-white/40 leading-relaxed">Sua logo e banner aparecem no link de agendamento público e no topo do app para seus clientes.</p>
+                            <h4 className="text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade de Elite</h4>
+                            <p className="text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest">Sua marca é o primeiro contato do cliente. Mantenha-a impecável no fluxo.</p>
                         </div>
                     </div>
 
                     {/* Link da Agenda */}
-                    <div className="bg-accent/5 border border-accent/20 rounded-3xl p-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                            <Link2 size={80} className="text-accent" />
+                    <div className="bg-background border border-primary/5 rounded-[40px] p-8 sm:p-10 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform">
+                            <Link2 size={120} className="text-primary" />
                         </div>
-                        <div className="relative z-10">
-                            <label className="text-[9px] font-black text-accent uppercase tracking-[0.3em] mb-3 block">Link da sua Agenda (Público)</label>
-                            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                                <div className="flex-1 bg-black/40 border border-white/5 px-5 py-4 rounded-2xl text-white font-mono text-xs sm:text-sm truncate">
-                                    {`${window.location.origin}/b/${shopData.slug}/booking`}
-                                </div>
-                                <button 
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(`${window.location.origin}/b/${shopData.slug}/booking`);
-                                        toast.success("Link copiado!");
-                                    }}
-                                    className="bg-accent text-white font-bold px-6 py-4 rounded-2xl hover:bg-[#0066CC] transition-all flex items-center justify-center gap-2 shadow-lg shadow-accent/20 active:scale-95"
-                                >
-                                    <ExternalLink size={16} />
-                                    <span>Copiar Link</span>
-                                </button>
+                        <div className="relative z-10 flex flex-col gap-6">
+                            <div>
+                              <label className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em] mb-4 block">Link Público da Agenda</label>
+                              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                                  <div className="flex-1 bg-white border-2 border-primary/5 px-8 py-5 rounded-[24px] text-primary font-black italic text-sm sm:text-base truncate shadow-inner">
+                                      {`${window.location.host}/b/${shopData.slug}/booking`}
+                                  </div>
+                                  <button 
+                                      onClick={() => {
+                                          navigator.clipboard.writeText(`${window.location.origin}/b/${shopData.slug}/booking`);
+                                          toast.success("Link Elite Copiado!");
+                                      }}
+                                      className="bg-cta text-white font-black italic px-10 py-5 rounded-[24px] hover:bg-[#D35400] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 text-xs uppercase tracking-[0.2em]"
+                                  >
+                                      <ExternalLink size={20} strokeWidth={2.5} />
+                                      <span>Copiar Flow Link</span>
+                                  </button>
+                              </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div>
-                            <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Nome da Barbearia</label>
-                            <div className="relative">
-                                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Nome da Barbearia</label>
+                            <div className="relative group">
+                                <Building2 className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={shopData.name}
                                     onChange={e => setShopData({...shopData, name: e.target.value})}
-                                    placeholder="Nome oficial"
-                                    className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-bold focus:border-accent outline-none transition-all placeholder:text-white/10"
+                                    placeholder="Ex: Barber Flow Elite"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Telefone / WhatsApp</label>
-                            <div className="relative">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Telefone / WhatsApp Elite</label>
+                            <div className="relative group">
+                                <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={shopData.phone || ''}
                                     onChange={e => setShopData({...shopData, phone: e.target.value})}
                                     placeholder="(00) 00000-0000"
-                                    className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-bold focus:border-accent outline-none transition-all placeholder:text-white/10"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Endereço Completo</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                            <input 
-                                type="text"
-                                value={shopData.address || ''}
-                                onChange={e => setShopData({...shopData, address: e.target.value})}
-                                placeholder="Rua, Número, Bairro, Cidade"
-                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-bold focus:border-accent outline-none transition-all placeholder:text-white/10"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Slogan ou Bio</label>
+                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Manifesto / Descrição do Estabelecimento</label>
                         <textarea 
                             value={shopData.description || ''}
                             onChange={e => setShopData({...shopData, description: e.target.value})}
-                            placeholder="Ex: A melhor experiência em corte de cabelo da região."
-                            rows={3}
-                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-4 py-4 text-white font-medium focus:border-accent outline-none transition-all placeholder:text-white/10 resize-none"
+                            placeholder="Descreva a experiência premium que sua barbearia entrega aos clientes."
+                            rows={4}
+                            className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[120px]"
                         />
                     </div>
                 </div>
@@ -490,104 +496,110 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
           )}
 
           {activeTab === 'profile' && (
-            /* Perfil do Barbeiro */
-            <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden">
-                <div className="p-8 border-b border-white/5 bg-white/[0.02]">
-                    <div className="flex flex-col sm:flex-row items-center gap-8">
+            <motion.section 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]"
+            >
+                <div className="p-8 sm:p-16 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent">
+                    <div className="flex flex-col sm:flex-row items-center gap-12">
                         {/* Foto de Perfil */}
                         <div 
                             className="relative group cursor-pointer" 
                             onClick={() => profilePicInputRef.current?.click()}
                         >
-                            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[40px] bg-black/40 border-4 border-white/5 overflow-hidden flex items-center justify-center relative shadow-2xl">
+                            <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-[40px] bg-white border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] transition-transform duration-500 hover:scale-105">
                                 {user?.profile_picture ? (
-                                    <img src={getMediaUrl(user.profile_picture)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    <img src={getMediaUrl(user.profile_picture)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                 ) : (
-                                    <User size={64} className="text-white/10" />
+                                    <User size={80} className="text-primary/10" />
                                 )}
-                                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <Camera size={24} className="mb-2" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Alterar sua Foto</span>
+                                <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    <Camera size={28} className="text-white mb-2" strokeWidth={3} />
+                                    <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-6">Identidade</span>
                                 </div>
                             </div>
                             <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
                         </div>
 
                         <div className="flex-1 text-center sm:text-left">
-                            <h3 className="text-2xl font-black text-white italic truncate uppercase">{user?.name || 'Seu Nome'}</h3>
-                            <p className="text-accent font-black text-[10px] uppercase tracking-[0.3em] mt-1">Barbeiro Profissional</p>
-                            <div className="mt-6 p-4 bg-white/[0.03] border border-white/5 rounded-2xl inline-flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-xs font-bold text-white/60">Conta Verificada AutoOpera</span>
+                            <h3 className="text-3xl sm:text-5xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-3">{user?.name || 'Mestre Barbeiro'}</h3>
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-6">
+                              <span className="px-5 py-2 bg-primary text-white rounded-full text-[10px] font-black italic uppercase tracking-widest shadow-lg shadow-primary/20 font-title">
+                                Barbeiro Elite
+                              </span>
+                              <div className="px-5 py-2 bg-background border border-primary/5 rounded-full inline-flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                  <span className="text-[10px] font-black italic text-primary uppercase tracking-[0.2em] font-title">Online no Fluxo</span>
+                              </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-8 sm:p-16 space-y-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div>
-                            <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Seu Nome Completo</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                            <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Seu Nome de Elite</label>
+                            <div className="relative group">
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={profileData.name}
                                     onChange={e => setProfileData({...profileData, name: e.target.value})}
-                                    placeholder="Como os clientes te chamam"
-                                    className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-bold focus:border-accent outline-none transition-all placeholder:text-white/10"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">E-mail de Acesso</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                            <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
+                            <div className="relative group">
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="email"
                                     value={profileData.email}
                                     onChange={e => setProfileData({...profileData, email: e.target.value})}
-                                    placeholder="seu@email.com"
-                                    className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-bold focus:border-accent outline-none transition-all placeholder:text-white/10"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-3 block tracking-[0.2em]">Sobre Você (Bio Profissional)</label>
-                        <div className="relative">
-                            <Info className="absolute left-4 top-4 text-white/20" size={18} />
+                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
+                        <div className="relative group">
+                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                             <textarea 
                                 value={profileData.description || ''}
                                 onChange={e => setProfileData({...profileData, description: e.target.value})}
-                                placeholder="Conte um pouco sobre sua experiência, especialidades e o que seus clientes podem esperar do seu trabalho."
                                 rows={5}
-                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white font-medium focus:border-accent outline-none transition-all placeholder:text-white/10 resize-none"
+                                className="w-full bg-background border-2 border-transparent rounded-[32px] pl-16 pr-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[140px] font-title"
                             />
                         </div>
                     </div>
                 </div>
-            </section>
+            </motion.section>
           )}
           
           {activeTab === 'schedule' && (
-            <>
-              {/* Jornada Semanal */}
-              <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden">
-                <div className="p-5 sm:p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
-                      <Clock size={20} className="sm:w-6 sm:h-6" />
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="space-y-12"
+            >
+              {/* Jornada Semanal Elite */}
+              <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+                <div className="p-8 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-6">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                        <Clock size={28} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <h3 className="text-lg sm:text-xl font-bold text-white">Jornada Semanal</h3>
-                      <p className="text-[10px] sm:text-sm text-white/40">Horários de funcionamento por dia</p>
+                        <h3 className="text-2xl sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Jornada Semanal</h3>
+                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Seus turnos recorrentes</p>
                     </div>
-                  </div>
                 </div>
-
-                <div className="p-1 sm:p-2">
+                
+                <div className="divide-y divide-primary/5">
                   {DAYS.map((dayName, dayIdx) => {
                     const dayIntervalsIndices = availability
                       .map((a, i) => (a.dayOfWeek === dayIdx ? i : -1))
@@ -595,73 +607,69 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     const isActive = dayIntervalsIndices.length > 0;
 
                     return (
-                      <div 
-                        key={dayIdx} 
-                        className={`p-4 sm:p-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4 sm:gap-6 transition-all rounded-2xl ${isActive ? 'hover:bg-white/[0.01]' : 'opacity-40'}`}
-                      >
-                        <div className="flex items-center gap-4 sm:gap-6 lg:mt-3">
-                          <label className="relative inline-flex items-center cursor-pointer group">
-                            <input 
-                              type="checkbox" 
-                              checked={isActive} 
-                              onChange={() => toggleDay(dayIdx)} 
-                              className="sr-only peer" 
-                            />
-                            <div className="w-12 h-7 sm:w-14 sm:h-8 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:rounded-full after:h-5 sm:after:h-6 after:w-5 sm:after:w-6 after:transition-all peer-checked:bg-[#34C759]"></div>
-                          </label>
-                          <div className="w-20 sm:w-24">
-                            <span className={`text-base sm:text-lg font-bold ${isActive ? 'text-white' : 'text-white/30'}`}>
-                              {dayName}
-                            </span>
+                      <div key={dayIdx} className="p-8 sm:px-12 flex flex-col md:flex-row md:items-center gap-8 group hover:bg-primary/[0.01] transition-colors">
+                        <div className="w-full md:w-44 flex items-center justify-between md:block shrink-0">
+                          <span className="text-sm font-black italic uppercase text-primary tracking-widest block font-title">{dayName}</span>
+                          <div className="mt-2">
+                             <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={isActive} 
+                                    onChange={() => toggleDay(dayIdx)}
+                                    className="sr-only peer" 
+                                />
+                                <div className="w-12 h-6 bg-primary/10 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6"></div>
+                                <span className="ml-3 text-[10px] font-black italic text-primary/40 uppercase tracking-widest peer-checked:text-primary transition-colors">
+                                    {isActive ? 'Ativo' : 'Folga'}
+                                </span>
+                             </label>
                           </div>
                         </div>
 
                         {isActive ? (
                           <motion.div 
+                            layout
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex-1 flex flex-col gap-3"
+                            className="flex-1 flex flex-wrap gap-4"
                           >
                             {dayIntervalsIndices.map((globalIdx) => (
-                              <div key={globalIdx} className="flex items-center gap-3">
-                                <div className="flex items-center gap-4 bg-white/5 px-4 py-2.5 rounded-xl border border-white/5 flex-1 sm:flex-initial">
-                                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Período</span>
-                                  <div className="flex items-center gap-2">
-                                    <input 
-                                      type="time" 
-                                      value={availability[globalIdx].startTime} 
-                                      onChange={(e) => updateIntervalTime(globalIdx, 'startTime', e.target.value)} 
-                                      className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                                    />
-                                    <span className="text-white/20">-</span>
-                                    <input 
-                                      type="time" 
-                                      value={availability[globalIdx].endTime} 
-                                      onChange={(e) => updateIntervalTime(globalIdx, 'endTime', e.target.value)} 
-                                      className="bg-transparent text-sm text-white font-bold outline-none [color-scheme:dark]" 
-                                    />
-                                  </div>
+                              <div key={globalIdx} className="flex items-center gap-3 bg-background border border-primary/5 rounded-2xl px-5 py-3 shadow-[0_4px_12px_rgba(15,76,92,0.03)] group/shift">
+                                <div className="flex items-center gap-2">
+                                  <input 
+                                    type="time" 
+                                    value={availability[globalIdx].startTime} 
+                                    onChange={(e) => updateIntervalTime(globalIdx, 'startTime', e.target.value)}
+                                    className="bg-transparent text-sm font-black italic text-primary outline-none font-title" 
+                                  />
+                                  <span className="text-primary/20 text-[10px] uppercase font-black italic">às</span>
+                                  <input 
+                                    type="time" 
+                                    value={availability[globalIdx].endTime} 
+                                    onChange={(e) => updateIntervalTime(globalIdx, 'endTime', e.target.value)}
+                                    className="bg-transparent text-sm font-black italic text-primary outline-none font-title" 
+                                  />
                                 </div>
                                 <button 
                                   onClick={() => removeInterval(globalIdx)}
-                                  className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                  className="p-2 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover/shift:opacity-100"
                                 >
-                                  <Trash2 size={16} />
+                                  <Trash2 size={16} strokeWidth={2.5} />
                                 </button>
                               </div>
                             ))}
                             
                             <button 
                               onClick={() => addInterval(dayIdx)}
-                              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-accent hover:text-accent/80 transition-colors w-fit px-2 py-1"
+                              className="h-12 px-6 rounded-2xl border-2 border-dashed border-primary/10 text-[10px] font-black italic uppercase tracking-widest text-primary/40 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all flex items-center gap-2"
                             >
-                              <Plus size={14} />
-                              Adicionar Turno
+                              <Plus size={14} strokeWidth={3} />
+                              Novo Turno
                             </button>
                           </motion.div>
                         ) : (
-                          <div className="lg:mt-3">
-                            <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Dia de descanso</span>
+                          <div className="flex-1 flex items-center border-2 border-dashed border-primary/5 rounded-[32px] p-8">
+                            <span className="text-[10px] font-black italic text-primary/10 uppercase tracking-[0.4em]">Dia de descanso e recuperação</span>
                           </div>
                         )}
                       </div>
@@ -670,91 +678,166 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </div>
               </section>
 
-              {/* Calendário para configurar disponibilidades por data */}
-              <section className="bg-[#1c1c1e] border border-white/5 rounded-[20px] sm:rounded-[32px] overflow-hidden p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-                  <div>
-                    <h3 className="text-lg font-bold">Calendário de Disponibilidades</h3>
-                    <p className="text-sm text-white/40">Clique em um dia para adicionar turnos pontuais (não altera a jornada semanal).</p>
+              {/* Datas Especiais Elite */}
+              <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] p-8 sm:p-16">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-8">
+                  <div className="flex items-center gap-6">
+                    <div className="w-14 h-14 rounded-2xl bg-cta/10 flex items-center justify-center text-cta">
+                        <Calendar size={28} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Datas Especiais</h3>
+                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Sobrescreve a jornada para turnos pontuais</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 sm:mt-0">
-                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} className="bg-white/5 text-white/60 px-2 py-1 rounded-lg text-sm">‹</button>
-                    <div className="text-base sm:text-sm font-bold text-center px-2">{currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</div>
-                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} className="bg-white/5 text-white/60 px-2 py-1 rounded-lg text-sm">›</button>
+                  
+                  <div className="flex items-center gap-4 bg-background p-2 rounded-3xl border border-primary/5">
+                    <button 
+                        onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} 
+                        className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white text-primary/40 hover:text-cta transition-colors shadow-sm"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <div className="text-[11px] font-black italic uppercase tracking-[0.2em] text-primary min-w-[160px] text-center font-title">
+                        {currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <button 
+                        onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} 
+                        className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white text-primary/40 hover:text-cta transition-colors shadow-sm"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs text-white/40 mb-2">
+                <div className="grid grid-cols-7 gap-2 mb-6">
                   {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
-                    <div key={d} className="py-1">{d}</div>
+                    <div key={d} className="py-2 text-[10px] font-black italic text-primary/20 uppercase tracking-[0.3em] text-center">{d}</div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-3 sm:gap-6">
                   {calendarMatrix(currentMonth).map((cell, idx) => (
-                    <div key={idx} className={`p-2 sm:p-3 h-14 sm:h-20 rounded-lg sm:rounded-xl ${cell.isCurrentMonth ? 'bg-white/2 hover:bg-white/3 cursor-pointer' : 'opacity-20'}`} onClick={() => cell.isCurrentMonth && openDay(cell.date)}>
-                      <div className="flex flex-col h-full">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm sm:text-base font-bold text-white">{cell.day}</span>
-                          {availMap[cell.date] && availMap[cell.date].length > 0 && (
-                            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full">{availMap[cell.date].length}</span>
-                          )}
-                        </div>
-                        <div className="mt-1 text-[10px] sm:text-[12px] text-white/30 flex-1 flex flex-col justify-end">
-                          {availMap[cell.date] && availMap[cell.date].slice(0,2).map((a, i) => (
-                            <div key={i} className="text-[11px] sm:text-[12px] truncate">{a.startTime} - {a.endTime}</div>
-                          ))}
-                        </div>
+                    <div 
+                      key={idx} 
+                      className={`group relative p-4 h-28 sm:h-36 rounded-[32px] transition-all flex flex-col justify-between border-2 ${
+                        cell.isCurrentMonth 
+                        ? 'bg-white border-primary/5 hover:border-cta/20 cursor-pointer hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1' 
+                        : 'bg-transparent border-transparent opacity-0 pointer-events-none'
+                      }`} 
+                      onClick={() => cell.isCurrentMonth && openDay(cell.date)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl font-black italic text-primary font-title leading-none">{cell.day}</span>
+                        {availMap[cell.date] && availMap[cell.date].length > 0 && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-cta shadow-[0_0_12px_rgba(230,126,34,0.5)]" />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        {availMap[cell.date] && availMap[cell.date].slice(0,2).map((a, i) => (
+                          <div key={i} className="text-[9px] font-black italic text-primary/40 uppercase tracking-tighter truncate leading-none">
+                            {a.startTime}—{a.endTime}
+                          </div>
+                        ))}
+                        {availMap[cell.date] && availMap[cell.date].length > 2 && (
+                          <div className="text-[9px] text-cta font-black italic uppercase tracking-widest">+ {availMap[cell.date].length - 2}</div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Day Modal */}
+                {/* Day Modal Elite */}
                 <AnimatePresence>
                   {showDayModal && (
-                    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-                      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-[#1c1c1e] w-full max-w-lg rounded-2xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h4 className="text-lg font-bold">{selectedDate}</h4>
-                            <p className="text-sm text-white/40">Defina os turnos para este dia</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => { setShowDayModal(false); }} className="text-white/40">Cancelar</button>
-                          </div>
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-12">
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowDayModal(false)}
+                        className="absolute inset-0 bg-primary/40 backdrop-blur-xl"
+                      />
+                      <motion.div 
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+                        animate={{ scale: 1, opacity: 1, y: 0 }} 
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }} 
+                        className="bg-white w-full max-w-xl rounded-[48px] p-10 sm:p-16 shadow-[0_48px_96px_-12px_rgba(15,76,92,0.3)] relative z-10"
+                      >
+                        <button 
+                            onClick={() => setShowDayModal(false)} 
+                            className="absolute top-10 right-10 w-12 h-12 flex items-center justify-center rounded-2xl bg-background text-primary/20 hover:text-primary transition-all group"
+                        >
+                            <Plus size={24} className="rotate-45 group-hover:scale-110 transition-transform" strokeWidth={3} />
+                        </button>
+                        
+                        <div className="mb-12">
+                          <h4 className="text-3xl sm:text-4xl font-black italic uppercase text-primary font-title leading-none mb-3">
+                            {new Date(selectedDate + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
+                          </h4>
+                          <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Configuração de Turnos Pontuais</p>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4 max-h-[40vh] overflow-y-auto custom-scrollbar-hidden pr-2 mb-12">
                           {dailyShifts.map((s, idx) => (
-                            <div key={idx} className="flex items-center gap-3">
-                              <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
-                              <span className="text-gray-400">até</span>
-                              <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
-                              <label className="ml-2 flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} />
-                                <span className="text-gray-300">Ativo</span>
-                              </label>
-                              <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="ml-auto text-red-400 px-3 py-2 rounded-xl border border-red-500/20">Remover</button>
+                            <div key={idx} className="flex flex-col sm:flex-row items-center gap-6 bg-background p-6 rounded-[32px] border border-primary/5 group relative">
+                              <div className="flex items-center gap-4 flex-1">
+                                <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
+                                <span className="text-primary/20 font-black italic text-[10px] uppercase">às</span>
+                                <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
+                              </div>
+                              <div className="flex items-center gap-6 w-full sm:w-auto">
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                  <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} className="sr-only peer" />
+                                  <div className="w-12 h-6 bg-primary/10 rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6 relative"></div>
+                                </label>
+                                <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="w-12 h-12 flex items-center justify-center rounded-2xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"><Trash2 size={20} strokeWidth={2.5} /></button>
+                              </div>
                             </div>
                           ))}
 
-                          <div className="flex items-center gap-3 mt-2">
-                            <button onClick={() => setDailyShifts(ds => [...ds, { startTime: '09:00', endTime: '12:00', isActive: true }])} className="bg-white/5 text-white px-4 py-2 rounded-2xl">Adicionar Turno</button>
-                            <button onClick={async () => {
+                          <button 
+                            onClick={() => setDailyShifts(ds => [...ds, { startTime: '09:00', endTime: '12:00', isActive: true }])} 
+                            className="w-full py-8 border-2 border-dashed border-primary/10 rounded-[32px] text-primary/30 flex items-center justify-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                          >
+                            <Plus size={20} strokeWidth={3} />
+                            <span className="text-[10px] font-black italic uppercase tracking-[0.2em]">Adicionar Novo Bloco de Tempo</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <button 
+                            onClick={async () => {
                               try {
                                 const payload = dailyShifts.map(s => ({ date: selectedDate, startTime: s.startTime, endTime: s.endTime, isActive: s.isActive }));
                                 await dailyAvailabilityApi.sync(payload);
-                                toast.success('Salvo');
+                                toast.success('Agenda salva com sucesso!');
                                 await loadMonthAvailabilities(currentMonth);
                                 setShowDayModal(false);
                               } catch (err) {
-                                console.error(err);
-                                toast.error('Erro ao salvar');
+                                toast.error('Erro ao salvar disponibilidade');
                               }
-                            }} className="bg-[#007AFF] text-white px-4 py-2 rounded-2xl font-bold">Salvar</button>
-                            <button onClick={async () => { try { await dailyAvailabilityApi.clearDate(selectedDate); await loadMonthAvailabilities(currentMonth); setDailyShifts([]); toast.success('Removido'); setShowDayModal(false); } catch (err) { console.error(err); toast.error('Erro ao remover'); } }} className="text-red-400 px-3 py-2">Remover Tudo</button>
-                          </div>
+                            }} 
+                            className="bg-primary text-white py-6 rounded-3xl text-[10px] font-black italic uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                          >
+                            Consolidar Horários
+                          </button>
+                          <button 
+                            onClick={async () => { 
+                              try { 
+                                await dailyAvailabilityApi.clearDate(selectedDate); 
+                                await loadMonthAvailabilities(currentMonth); 
+                                setDailyShifts([]); 
+                                toast.success('Removido'); 
+                                setShowDayModal(false); 
+                              } catch (err) { 
+                                toast.error('Erro ao limpar'); 
+                              } 
+                            }} 
+                            className="bg-red-50 text-red-500 py-6 rounded-3xl text-[10px] font-black italic uppercase tracking-widest hover:bg-red-100 transition-all"
+                          >
+                            Limpar Data
+                          </button>
                         </div>
                       </motion.div>
                     </div>
@@ -762,111 +845,97 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </AnimatePresence>
               </section>
 
-              {/* Exceções */}
-              <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] p-5 sm:p-8">
-                <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#FF3B30]/10 flex items-center justify-center text-[#FF3B30]">
-                    <Calendar size={20} className="sm:w-6 sm:h-6" />
+              {/* Bloqueios & Exceções Elite */}
+              <section className="bg-white border border-primary/5 rounded-[48px] p-8 sm:p-16 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+                <div className="flex items-center gap-8 mb-16">
+                  <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-inner">
+                    <AlertTriangle size={32} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-white">Bloqueios & Horários Especiais</h3>
-                    <p className="text-[10px] sm:text-sm text-white/40">Feriados, cursos ou atendimentos VIP</p>
+                    <h3 className="text-2xl sm:text-4xl font-black italic uppercase text-primary font-title tracking-tight text-red-600 leading-none mb-2">Bloqueios Críticos</h3>
+                    <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Feriados e ausências que travam a agenda</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                  {/* Form de Nova Exceção */}
-                  <div className="bg-white/[0.03] rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-white/5 h-fit">
-                    <h4 className="text-xs sm:text-sm font-bold text-white mb-5 sm:mb-6 flex items-center gap-2">
-                      <Plus size={14} className="text-accent sm:w-4 sm:h-4" />
-                      Configurar Novo Período
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                  {/* Nova Exceção */}
+                  <div className="bg-background border border-primary/5 rounded-[40px] p-10 relative overflow-hidden">
+                    <h4 className="text-[10px] font-black italic text-primary uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                      <Plus size={16} className="text-cta" strokeWidth={3} />
+                      Registrar Novo Bloqueio
                     </h4>
                     
-                    <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-8">
                       <div>
-                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Tipo de Registro</label>
+                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-[0.2em]">Impacto na Agenda</label>
                         <select 
                           value={newException.type}
                           onChange={(e) => setNewException({...newException, type: e.target.value as any})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent appearance-none"
+                          className="w-full bg-white border-2 border-transparent rounded-[24px] px-6 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none appearance-none shadow-sm font-title"
                         >
-                          <option value="blocked" className="bg-[#1c1c1e]">Bloqueio total (Folga/Feriado)</option>
-                          <option value="extended" className="bg-[#1c1c1e]">Jornada Específica (Encaixes)</option>
+                          <option value="blocked">Bloqueio Total (Folga/Feriado)</option>
+                          <option value="extended">Horário Especial (Exceção)</option>
                         </select>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                          <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Data</label>
+                          <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-widest">Data</label>
                           <input 
                             type="date" 
                             value={newException.date}
                             onChange={(e) => setNewException({...newException, date: e.target.value})}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent [color-scheme:dark]"
+                            className="w-full bg-white border-2 border-transparent rounded-[24px] px-6 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title"
                           />
                         </div>
                         {newException.type === 'extended' && (
                           <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Início</label>
-                              <input 
-                                type="time" 
-                                value={newException.startTime}
-                                onChange={(e) => setNewException({...newException, startTime: e.target.value})}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-accent [color-scheme:dark]"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Fim</label>
-                              <input 
-                                type="time" 
-                                value={newException.endTime}
-                                onChange={(e) => setNewException({...newException, endTime: e.target.value})}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-accent [color-scheme:dark]"
-                              />
-                            </div>
+                             <div>
+                                <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block">Início</label>
+                                <input type="time" value={newException.startTime} onChange={(e) => setNewException({...newException, startTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-2xl px-4 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
+                             </div>
+                             <div>
+                                <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block">Fim</label>
+                                <input type="time" value={newException.endTime} onChange={(e) => setNewException({...newException, endTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-2xl px-4 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
+                             </div>
                           </div>
                         )}
                       </div>
 
                       <div>
-                        <label className="text-[10px] sm:text-[11px] font-bold text-white/30 uppercase mb-2 block">Motivo</label>
+                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-widest">Motivo do Bloqueio</label>
                         <input 
                           type="text" 
-                          placeholder="Ex: Feriado Local"
+                          placeholder="Ex: Treinamento Barber Elite"
                           value={newException.reason}
                           onChange={(e) => setNewException({...newException, reason: e.target.value})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent placeholder:text-white/10"
+                          className="w-full bg-white border-2 border-transparent rounded-[24px] px-8 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title placeholder:text-primary/5"
                         />
                       </div>
 
                       <button 
                         onClick={handleAddException}
-                        className="w-full bg-white text-black font-bold py-4 rounded-xl text-sm hover:bg-accent hover:text-white transition-all active:scale-95 shadow-lg shadow-white/5"
+                        className="w-full bg-primary text-white py-6 rounded-[28px] text-[10px] font-black italic uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/[0.95] transition-all"
                       >
-                        Ativar Exceção
+                        Ativar Bloqueio No Fluxo
                       </button>
                     </div>
                   </div>
 
                   {/* Listagem de Exceções */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs sm:text-sm font-bold text-white/40 flex items-center justify-between">
-                        Próximas Datas <span className="bg-white/5 px-2 py-0.5 rounded-md text-[10px] text-white/30">{exceptions.length}</span>
-                      </h4>
+                  <div className="space-y-8">
+                    <h4 className="text-[10px] font-black italic text-primary/20 uppercase tracking-[0.4em] flex items-center justify-between">
+                        Bloqueios Ativos <span className="text-cta">{exceptions.length}</span>
+                    </h4>
                       
-                      <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout">
                         {exceptions.length === 0 ? (
-                          <motion.div 
-                            layout
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="bg-white/[0.02] border border-dashed border-white/10 rounded-3xl p-12 text-center"
-                          >
-                            <p className="text-white/20 text-sm font-medium">Nenhum bloqueio agendado.</p>
+                          <motion.div layout className="bg-primary/[0.02] border-2 border-dashed border-primary/5 rounded-[40px] p-20 text-center">
+                            <Calendar size={48} className="text-primary/5 mx-auto mb-6" />
+                            <p className="text-[10px] font-black italic text-primary/10 uppercase tracking-widest">Nenhum bloqueio registrado</p>
                           </motion.div>
                         ) : (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             {exceptions.map((ex) => (
                               <motion.div 
                                 layout
@@ -874,32 +943,32 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
-                                className="bg-white/5 border border-white/5 rounded-2xl p-5 flex justify-between items-center group"
+                                className="bg-white border border-primary/5 rounded-[32px] p-8 flex justify-between items-center group shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
                               >
-                                <div className="flex items-center gap-4">
-                                  <div className={`w-2 h-2 rounded-full ${ex.type === 'blocked' ? 'bg-[#FF3B30]' : 'bg-accent'}`}></div>
+                                <div className="flex items-center gap-6">
+                                  <div className={`w-3 h-3 rounded-full ${ex.type === 'blocked' ? 'bg-red-500 shadow-[0_0_12_rgba(239,68,68,0.4)]' : 'bg-primary shadow-[0_0_12_rgba(15,76,92,0.4)]'}`}></div>
                                   <div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-white font-bold text-sm">
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-lg font-black italic text-primary uppercase font-title leading-none">
                                         {new Date(ex.date + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
                                       </span>
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${ex.type === 'blocked' ? 'bg-[#FF3B30]/10 text-[#FF3B30]' : 'bg-accent/10 text-accent'}`}>
-                                        {ex.type === 'blocked' ? 'Bloqueio' : 'Especial'}
+                                      <span className={`text-[8px] font-black italic px-3 py-1 rounded-full uppercase tracking-tighter ${ex.type === 'blocked' ? 'bg-red-50 text-red-500' : 'bg-primary/5 text-primary'}`}>
+                                        {ex.type === 'blocked' ? 'Total' : 'Parcial'}
                                       </span>
                                     </div>
-                                    <p className="text-white/40 text-[11px] font-medium mt-0.5">{ex.reason}</p>
+                                    <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest mt-2">{ex.reason}</p>
                                     {ex.type === 'extended' && (
-                                      <p className="text-accent text-[10px] mt-1 font-bold flex items-center gap-1">
-                                        <Clock size={10} /> {ex.startTime} — {ex.endTime}
+                                      <p className="text-primary text-[10px] mt-3 font-black italic flex items-center gap-2">
+                                        <Clock size={12} strokeWidth={3} /> {ex.startTime} {'\u003e'} {ex.endTime}
                                       </p>
                                     )}
                                   </div>
                                 </div>
                                 <button 
                                   onClick={() => handleDeleteException(ex.id)}
-                                  className="bg-white/0 hover:bg-[#FF3B30]/10 p-2 rounded-lg text-white/10 group-hover:text-[#FF3B30] transition-all"
+                                  className="w-12 h-12 flex items-center justify-center rounded-2xl text-primary/10 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
                                 >
-                                  <Trash2 size={16} />
+                                  <Trash2 size={20} />
                                 </button>
                               </motion.div>
                             ))}
@@ -907,46 +976,86 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         )}
                       </AnimatePresence>
                       
-                      <div className="flex items-start gap-2 bg-[#FF9500]/5 border border-[#FF9500]/10 rounded-2xl p-4">
-                        <AlertCircle size={16} className="text-[#FF9500] shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-[#FF9500]/80 font-medium leading-relaxed">
-                          Ateção: Estes horários sobrescrevem automaticamente a jornada fixa para as datas selecionadas.
+                      <div className="bg-cta/5 border border-cta/10 rounded-[32px] p-8 mt-12">
+                        <div className="flex items-center gap-3 mb-3 text-cta">
+                            <ShieldAlert size={20} strokeWidth={2.5} />
+                            <span className="text-[10px] font-black italic uppercase tracking-widest">Protocolo de Segurança</span>
+                        </div>
+                        <p className="text-xs text-cta/70 font-medium leading-relaxed italic">
+                          Bloqueios de agenda são prioritários. Se houver agendamentos prévios nessas datas, você deverá notificá-los manualmente ou o sistema enviará um alerta de cancelamento automático conforme suas configurações.
                         </p>
                       </div>
                     </div>
-                </div>
+                  </div>
               </section>
-            </>
+            </motion.div>
           )}
 
         </div>
 
-        {/* Lado Direito - Resumo e Status */}
-        <div className="xl:col-span-4 space-y-6 sm:space-y-8">
+        {/* Lado Direito Elite - Resumo e Performance */}
+        <div className="xl:col-span-4 space-y-8">
           
-          {/* Dica Visual */}
-          <div className="bg-gradient-to-br from-accent/20 to-transparent border border-accent/10 rounded-[32px] p-8 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
-                <Camera size={80} />
+          {/* Dica Profissional Elite */}
+          <div className="bg-primary border border-primary/5 rounded-[48px] p-10 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.25)]">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
+                <Sparkles size={140} strokeWidth={1} />
             </div>
-            <h4 className="text-sm font-bold text-accent uppercase tracking-widest mb-4 italic">Dica Pro</h4>
-            <p className="text-xs text-white/70 leading-relaxed font-medium">
-                Fotos de alta qualidade no seu <span className="text-white font-bold">Banner</span> e no seu <span className="text-white font-bold">Perfil</span> aumentam a confiança dos clientes em até 40% na hora do agendamento.
+            <div className="flex items-center gap-4 mb-8 relative z-10">
+                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-cta">
+                    <Sparkles size={20} strokeWidth={2.5} />
+                 </div>
+                 <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic font-title">Master Intelligence</h4>
+            </div>
+            <p className="text-base text-white/80 leading-relaxed font-black italic uppercase tracking-tight relative z-10 font-title">
+                "Fotos de alta definição no seu <span className="text-cta">Banner</span> e no seu <span className="text-cta">Perfil</span> aumentam a conversão de novos clientes em até 40%."
             </p>
+            <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
+                <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Elite #042</span>
+            </div>
+          </div>
+
+          {/* Status da Assinatura Elite */}
+          <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+             <div className="flex items-center gap-4 mb-10">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <ShieldAlert size={24} strokeWidth={2.5} />
+                </div>
+                <h4 className="text-[10px] font-black text-primary/30 uppercase tracking-[0.3em] italic font-title">Plano de Assinatura</h4>
+             </div>
+
+             <div className="space-y-8">
+                <div className="flex items-center justify-between group">
+                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic group-hover:text-primary transition-colors">Nível Atual</span>
+                    <span className="text-sm font-black italic text-primary uppercase font-title bg-primary/5 px-4 py-2 rounded-full border border-primary/10 shadow-sm">Barber Pro Elite</span>
+                </div>
+                <div className="flex items-center justify-between group pt-4 border-t border-primary/5">
+                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Performance Mensal</span>
+                    <span className="text-lg font-black italic text-primary font-title">R$ 14.850<span className="text-[10px] text-primary/30">,00</span></span>
+                </div>
+                <div className="flex items-center justify-between group">
+                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Fidelização</span>
+                    <span className="text-sm font-black italic text-green-500 font-title">+24%</span>
+                </div>
+             </div>
+             
+             <button className="w-full mt-12 py-6 bg-background border border-primary/5 text-[10px] font-black italic text-primary/40 uppercase tracking-[0.2em] hover:text-cta hover:border-cta/20 hover:bg-cta/[0.02] transition-all rounded-[28px] shadow-sm">
+                Upgrade de Licença
+             </button>
           </div>
 
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 const ToggleOption: React.FC<{ label: string, checked: boolean }> = ({ label, checked }) => (
-  <div className="flex items-center justify-between group">
-    <span className="text-white/60 text-sm font-medium group-hover:text-white transition-colors">{label}</span>
+  <div className="flex items-center justify-between group py-2">
+    <span className="text-[10px] font-black italic text-primary/40 uppercase tracking-widest group-hover:text-primary transition-colors">{label}</span>
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" checked={checked} readOnly className="sr-only peer" />
-      <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
+      <div className="w-12 h-6 bg-primary/10 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6"></div>
     </label>
   </div>
 );

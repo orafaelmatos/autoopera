@@ -43,23 +43,23 @@ const AppointmentCard: React.FC<{
   getStatusLabel: (s: string) => string
 }> = ({ apt, services, onComplete, getStatusLabel }) => {
   const x = useMotionValue(0);
-  const background = useTransform(x, [0, 100], ["rgba(28, 28, 30, 0)", "rgba(52, 199, 89, 0.2)"]);
+  const background = useTransform(x, [0, 100], ["rgba(15, 76, 92, 0)", "#E67E22"]);
   const opacity = useTransform(x, [0, 100], [0, 1]);
-  const scale = useTransform(x, [0, 100], [0.5, 1]);
+  const scale = useTransform(x, [0, 100], [0.8, 1]);
 
   return (
-    <div className="relative group overflow-hidden rounded-[24px] sm:rounded-[32px] bg-black/20">
+    <div className="relative group overflow-hidden rounded-[28px] bg-[#F5F5F5] shadow-sm">
       {/* Background Action */}
       <motion.div 
         style={{ background, opacity }}
-        className="absolute inset-0 flex items-center pl-8 text-[#34C759] font-bold gap-3"
+        className="absolute inset-0 flex items-center pl-8 text-white font-black italic uppercase gap-3 z-0"
       >
         <motion.div style={{ scale }}>
-          <div className="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center text-black">
-            <Check size={20} strokeWidth={3} />
+          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-cta shadow-xl">
+            <Check size={24} strokeWidth={3} />
           </div>
         </motion.div>
-        <span className="text-xs uppercase tracking-widest font-black">Concluir Atendimento</span>
+        <span className="text-xs tracking-widest font-title">Finalizar Elite</span>
       </motion.div>
 
       <motion.div 
@@ -72,37 +72,37 @@ const AppointmentCard: React.FC<{
           }
         }}
         style={{ x }}
-        className="relative z-10 bg-[#1c1c1e] border border-white/5 p-3 sm:p-4 flex items-center justify-between hover:bg-[#232326] transition-colors cursor-grab active:cursor-grabbing backdrop-blur-xl"
+        className="relative z-10 bg-white border border-[#E5E5E5] p-5 sm:p-6 flex items-center justify-between hover:bg-white/80 transition-all cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,76,92,0.05)] rounded-[28px]"
       >
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-[18px] bg-black/60 border border-white/5 text-white/60 shadow-inner">
-            <span className="text-[7px] sm:text-[8px] font-black uppercase mb-0.5 opacity-60">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-            <span className="text-sm sm:text-base font-bold tracking-tight leading-none">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-primary text-white shadow-lg shadow-primary/20">
+            <span className="text-[8px] sm:text-[9px] font-black uppercase mb-0.5 opacity-60 font-title tracking-wider">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+            <span className="text-base sm:text-lg font-black italic tracking-tight leading-none font-title">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           <div>
-            <h4 className="text-sm sm:text-base font-extrabold text-white tracking-tight">{apt.clientName}</h4>
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-1 text-white/40 font-bold text-[8px] sm:text-[9px] uppercase tracking-wider">
-              <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-md border border-white/5 whitespace-nowrap shadow-sm">
-                <Scissors size={10} className="text-white/20" /> 
+            <h4 className="text-lg sm:text-xl font-black italic uppercase text-primary tracking-tight font-title">{apt.clientName}</h4>
+            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-2 text-primary/40 font-black italic text-[9px] sm:text-[10px] uppercase tracking-wider font-title">
+              <span className="flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10 whitespace-nowrap">
+                <Scissors size={12} className="text-primary/60" /> 
                 {services.find(s => s.id === apt.serviceId)?.name || 'Serviço'}
               </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap opacity-80">
-                <CalendarDays size={10} className="text-white/20" /> 
+              <span className="flex items-center gap-2 whitespace-nowrap opacity-80">
+                <CalendarDays size={12} className="text-primary/60" /> 
                 {new Date(apt.date).toLocaleDateString('pt-BR')}
               </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3 sm:gap-5">
-          <span className={`px-3 sm:px-4 py-1.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest border ${
+          <span className={`px-4 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-black italic uppercase tracking-[0.15em] border font-title transition-all ${
             apt.status === 'confirmed' 
-              ? 'bg-[#34C759]/10 text-[#34C759] border-[#34C759]/20 shadow-[0_0_15px_rgba(52,199,89,0.1)]' 
-              : 'bg-white/5 text-white/40 border-white/5'
+              ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
+              : 'bg-background text-text/30 border-border'
           }`}>
             {getStatusLabel(apt.status)}
           </span>
-          <div className="p-2 text-white/10 group-hover:text-white/30 transition-colors">
-            <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+          <div className="p-2.5 bg-background rounded-full text-primary/20 group-hover:text-cta group-hover:bg-cta/5 transition-all">
+            <ChevronRight size={22} className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />
           </div>
         </div>
       </motion.div>
@@ -229,35 +229,42 @@ const handleCompleteAppointment = async (id: string) => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-[1200px] mx-auto pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
+    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
         <div>
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-1">Minha <span className="text-gray-500">Agenda</span></h2>
-          <p className="text-gray-500 font-medium text-xs sm:text-base">Gerencie seus horários e atendimentos.</p>
+          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-2">
+            Minha <span className="text-cta">Agenda</span>
+          </h2>
+          <div className="flex items-center gap-3">
+            <div className="h-[2px] w-12 bg-cta/30 rounded-full" />
+            <p className="text-primary/60 font-black italic text-xs sm:text-sm uppercase tracking-widest font-title">Fluxo de Elite</p>
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:flex gap-3">
+        <div className="grid grid-cols-1 sm:flex gap-4">
           <button 
             onClick={() => setIsAddingAppointment(true)}
-            className="bg-accent text-white px-4 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[11px] sm:text-[12px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-95"
+            className="bg-cta text-white px-8 sm:px-10 py-5 sm:py-6 rounded-[24px] text-xs sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-[#D35400] transition-all shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 font-title group"
           >
-            <Plus size={18} />
-            <span>Agendar</span>
+            <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
+            <span>Novo Agendamento</span>
           </button>
         </div>
       </header>
-      
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-12 px-4">
         {/* Main Column: Appointments */}
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-8">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">Próximos</h3>
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-accent bg-accent/10 px-3 py-1 rounded-full">
+            <h3 className="text-xl sm:text-2xl font-black italic uppercase tracking-tight text-primary font-title flex items-center gap-3">
+              <div className="w-2 h-8 bg-cta rounded-full" />
+              Próximos Horários
+            </h3>
+            <span className="text-[10px] font-black italic uppercase tracking-[0.2em] text-white bg-primary px-5 py-2.5 rounded-full border border-primary shadow-lg shadow-primary/20 font-title">
               {activeAppointments.length} Ativos
             </span>
           </div>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-4 sm:space-y-5">
             {activeAppointments.map(apt => (
               <AppointmentCard 
                 key={apt.id}
@@ -268,101 +275,105 @@ const handleCompleteAppointment = async (id: string) => {
               />
             ))}
             {activeAppointments.length === 0 && (
-              <div className="text-center py-20 bg-[#1c1c1e] border border-dashed border-white/5 rounded-[32px] text-gray-600 text-sm font-medium">
-                Nenhum agendamento para os próximos dias.
+              <div className="text-center py-28 bg-white border-2 border-dashed border-primary/10 rounded-[40px] text-primary/30 text-sm font-black italic uppercase tracking-widest font-title flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
+                  <CalendarDays size={40} className="text-primary/10" />
+                </div>
+                Nenhum agendamento ativo
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modals with AnimatePresence */}
       <AnimatePresence>
         {isAddingAppointment && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-primary/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#1c1c1e] border border-white/5 w-full max-w-md rounded-[32px] p-6 sm:p-10 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              exit={{ scale: 0.95, opacity: 0, y: 40 }}
+              className="bg-white border border-primary/10 w-full max-w-lg rounded-[48px] p-8 sm:p-12 shadow-[0_32px_64px_-12px_rgba(15,76,92,0.5)] relative max-h-[95vh] overflow-y-auto no-scrollbar"
             >
               <button 
                 onClick={() => setIsAddingAppointment(false)}
-                className="absolute top-4 right-4 p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-all"
+                className="absolute top-8 right-8 p-3 bg-background rounded-full text-primary/40 hover:text-cta hover:bg-cta/5 transition-all"
               >
-                <X size={20} />
+                <X size={24} strokeWidth={3} />
               </button>
 
               {showSuccess ? (
-                <div className="py-12 sm:py-20 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mb-6 border border-green-500/30">
-                    <CheckCircle2 size={40} className="animate-bounce" />
+                <div className="py-16 sm:py-24 flex flex-col items-center justify-center text-center">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-primary/5 rounded-[40px] flex items-center justify-center text-cta mb-8 border border-primary/10 shadow-inner">
+                    <CheckCircle2 size={56} className="animate-bounce" strokeWidth={2.5} />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Agendado com Sucesso!</h3>
-                  <p className="text-gray-500 font-medium">O cliente receberá uma confirmação.</p>
+                  <h3 className="text-2xl sm:text-4xl font-black italic uppercase text-primary mb-3 font-title tracking-tighter">Agendado!</h3>
+                  <p className="text-primary/40 font-black italic uppercase text-[10px] tracking-[0.2em] font-title">Reserva Confirmada no Fluxo</p>
                 </div>
               ) : (
                 <>
-                  <div className="mb-8">
-                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Novo Horário</h3>
-                    <p className="text-gray-500 text-sm font-medium">Marque um horário manualmente na sua agenda.</p>
+                  <div className="mb-10 text-center sm:text-left">
+                    <h3 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-primary mb-3 font-title">Novo <span className="text-cta">Horário</span></h3>
+                    <p className="text-primary/40 text-xs font-black italic uppercase tracking-widest font-title">Entrada manual no sistema de elite</p>
                   </div>
                   
-                  <div className="space-y-5">
+                  <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Nome do Cliente</label>
+                      <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Nome do Cliente</label>
                       <div className="relative">
-                        <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                        <input type="text" value={aptName} onChange={e => setAptName(e.target.value)} placeholder="Ex: João Silva" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
+                        <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20" size={20} strokeWidth={2.5} />
+                        <input type="text" value={aptName} onChange={e => setAptName(e.target.value)} placeholder="JOÃO SILVA" className="w-full bg-background border-2 border-transparent rounded-[24px] pl-14 pr-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-black italic uppercase text-sm font-title" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">WhatsApp / Telefone</label>
+                      <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">WhatsApp Especial</label>
                       <div className="relative">
-                        <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                        <input type="text" value={aptPhone} onChange={e => setAptPhone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium text-base" />
+                        <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20" size={20} strokeWidth={2.5} />
+                        <input type="text" value={aptPhone} onChange={e => setAptPhone(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-background border-2 border-transparent rounded-[24px] pl-14 pr-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-black italic uppercase text-sm font-title" />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                       <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Serviço</label>
-                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base">
-                          {services.map(s => <option key={s.id} value={s.id}>{s.name} - R$ {s.price}</option>)}
+                       <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Serviço Selecionado</label>
+                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-background border-2 border-transparent rounded-[24px] px-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all font-black italic uppercase text-sm font-title appearance-none cursor-pointer">
+                          {services.map(s => <option key={s.id} value={s.id}>{s.name} — R$ {s.price}</option>)}
                        </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Data</label>
-                        <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base" />
+                        <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Data Elite</label>
+                        <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-background border-2 border-transparent rounded-[24px] px-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all font-black italic uppercase text-xs font-title" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-gray-500 tracking-widest ml-2">Horário</label>
-                        <input type="time" value={aptTime} onChange={e => setAptTime(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all font-medium text-base" />
+                        <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Horário</label>
+                        <input type="time" value={aptTime} onChange={e => setAptTime(e.target.value)} className="w-full bg-background border-2 border-transparent rounded-[24px] px-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all font-black italic uppercase text-xs font-title" />
                       </div>
                     </div>
 
                     {aptError && (
-                      <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex gap-3 items-center">
-                        <AlertCircle className="text-red-500" size={16} />
-                        <p className="text-[11px] text-red-500 font-bold uppercase">{aptError}</p>
+                      <div className="bg-red-50 border border-red-100 p-5 rounded-[24px] flex gap-4 items-center">
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                          <AlertCircle size={20} strokeWidth={3} />
+                        </div>
+                        <p className="text-[11px] text-red-500 font-black italic uppercase tracking-wider font-title leading-tight">{aptError}</p>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-3 mt-10">
+                  <div className="flex flex-col gap-4 mt-12">
                     <button 
                       onClick={handleAddAppointment} 
-                      className="w-full py-4 sm:py-5 bg-accent text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-[0.98]"
+                      className="w-full py-5 sm:py-6 bg-cta text-white rounded-[24px] font-black italic uppercase tracking-[0.3em] hover:bg-[#D35400] transition-all shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-[0.98] font-title text-xs"
                     >
-                      Confirmar Horário
+                      Confirmar Agenda
                     </button>
                     <button 
                       onClick={() => setIsAddingAppointment(false)} 
-                      className="w-full py-3 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
+                      className="w-full py-4 text-primary/40 hover:text-primary font-black italic uppercase tracking-[0.2em] transition-all text-[10px] font-title"
                     >
-                      Cancelar
+                      Cancelar Operação
                     </button>
                   </div>
                 </>

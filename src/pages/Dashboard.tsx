@@ -6,6 +6,120 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { appointmentsApi, transactionsApi } from '../api';
 import toast from 'react-hot-toast';
 
+const SwipeableAppointment: React.FC<{ apt: Appointment, index: number, serviceName: string, onFinish: () => void }> = ({ apt, index, serviceName, onFinish }) => {
+  const x = useMotionValue(0);
+  const background = useTransform(x, [0, 150], ['#FFFFFF', '#E67E22']);
+  const checkColor = useTransform(x, [100, 150], ['rgba(255, 255, 255, 0)', '#FFFFFF']);
+  const opacity = useTransform(x, [50, 150], [0, 1]);
+  const scale = useTransform(x, [0, 150], [0.8, 1]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0, transition: { delay: index * 0.1 } }}
+      exit={{ x: 500, opacity: 0 }}
+      layout
+      className="relative overflow-hidden rounded-[40px] bg-white border border-primary/5 shadow-[0_16px_32px_-8px_rgba(15,76,92,0.06)]"
+    >
+      <motion.div 
+        style={{ background }}
+        className="absolute inset-0 flex items-center pl-10 pointer-events-none"
+      >
+         <motion.div style={{ opacity, scale }}>
+            <motion.div style={{ color: checkColor }}>
+               <Check size={40} strokeWidth={3} />
+            </motion.div>
+         </motion.div>
+      </motion.div>
+
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 250 }}
+        dragElastic={0.05}
+        onDragEnd={(_, info) => {
+          if (info.offset.x > 180) {
+            onFinish();
+          }
+        }}
+        style={{ x }}
+        className="relative bg-white p-8 flex items-center justify-between cursor-grab active:cursor-grabbing group"
+      >
+        <div className="flex items-center gap-8">
+          <div className="w-16 h-16 bg-background rounded-[24px] border border-primary/5 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <User size={28} className="text-primary/40 relative z-10" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h4 className="font-black italic text-primary text-xl font-title tracking-tight leading-none mb-3 uppercase">{apt.clientName}</h4>
+            <div className="flex flex-wrap items-center gap-3 font-title">
+               <span className="text-[10px] text-cta font-black italic uppercase tracking-widest bg-cta/5 px-4 py-1.5 rounded-full border border-cta/10 shadow-sm">{serviceName}</span>
+               <div className="w-1.5 h-1.5 rounded-full bg-primary/10"></div>
+               <span className="text-[10px] text-primary/40 font-black italic uppercase tracking-[0.2em]">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="hidden sm:block">
+            <div className="w-12 h-12 rounded-full border-2 border-primary/5 flex items-center justify-center text-primary/10 group-hover:text-cta group-hover:border-cta/20 group-hover:scale-110 transition-all">
+                <ChevronRight size={24} strokeWidth={3} />
+            </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const StatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, color?: 'primary' | 'cta' }> = ({ title, value, icon, trend, color = 'primary' }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-white border border-primary/5 rounded-[48px] p-10 flex flex-col justify-between relative overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] group hover:-translate-y-2 transition-all duration-500"
+  >
+    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-primary/[0.02] rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+    
+    <div className="flex items-center justify-between mb-8 relative z-10">
+      <div className={`w-14 h-14 rounded-2xl ${color === 'primary' ? 'bg-primary' : 'bg-cta'} flex items-center justify-center shadow-[0_12px_24px_-8px_rgba(15,76,92,0.4)] group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      {trend && (
+        <span className="text-[10px] font-black italic text-green-500 uppercase tracking-widest bg-green-50 px-3 py-1.5 rounded-full">
+            {trend}
+        </span>
+      )}
+    </div>
+    
+    <div className="relative z-10">
+      <h4 className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em] mb-2 font-title">{title}</h4>
+      <p className="text-4xl font-black italic text-primary font-title tracking-tighter leading-none uppercase">{value}</p>
+    </div>
+  </motion.div>
+);
+
+const GoalCard: React.FC<{ label: string, current: number, target: number, color: string }> = ({ label, current, target, color }) => {
+  const percentage = Math.min((current / target) * 100, 100);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-end mb-2">
+        <div>
+          <h5 className="text-[10px] font-black italic text-primary uppercase tracking-[0.2em] font-title">{label}</h5>
+          <p className="text-2xl font-black italic text-primary font-title leading-none mt-2">
+            {current} <span className="text-primary/10 text-sm">/ {target}</span>
+          </p>
+        </div>
+        <span className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest">{Math.round(percentage)}%</span>
+      </div>
+      <div className="h-4 bg-primary/[0.03] rounded-full overflow-hidden border border-primary/5 p-1">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className={`h-full ${color} rounded-full shadow-[0_0_12px_rgba(15,76,92,0.2)]`}
+        />
+      </div>
+    </div>
+  );
+};
+
 interface Props {
   userName?: string;
   appointments: Appointment[];
@@ -63,35 +177,62 @@ const DashboardView: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-8 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
+    <div className="space-y-12 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
+      {/* Header Elite */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div>
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">Resumo <span className="text-gray-500">Hoje</span></h2>
-          <p className="text-gray-500 mt-1 sm:mt-2 font-medium text-xs sm:text-base">Acompanhe seus cortes e desempenho atual.</p>
+          <div className="flex items-center gap-4 mb-4">
+             <div className="w-12 h-1 px-4 bg-cta rounded-full"></div>
+             <span className="text-[10px] font-black italic text-cta uppercase tracking-[0.4em]">Intelligence Dashboard</span>
+          </div>
+          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
+            {new Date().getHours() < 12 ? 'Bom Dia,' : 'Boa Tarde,'} <span className="text-primary/20">{userName?.split(' ')[0] || 'Mestre'}</span>
+          </h2>
+          <p className="text-[10px] font-black italic text-primary/30 uppercase mt-4 tracking-[0.2em] ml-1">Performance consolidada de hoje</p>
+        </div>
+        
+        <div className="flex items-center gap-4 bg-white border border-primary/5 p-2 rounded-[28px] shadow-sm">
+            <div className="px-6 py-3 bg-primary/[0.02] rounded-[20px] border border-primary/5 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-[10px] font-black italic text-primary uppercase tracking-widest leading-none">Status: Operacional</span>
+            </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
-        <StatCard title="Faturamento" value={`R$ ${totalRevenue}`} icon={<Wallet className="text-white/60" size={18} />} />
-        <StatCard title="Cortes" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-white/60" size={18} />} />
+      {/* Grid de Stats Elite */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <StatCard title="Ganhos Acumulados" value={`R$ ${totalRevenue.toLocaleString()}`} icon={<Wallet className="text-white" size={24} />} trend="+12.5%" />
+        <StatCard title="Cortes Finalizados" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-white" size={24} />} trend="+3" />
+        <div className="hidden lg:block">
+            <StatCard title="Tempo Médio" value="45min" icon={<Clock className="text-white" size={24} />} color="cta" />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12 pt-4">
-        <section className="col-span-1 lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-              Para Finalizar
-            </h3>
-            <span className="text-[9px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] bg-white/5 px-3 py-1 rounded-full border border-white/5">Deslize para concluir</span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 sm:gap-16 items-start">
+        {/* Coluna Principal: Feed de Hoje */}
+        <section className="col-span-1 lg:col-span-8 space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                    <ListOrdered size={20} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-2xl font-black italic uppercase text-primary font-title tracking-tight leading-none">
+                  Fila de Atendimento
+                </h3>
+            </div>
+            <div className="hidden sm:flex items-center gap-3 bg-cta/5 px-4 py-2 rounded-full border border-cta/10">
+                <span className="text-[9px] font-black italic text-cta uppercase tracking-[0.2em]">Deslize para Concluir</span>
+            </div>
           </div>
           
-          <div className="space-y-4">
-             <AnimatePresence>
+          <div className="space-y-6">
+             <AnimatePresence mode="popLayout">
                 {todayAppointments.length > 0 ? (
-                   todayAppointments.map(apt => (
+                   todayAppointments.map((apt, idx) => (
                       <SwipeableAppointment 
                         key={apt.id} 
                         apt={apt} 
+                        index={idx}
                         serviceName={getServiceName(apt.serviceId)} 
                         onFinish={() => handleFinishAppointment(apt)} 
                       />
@@ -99,149 +240,87 @@ const DashboardView: React.FC<Props> = ({
                 ) : (
                    <motion.div 
                      key="empty"
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-20 text-center"
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     className="bg-white border border-primary/5 rounded-[48px] p-24 text-center shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]"
                    >
-                      <CheckCircle2 size={48} className="text-white/10 mx-auto mb-6" />
-                      <p className="text-gray-400 text-sm font-semibold">Tudo em dia!</p>
-                      <p className="text-gray-600 text-xs mt-2">Nenhum atendimento pendente no momento.</p>
+                      <div className="w-24 h-24 rounded-full bg-primary/[0.02] flex items-center justify-center mx-auto mb-10 border border-primary/5">
+                        <CheckCircle2 size={48} className="text-primary/10" strokeWidth={1} />
+                      </div>
+                      <p className="text-primary font-black italic font-title text-3xl uppercase tracking-tighter">Fluxo Limpo</p>
+                      <p className="text-primary/30 font-black italic uppercase text-[10px] tracking-[0.3em] mt-4">Todos os clientes foram atendidos com excelência</p>
                    </motion.div>
                 )}
              </AnimatePresence>
           </div>
         </section>
 
-        <section className="space-y-8">
-          <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6 font-bold">Metas do Período</h3>
-            <div className="space-y-8">
-              <GoalCard label="Atendimentos" current={completedApts.length} target={15} color="bg-accent" />
-              <GoalCard label="Faturamento" current={totalRevenue} target={1500} color="bg-accent" />
+        {/* Coluna Lateral: Metas e Insights */}
+        <section className="col-span-1 lg:col-span-4 space-y-12">
+          {/* Metas Pro */}
+          <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+            <div className="flex items-center gap-4 mb-10">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <Trophy size={20} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-[10px] font-black italic uppercase tracking-[0.3em] text-primary/30 font-title">Metas do Ciclo</h3>
+            </div>
+            <div className="space-y-12">
+              <GoalCard label="Total de Cortes" current={completedApts.length} target={15} color="bg-primary" />
+              <GoalCard label="Faturamento" current={totalRevenue} target={1500} color="bg-cta" />
             </div>
           </div>
 
-          <div className="bg-[#1c1c1e] border border-white/5 rounded-[32px] p-8 shadow-sm">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6 font-bold">Serviços Mais Prestados</h3>
-            <div className="space-y-5">
-              {serviceStats.map(stat => (
-                <div key={stat.name} className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
-                  <span className="text-sm font-bold text-gray-400">{stat.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-white">{stat.count}</span>
-                    <span className="text-[9px] font-black uppercase text-gray-600 tracking-tighter">unid.</span>
+          {/* Ranking de Serviços */}
+          <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] overflow-hidden relative">
+            <div className="flex items-center gap-4 mb-10">
+                <div className="w-10 h-10 rounded-xl bg-cta/10 flex items-center justify-center text-cta">
+                    <TrendingUp size={20} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-[10px] font-black italic uppercase tracking-[0.3em] text-primary/30 font-title">Mix de Performance</h3>
+            </div>
+            <div className="space-y-4">
+              {serviceStats.slice(0, 4).map((stat, idx) => (
+                <div key={stat.name} className="flex justify-between items-center bg-background p-6 rounded-[28px] border border-primary/5 group hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-black text-primary/10 font-title italic">0{idx + 1}</span>
+                    <span className="text-sm font-black italic uppercase text-primary font-title truncate max-w-[140px]">{stat.name}</span>
+                  </div>
+                  <div className="flex items-end gap-1.5 leading-none">
+                    <span className="text-lg font-black italic text-primary font-title">{stat.count}</span>
+                    <span className="text-[9px] font-black uppercase text-primary/20 tracking-tighter mb-1 font-title">pts</span>
                   </div>
                 </div>
               ))}
               {serviceStats.length === 0 && (
-                <p className="text-[11px] text-gray-600 font-medium text-center">Nenhum serviço prestado ainda.</p>
+                <div className="p-12 text-center border-2 border-dashed border-primary/5 rounded-[32px]">
+                   <p className="text-[10px] font-black italic text-primary/10 uppercase tracking-widest leading-relaxed">Aguardando registro de dados para análise de performance</p>
+                </div>
               )}
             </div>
           </div>
           
-          <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8">
-             <h4 className="text-white/60 font-bold text-sm mb-3 flex items-center gap-2">
-                <TrendingUp size={16} /> Insights
+          {/* Insights Elite */}
+          <div className="bg-primary border border-primary/10 rounded-[48px] p-10 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.3)]">
+             <div className="absolute -top-10 -right-10 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
+                 <Megaphone size={160} />
+             </div>
+             <h4 className="text-white font-black italic text-[10px] uppercase tracking-[0.3em] mb-6 flex items-center gap-3 relative z-10 font-title">
+                <div className="w-1.5 h-1.5 rounded-full bg-cta shadow-[0_0_12px_rgba(230,126,34,1)] animate-pulse"></div>
+                Dica Profissional
              </h4>
-             <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                Seus clientes VIPs estão retornando menos este mês. <span className="text-accent cursor-pointer hover:underline underline-offset-4 font-semibold">Agendar lembretes?</span>
+             <p className="text-lg text-white/80 leading-snug font-black italic uppercase tracking-tight relative z-10 font-title">
+                "Seus clientes VIPs reduziram a frequência cardíaca na agenda. Reative o fluxo via WhatsApp VIP."
              </p>
+             <button className="mt-8 flex items-center gap-3 text-cta text-[10px] font-black italic uppercase tracking-[0.2em] group/btn relative z-10">
+                Gerar Link de Recontato <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" strokeWidth={3} />
+             </button>
           </div>
         </section>
       </div>
     </div>
   );
 };
-
-const SwipeableAppointment: React.FC<{ apt: Appointment, serviceName: string, onFinish: () => void }> = ({ apt, serviceName, onFinish }) => {
-  const x = useMotionValue(0);
-  const background = useTransform(x, [0, 150], ['rgba(28, 28, 30, 1)', '#007AFF']);
-  const checkColor = useTransform(x, [100, 150], ['rgba(255, 255, 255, 0)', '#FFFFFF']);
-  const opacity = useTransform(x, [50, 150], [0, 1]);
-  const scale = useTransform(x, [0, 150], [0.8, 1]);
-
-  return (
-    <motion.div 
-      exit={{ x: 500, opacity: 0 }}
-      layout
-      className="relative overflow-hidden rounded-[24px] bg-[#1c1c1e] border border-white/5 shadow-sm"
-    >
-      <motion.div 
-        style={{ background }}
-        className="absolute inset-0 flex items-center pl-8 pointer-events-none"
-      >
-         <motion.div style={{ opacity, scale }}>
-            <motion.div style={{ color: checkColor }}>
-               <Check size={32} strokeWidth={3} />
-            </motion.div>
-         </motion.div>
-      </motion.div>
-
-      <motion.div
-        drag="x"
-        dragConstraints={{ left: 0, right: 250 }}
-        dragElastic={0.05}
-        onDragEnd={(_, info) => {
-          if (info.offset.x > 180) {
-            onFinish();
-          }
-        }}
-        style={{ x }}
-        className="relative bg-[#1c1c1e] p-6 flex items-center justify-between cursor-grab active:cursor-grabbing"
-      >
-        <div className="flex items-center gap-5">
-          <div className="bg-black/40 p-3.5 rounded-2xl border border-white/5">
-            <User size={24} className="text-white/60" />
-          </div>
-          <div>
-            <h4 className="font-bold text-white text-lg tracking-tight">{apt.clientName}</h4>
-            <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3 mt-1.5">
-               <span className="text-[10px] sm:text-[11px] text-white/50 font-bold tracking-tight bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{serviceName}</span>
-               <div className="hidden sm:block w-1 h-1 rounded-full bg-white/20"></div>
-               <span className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{apt.platform}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-6">
-          <div className="text-right">
-            <p className="text-xl font-bold text-white tracking-tight">
-              {new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </p>
-          </div>
-          <ChevronRight className="text-white/10" size={20} />
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-const StatCard: React.FC<{ title: string, value: string, icon: React.ReactNode }> = ({ title, value, icon }) => (
-  <div className="bg-[#1c1c1e] border border-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] hover:bg-[#2c2c2e] transition-all group">
-    <div className="flex justify-between items-start mb-3 sm:mb-4">
-      <span className="text-gray-500 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em]">{title}</span>
-      <div className="bg-white/5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl group-hover:bg-white/10 transition-colors">
-        {icon}
-      </div>
-    </div>
-    <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">{value}</div>
-  </div>
-);
-
-const GoalCard: React.FC<{ label: string, current: number, target: number, color: string }> = ({ label, current, target, color }) => (
-  <div className="space-y-3 sm:space-y-4">
-    <div className="flex justify-between text-[10px] sm:text-[11px] font-bold uppercase tracking-widest leading-none">
-      <span className="text-gray-500">{label}</span>
-      <span className="text-white">{current} <span className="text-gray-600">/ {target}</span></span>
-    </div>
-    <div className="w-full bg-black/40 h-1 sm:h-1.5 rounded-full overflow-hidden">
-      <div 
-        className={`${color} h-full transition-all duration-1000`} 
-        style={{ width: `${Math.min((current/target)*100, 100)}%` }}
-      ></div>
-    </div>
-  </div>
-);
 
 export default DashboardView;
 

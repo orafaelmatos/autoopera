@@ -130,150 +130,163 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
   };
 
   return (
-    <div className="space-y-8 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
+    <div className="space-y-12 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 sm:gap-12">
         <div>
-          <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white line-clamp-1">Nossos <span className="text-gray-500">Serviços</span></h2>
-          <p className="text-gray-500 mt-1 sm:mt-2 font-medium text-xs sm:text-base">Configure preços, durações e descrições.</p>
+          <div className="flex items-center gap-4 mb-4 text-cta">
+              <Scissors size={20} strokeWidth={2.5} />
+              <span className="text-[10px] font-black italic uppercase tracking-[0.4em]">Service Menu Elite</span>
+          </div>
+          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
+            Catálogo de <span className="text-primary/20">Experiências</span>
+          </h2>
+          <p className="text-[10px] font-black italic text-primary/30 uppercase mt-4 tracking-[0.2em] ml-1">Defina o valor da sua arte no fluxo</p>
         </div>
         <button 
           onClick={() => {
             resetForm();
             setIsAdding(true);
           }}
-          className="bg-accent text-white px-5 sm:px-6 py-3.5 sm:py-3 rounded-2xl text-[11px] sm:text-[13px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0063CC] transition-all shadow-[0_10px_20px_rgba(0,122,255,0.2)] active:scale-95 w-full md:w-auto"
+          className="bg-primary text-white px-10 py-6 rounded-[28px] text-[10px] font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
         >
-          <Plus size={18} />
-          <span>Novo Serviço</span>
+          <Plus size={20} strokeWidth={3} />
+          <span>Criar Nova Experiência</span>
         </button>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {services.map(service => (
-          <div key={service.id} className="bg-[#1c1c1e] border border-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[28px] group relative hover:bg-[#2c2c2e] transition-all flex flex-col">
-            <div className="flex justify-between items-start mb-3 sm:mb-4">
-              <div className="bg-white/5 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-white/40 border border-white/5">
-                <Scissors size={18} className="sm:hidden" />
-                <Scissors size={22} className="hidden sm:block" />
+          <div key={service.id} className="bg-white border border-primary/5 p-10 rounded-[48px] group relative hover:shadow-[0_48px_96px_-12px_rgba(15,76,92,0.12)] hover:-translate-y-2 transition-all duration-500 flex flex-col min-h-[420px]">
+            <div className="flex justify-between items-start mb-10">
+              <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center text-primary/40 border border-primary/5 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                <Scissors size={28} strokeWidth={2.5} />
               </div>
-              <div className="flex gap-2 sm:opacity-0 group-hover:opacity-100 transition-all transform translate-y-0 sm:translate-y-2 group-hover:translate-y-0">
+              <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-all">
                 <button 
                   onClick={() => handleOpenEdit(service)}
-                  className="p-2 sm:p-2 bg-white/5 text-gray-400 rounded-lg sm:rounded-xl hover:text-white hover:bg-white/10 transition-all"
+                  className="w-12 h-12 bg-white text-primary/30 rounded-xl hover:text-cta hover:bg-cta/5 transition-all shadow-sm flex items-center justify-center border border-primary/5"
                 >
-                  <Edit2 size={14} sm:size={16} />
+                  <Edit2 size={18} strokeWidth={2.5} />
                 </button>
                 <button 
                   onClick={() => removeService(service.id)} 
-                  className="p-2 sm:p-2 bg-red-500/10 text-red-500/50 rounded-lg sm:rounded-xl hover:text-red-500 hover:bg-red-500/20 transition-all"
+                  className="w-12 h-12 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
                 >
-                  <Trash2 size={14} sm:size={16} />
+                  <Trash2 size={18} strokeWidth={2.5} />
                 </button>
               </div>
             </div>
             
-            <h4 className="text-lg sm:text-xl font-bold text-white tracking-tight mb-0.5 sm:mb-1">{service.name}</h4>
-            <p className="text-gray-500 text-[11px] sm:text-[12px] mb-3 sm:mb-4 line-clamp-2 leading-relaxed">{service.description || 'Nenhuma descrição informada.'}</p>
+            <h4 className="text-2xl font-black italic text-primary uppercase font-title leading-tight mb-4 group-hover:text-primary transition-colors">{service.name}</h4>
+            <p className="text-primary/30 text-[11px] font-black italic uppercase tracking-widest mb-10 line-clamp-3 leading-relaxed">{service.description || 'Manifesto de estilo não definido.'}</p>
             
-            <div className="flex items-center justify-between border-t border-white/5 pt-3 sm:pt-4 mt-auto">
+            <div className="mt-auto pt-10 border-t border-primary/5 grid grid-cols-2 gap-6">
               <div className="flex flex-col">
-                <span className="text-[8px] sm:text-[9px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-0.5 sm:mb-1">Preço</span>
-                <span className="text-lg sm:text-xl font-bold text-white tracking-tight">R$ {service.price}</span>
+                <span className="text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-3 font-title">Investment</span>
+                <span className="text-2xl font-black italic text-primary font-title">R$ {service.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-[8px] sm:text-[9px] font-bold text-gray-600 uppercase tracking-[0.2em] mb-0.5 sm:mb-1">Tempo</span>
-                <span className="text-gray-300 font-bold flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm">
-                   <Clock size={12} className="text-white/20" />
-                   {service.duration} min
+                <span className="text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-3 font-title">Dedication</span>
+                <span className="text-primary font-black italic text-sm flex items-center gap-2 font-title">
+                   <Clock size={16} className="text-cta" strokeWidth={3} />
+                   {service.duration} MIN
                 </span>
               </div>
             </div>
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[48px] pointer-events-none" />
           </div>
         ))}
       </div>
 
+        {services.length === 0 && (
+          <div className="col-span-full py-24 text-center border-2 border-dashed border-primary/5 rounded-[64px] bg-primary/[0.01]">
+            <Scissors size={48} className="text-primary/10 mx-auto mb-6" />
+            <p className="text-primary/20 font-black italic uppercase tracking-[0.3em]">Nenhum serviço disponível no fluxo</p>
+          </div>
+        )}
+
       {isAdding && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
-          <div className="bg-[#1c1c1e] border border-white/5 w-full max-w-md rounded-[32px] p-6 sm:p-10 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 bg-primary/40 backdrop-blur-xl z-[200] flex items-center justify-center p-6 sm:p-12">
+          <div className="bg-white border border-primary/5 w-full max-w-2xl rounded-[48px] p-10 sm:p-16 shadow-[0_48px_96px_-12px_rgba(15,76,92,0.3)] relative max-h-[90vh] overflow-y-auto custom-scrollbar-hidden">
             <button 
-              onClick={() => {
-                setIsAdding(false);
-                resetForm();
-              }}
-              className="absolute top-4 right-4 p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-all"
+              onClick={() => { setIsAdding(false); resetForm(); }}
+              className="absolute top-10 right-10 w-12 h-12 bg-background text-primary/20 rounded-2xl flex items-center justify-center hover:text-primary transition-all group"
             >
-              <X size={20} />
+                <X size={24} className="group-hover:scale-110 transition-transform" strokeWidth={3} />
             </button>
 
-            <div className="mb-8 sm:mb-10">
-              <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
-                {editingService ? "Editar Serviço" : "Novo Serviço"}
-              </h3>
-              <p className="text-gray-500 text-sm sm:text-base font-medium">
-                {editingService ? "Altere os detalhes do serviço." : "Defina os detalhes do novo serviço oferecido."}
-              </p>
+            <div className="mb-12">
+                <h3 className="text-3xl sm:text-5xl font-black italic uppercase text-primary font-title leading-none mb-3">
+                    {editingService ? "Refinar Experiência" : "Nova Experiência"}
+                </h3>
+                <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em]">Protocolo de Atendimento Elite</p>
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Nome do Serviço</label>
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Ex: Corte Navalhado" 
-                  className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700" 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Preço (R$)</label>
-                  <input 
-                    type="text" 
-                    value={price}
-                    onChange={handlePriceChange}
-                    placeholder="50,00" 
-                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700 font-medium" 
-                  />
+            <div className="space-y-8">
+                <div>
+                   <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Rótulo da Experiência</label>
+                   <input 
+                     type="text" 
+                     value={name}
+                     onChange={e => setName(e.target.value)}
+                     placeholder="Ex: Barber Combo Gold"
+                     className="w-full bg-background border-2 border-transparent rounded-[28px] px-8 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/5 font-title shadow-sm"
+                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Minutos</label>
-                  <input 
-                    type="number" 
-                    value={duration}
-                    onChange={e => setDuration(Number(e.target.value))}
-                    placeholder="45" 
-                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none transition-all placeholder:text-gray-700" 
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                   <div>
+                      <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Valor do Investimento</label>
+                      <div className="relative">
+                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 font-black italic text-sm">R$</span>
+                        <input 
+                          type="text" 
+                          value={price}
+                          onChange={handlePriceChange}
+                          className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-8 py-5 text-primary font-black italic text-sm focus:border-cta/20 focus:bg-white outline-none transition-all font-title shadow-sm"
+                        />
+                      </div>
+                   </div>
+                   <div>
+                      <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Duração (Minutos)</label>
+                      <select 
+                        value={duration}
+                        onChange={e => setDuration(parseInt(e.target.value))}
+                        className="w-full bg-background border-2 border-transparent rounded-[28px] px-8 py-5 text-primary font-black italic text-sm focus:border-cta/20 focus:bg-white outline-none transition-all font-title shadow-sm appearance-none"
+                      >
+                        {[15, 30, 45, 60, 75, 90, 120].map(d => (
+                          <option key={d} value={d}>{d} MINUTOS</option>
+                        ))}
+                      </select>
+                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-2">Descrição (Opcional)</label>
-                <textarea 
-                  rows={3} 
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Descreva o que está incluso no serviço..."
-                  className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 sm:py-4 text-white focus:border-accent/50 outline-none resize-none transition-all placeholder:text-gray-700"
-                ></textarea>
-              </div>
-            </div>
+                <div>
+                   <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Manifesto do Serviço (Descrição)</label>
+                   <textarea 
+                     value={description}
+                     onChange={e => setDescription(e.target.value)}
+                     rows={4}
+                     placeholder="Descreva a jornada de transformação que o cliente viverá..."
+                     className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/5 resize-none font-title shadow-sm"
+                   />
+                </div>
 
-            <div className="flex flex-col gap-3 mt-10">
-              <button 
-                onClick={handleSaveService} 
-                className="w-full py-4 sm:py-5 bg-accent text-white rounded-2xl font-bold hover:bg-[#0063CC] transition-all shadow-xl shadow-accent/20 active:scale-[0.98]"
-              >
-                {editingService ? "Salvar Alterações" : "Criar Serviço"}
-              </button>
-              <button 
-                onClick={() => { setIsAdding(false); resetForm(); }} 
-                className="w-full py-3 text-gray-500 hover:text-white font-bold transition-colors text-sm uppercase tracking-[0.2em]"
-              >
-                Cancelar
-              </button>
+                <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <button 
+                      onClick={() => { setIsAdding(false); resetForm(); }}
+                      className="w-full py-6 rounded-[28px] border-2 border-primary/5 text-primary/40 text-[10px] font-black italic uppercase tracking-widest hover:bg-primary/5 transition-all font-title"
+                    >
+                        Abortar
+                    </button>
+                    <button 
+                      onClick={handleSaveService}
+                      className="w-full py-6 rounded-[28px] bg-primary text-white text-[10px] font-black italic uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all font-title"
+                    >
+                        Consolidar Experiência
+                    </button>
+                </div>
             </div>
           </div>
         </div>
