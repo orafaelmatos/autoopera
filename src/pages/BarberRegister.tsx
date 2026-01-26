@@ -12,6 +12,7 @@ const BarberRegister: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         phone: '',
+        cpf: '',
         password: '',
         confirmPassword: '',
         name: '',
@@ -25,7 +26,8 @@ const BarberRegister: React.FC = () => {
     });
 
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, refreshUser } = useAuth();
+    const [existingUser, setExistingUser] = useState(false);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -113,13 +115,46 @@ const BarberRegister: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            // Login automático após cadastro
-            await login({ phone: rawPhone, password: formData.password }, true);
-            
+            // If the register endpoint returned tokens, persist them and refresh user state
+            const access = res.data?.access;
+            const refresh = res.data?.refresh;
+            if (access && refresh) {
+                localStorage.setItem('token', access);
+                localStorage.setItem('refresh_token', refresh);
+                if (res.data.barbershop) localStorage.setItem('last_barbershop_slug', res.data.barbershop);
+                await refreshUser();
+            } else {
+                // Fallback to legacy login flow
+                await login({ phone: rawPhone, password: formData.password }, true);
+            }
+
             toast.success('Barbearia criada com sucesso!');
             navigate(`/b/${res.data.barbershop}`);
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Erro ao criar barbearia');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const checkCpf = async () => {
+        if (!formData.cpf) {
+            toast.error('Informe o CPF para buscar.');
+            return;
+        }
+        setLoading(true);
+        try {
+            const digits = formData.cpf.replace(/\D/g, '');
+            const res = await api.get('auth/check-cpf/', { params: { cpf: digits } });
+            if (res.status === 200) {
+                const { name, phone } = res.data;
+                setFormData({ ...formData, name: name || '', phone: phone || '' });
+                setExistingUser(true);
+                toast.success(`Olá ${name}, encontramos seu usuário.`);
+            }
+        } catch (err: any) {
+            setExistingUser(false);
+            toast.error('CPF não encontrado. Preencha os dados manualmente.');
         } finally {
             setLoading(false);
         }
@@ -160,70 +195,136 @@ const BarberRegister: React.FC = () => {
                     {step === 1 ? (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-2.5">
                             <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Nome Completo</label>
-                                <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                    <input 
-                                        type="text" required
-                                        value={formData.name}
-                                        onChange={e => setFormData({...formData, name: e.target.value})}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                        placeholder="Seu nome"
+                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">CPF (se já recebeu usuário)</label>
+                                <div className="relative flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={formData.cpf}
+                                        onChange={e => setFormData({...formData, cpf: e.target.value})}
+                                        className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-4 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                        placeholder="000.000.000-00"
                                     />
+                                    <button type="button" onClick={checkCpf} className="px-3 py-2 bg-[#007AFF] text-white rounded-xl text-xs">Buscar CPF</button>
                                 </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp (Login)</label>
-                                <div className="relative">
-                                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                    <input 
-                                        type="text" required
-                                        value={formData.phone}
-                                        onChange={handlePhoneChange}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                        placeholder="(11) 99999-9999"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Senha</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                        <input 
-                                            type="password" required
-                                            value={formData.password}
-                                            onChange={e => setFormData({...formData, password: e.target.value})}
-                                            className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                            placeholder="••••••••"
-                                        />
+
+                            {existingUser ? (
+                                <>
+                                    <div className="p-3 rounded-lg bg-green-900/20 border border-green-800/30">
+                                        <p className="text-sm text-white font-bold">Olá, {formData.name || 'Usuário'}</p>
+                                        <p className="text-[11px] text-gray-300">Login: {formData.phone}</p>
+                                        <button type="button" onClick={() => { setExistingUser(false); setFormData({...formData, cpf: '', name: '', phone: ''}); }} className="mt-2 text-xs text-[#FFCCCB]">Não é você? Buscar outro CPF</button>
                                     </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Confirmar</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                        <input 
-                                            type="password" required
-                                            value={formData.confirmPassword}
-                                            onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                            className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
-                                            placeholder="••••••••"
-                                        />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Senha</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                                <input 
+                                                    type="password" required
+                                                    value={formData.password}
+                                                    onChange={e => setFormData({...formData, password: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Confirmar</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                                <input 
+                                                    type="password" required
+                                                    value={formData.confirmPassword}
+                                                    onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Nome Completo</label>
+                                        <div className="relative">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                            <input 
+                                                type="text" required
+                                                value={formData.name}
+                                                onChange={e => setFormData({...formData, name: e.target.value})}
+                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                placeholder="Seu nome"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp (Login)</label>
+                                        <div className="relative">
+                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                            <input 
+                                                type="text" required
+                                                value={formData.phone}
+                                                onChange={handlePhoneChange}
+                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                placeholder="(11) 99999-9999"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Senha</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                                <input 
+                                                    type="password" required
+                                                    value={formData.password}
+                                                    onChange={e => setFormData({...formData, password: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] uppercase font-bold text-gray-500 ml-4 tracking-widest">Confirmar</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                                <input 
+                                                    type="password" required
+                                                    value={formData.confirmPassword}
+                                                    onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-[#007AFF]/50 transition-all font-medium text-base"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                             <button 
                                 type="button"
                                 onClick={() => {
                                     if (step === 1) {
-                                        if (!formData.name || !formData.phone || !formData.password) {
-                                            toast.error('Por favor, preencha todos os campos!');
-                                            return;
-                                        }
-                                        if (formData.password !== formData.confirmPassword) {
-                                            toast.error('As senhas não coincidem!');
-                                            return;
+                                        if (existingUser) {
+                                            if (!formData.password) {
+                                                toast.error('Por favor, insira sua senha.');
+                                                return;
+                                            }
+                                            if (formData.password !== formData.confirmPassword) {
+                                                toast.error('As senhas não coincidem!');
+                                                return;
+                                            }
+                                        } else {
+                                            if (!formData.name || !formData.phone || !formData.password) {
+                                                toast.error('Por favor, preencha todos os campos!');
+                                                return;
+                                            }
+                                            if (formData.password !== formData.confirmPassword) {
+                                                toast.error('As senhas não coincidem!');
+                                                return;
+                                            }
                                         }
                                         setStep(2);
                                     }

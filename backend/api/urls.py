@@ -5,7 +5,8 @@ from .views import (
     LoyaltyRewardViewSet, AppointmentViewSet, AvailabilityViewSet,
     ScheduleExceptionViewSet, TransactionViewSet, PromotionViewSet,
     ProductViewSet, whatsapp_login, get_me, current_barbershop,
-    n8n_today_summary, n8n_next_appointments, barber_register, DailyAvailabilityViewSet
+    n8n_today_summary, n8n_next_appointments, barber_register, DailyAvailabilityViewSet,
+    check_cpf
 )
 from .webhooks import cacto_webhook
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -26,6 +27,7 @@ router.register(r'products', ProductViewSet, basename='product')
 urlpatterns = [
     path('auth/login/', whatsapp_login, name='whatsapp-login'),
     path('auth/register-barber/', barber_register, name='barber-register'),
+    path('auth/check-cpf/', check_cpf, name='check-cpf'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('auth/me/', get_me, name='get-me'),
     

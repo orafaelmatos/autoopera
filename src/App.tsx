@@ -470,10 +470,10 @@ const App: React.FC = () => {
               label="Agenda"
             />
             <MobileNavButton 
-              active={activeTab === 'dashboard'} 
-              onClick={() => handleNavigation('/dashboard')} 
-              icon={<LayoutDashboard />} 
-              label="Resumo"
+              active={activeTab === 'services'} 
+              onClick={() => handleNavigation('/services')} 
+              icon={<Scissors />} 
+              label="Serviços"
             />
             <MobileNavButton 
               active={activeTab === 'customers'} 
@@ -482,10 +482,10 @@ const App: React.FC = () => {
               label="Clientes"
             />
             <MobileNavButton 
-              active={activeTab === 'finance'} 
-              onClick={() => handleNavigation('/finance')} 
-              icon={<DollarSign />} 
-              label="Dinheiro"
+              active={activeTab === 'settings'} 
+              onClick={() => handleNavigation('/settings?tab=schedule')} 
+              icon={<Clock />} 
+              label="Horários"
             />
             <button 
               onClick={() => setIsMobileMenuOpen(true)}

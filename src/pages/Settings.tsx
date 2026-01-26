@@ -671,38 +671,38 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
               </section>
 
               {/* Calendário para configurar disponibilidades por data */}
-              <section className="bg-[#1c1c1e] border border-white/5 rounded-[24px] sm:rounded-[32px] overflow-hidden p-5 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
+              <section className="bg-[#1c1c1e] border border-white/5 rounded-[20px] sm:rounded-[32px] overflow-hidden p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
                   <div>
                     <h3 className="text-lg font-bold">Calendário de Disponibilidades</h3>
                     <p className="text-sm text-white/40">Clique em um dia para adicionar turnos pontuais (não altera a jornada semanal).</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} className="bg-white/5 text-white/60 px-3 py-2 rounded-xl">‹ Mês</button>
-                    <div className="text-sm font-bold">{currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</div>
-                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} className="bg-white/5 text-white/60 px-3 py-2 rounded-xl">Mês ›</button>
+                  <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} className="bg-white/5 text-white/60 px-2 py-1 rounded-lg text-sm">‹</button>
+                    <div className="text-base sm:text-sm font-bold text-center px-2">{currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</div>
+                    <button onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} className="bg-white/5 text-white/60 px-2 py-1 rounded-lg text-sm">›</button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-2 text-center text-xs text-white/40 mb-3">
+                <div className="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs text-white/40 mb-2">
                   {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
-                    <div key={d} className="py-2">{d}</div>
+                    <div key={d} className="py-1">{d}</div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-1">
                   {calendarMatrix(currentMonth).map((cell, idx) => (
-                    <div key={idx} className={`p-3 h-20 rounded-xl ${cell.isCurrentMonth ? 'bg-white/2 hover:bg-white/3 cursor-pointer' : 'opacity-20'}`} onClick={() => cell.isCurrentMonth && openDay(cell.date)}>
+                    <div key={idx} className={`p-2 sm:p-3 h-14 sm:h-20 rounded-lg sm:rounded-xl ${cell.isCurrentMonth ? 'bg-white/2 hover:bg-white/3 cursor-pointer' : 'opacity-20'}`} onClick={() => cell.isCurrentMonth && openDay(cell.date)}>
                       <div className="flex flex-col h-full">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-white">{cell.day}</span>
+                          <span className="text-sm sm:text-base font-bold text-white">{cell.day}</span>
                           {availMap[cell.date] && availMap[cell.date].length > 0 && (
-                            <span className="text-[11px] bg-accent/10 text-accent px-2 py-0.5 rounded-full">{availMap[cell.date].length}</span>
+                            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full">{availMap[cell.date].length}</span>
                           )}
                         </div>
-                        <div className="mt-2 text-[12px] text-white/30 flex-1 flex flex-col justify-end">
+                        <div className="mt-1 text-[10px] sm:text-[12px] text-white/30 flex-1 flex flex-col justify-end">
                           {availMap[cell.date] && availMap[cell.date].slice(0,2).map((a, i) => (
-                            <div key={i} className="text-[12px] truncate">{a.startTime} - {a.endTime}</div>
+                            <div key={i} className="text-[11px] sm:text-[12px] truncate">{a.startTime} - {a.endTime}</div>
                           ))}
                         </div>
                       </div>

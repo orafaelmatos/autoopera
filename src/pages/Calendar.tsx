@@ -245,53 +245,7 @@ const handleCompleteAppointment = async (id: string) => {
           </button>
         </div>
       </header>
-
-      {/* Daily availability manager */}
-      <div className="bg-[#1c1c1e] border border-white/5 rounded-[24px] p-5 sm:p-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-base font-bold">Disponibilidade por Data</h4>
-            <p className="text-sm text-gray-500">Escolha um dia e defina os turnos pontuais (não afeta a jornada semanal).</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="bg-black/40 border border-white/5 rounded-2xl px-4 py-2 text-white" />
-            <button onClick={() => setDailyShifts([...dailyShifts, { startTime: '09:00', endTime: '12:00', isActive: true }])} className="bg-accent text-white px-4 py-2 rounded-2xl font-bold">Adicionar Turno</button>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {loadingDaily && <div className="text-sm text-gray-400">Carregando...</div>}
-          {dailyShifts.length === 0 && !loadingDaily && (
-            <div className="text-sm text-gray-500">Nenhum turno definido para esta data.</div>
-          )}
-          {dailyShifts.map((s, idx) => (
-            <div key={idx} className="flex items-center gap-3">
-              <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
-              <span className="text-gray-400">até</span>
-              <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="bg-black/30 border border-white/5 rounded-2xl px-3 py-2 text-white" />
-              <label className="ml-2 flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} />
-                <span className="text-gray-300">Ativo</span>
-              </label>
-              <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="ml-auto text-red-400 px-3 py-2 rounded-xl border border-red-500/20">Remover</button>
-            </div>
-          ))}
-
-          <div className="flex items-center gap-3 mt-2">
-            <button onClick={async () => {
-              try {
-                const payload = dailyShifts.map(s => ({ date: selectedDate, startTime: s.startTime, endTime: s.endTime, isActive: s.isActive }));
-                await dailyAvailabilityApi.sync(payload);
-                toast.success('Disponibilidades salvas para ' + selectedDate);
-              } catch (e: any) {
-                console.error('Erro ao salvar daily availability', e);
-                toast.error('Erro ao salvar. Veja o console para detalhes.');
-              }
-            }} className="bg-[#007AFF] text-white px-4 py-2 rounded-2xl font-bold">Salvar Turnos</button>
-            <button onClick={() => { setDailyShifts([]); toast('Limpo localmente'); }} className="text-gray-400 px-3 py-2">Limpar</button>
-          </div>
-        </div>
-      </div>
+      
 
       <div className="grid grid-cols-1 gap-8">
         {/* Main Column: Appointments */}

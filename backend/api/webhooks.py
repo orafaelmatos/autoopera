@@ -27,57 +27,80 @@ def cacto_webhook(request):
     data = request.data
 
     # Exemplo de verificação de status (ajuste conforme a documentação do Cacto)
-    # Comumente: status="paid", "approved" ou similar
-    payment_status = data.get('status') or data.get('payment_status') or data.get('payment', {}).get('status')
+    # Procuramos recursivamente por campos comuns que indiquem status/pagamento
+    def find_key_recursive(obj, key):
+        if isinstance(obj, dict):
+            if key in obj:
+                return obj[key]
+            for v in obj.values():
+                res = find_key_recursive(v, key)
+                if res is not None:
+                    return res
+        elif isinstance(obj, list):
+            for item in obj:
+                res = find_key_recursive(item, key)
+                if res is not None:
+                    return res
+        return None
 
-    if payment_status not in ['paid', 'approved', 'completed']:
+    # Try multiple possible keys and shapes
+    payment_status = (
+        find_key_recursive(data, 'status') or
+        find_key_recursive(data, 'payment_status') or
+        find_key_recursive(data, 'state') or
+        find_key_recursive(data, 'paymentState') or
+        (True if find_key_recursive(data, 'paid') is True else None)
+    )
+
+    # normalize
+    if isinstance(payment_status, str):
+        payment_status = payment_status.lower()
+
+    if not payment_status or (isinstance(payment_status, str) and payment_status not in ['paid', 'approved', 'completed']):
         print(f"Webhook recebido com status não pago: {payment_status}")
+        print("Payload recebido para depuração:", data)
         return Response({"detail": "Pagamento não confirmado ou status ignorado"}, status=status.HTTP_200_OK)
 
-    # Função utilitária para extrair email, nome e telefone do payload em formatos diferentes
+    # Função utilitária para extrair email, nome, telefone e cpf/docNumber do payload
     def extract_customer_info(payload: dict):
-        customer = payload.get('customer') or payload.get('buyer') or payload.get('payer') or {}
+        # tenta localizar um dict 'customer' em qualquer nível
+        cust = find_key_recursive(payload, 'customer')
+        if isinstance(cust, dict):
+            email = cust.get('email')
+            full_name = cust.get('name') or cust.get('full_name')
+            phone = cust.get('phone') or cust.get('phone_number') or cust.get('mobile')
+        else:
+            # fallback: procurar chaves soltas
+            email = find_key_recursive(payload, 'email')
+            full_name = find_key_recursive(payload, 'name') or find_key_recursive(payload, 'full_name')
+            phone = find_key_recursive(payload, 'phone') or find_key_recursive(payload, 'phone_number')
 
-        # email
-        email = (customer.get('email') or payload.get('customer_email') or payload.get('email') or
-                 (payload.get('customer', {}) if isinstance(payload.get('customer', {}), str) else None))
+        # últimas tentativas para normalizar
+        if isinstance(email, dict):
+            email = None
+        if isinstance(full_name, dict):
+            full_name = None
+        if isinstance(phone, dict):
+            phone = None
+        # cpf / docNumber
+        cpf = find_key_recursive(payload, 'docNumber') or find_key_recursive(payload, 'cpf') or find_key_recursive(payload, 'document')
+        if isinstance(cpf, dict):
+            cpf = None
 
-        # sometimes customer is a list/dict nested differently
-        if not email:
-            # try nested structures
-            if isinstance(payload.get('customer'), dict):
-                email = payload['customer'].get('email')
+        return email, full_name, phone, cpf
 
-        # name
-        full_name = (customer.get('name') or customer.get('full_name') or payload.get('name') or
-                     payload.get('customer_name') or payload.get('buyer', {}).get('name'))
+    email, full_name, phone, cpf = extract_customer_info(data)
 
-        # try first/last
-        if not full_name:
-            first = customer.get('first_name') or payload.get('first_name')
-            last = customer.get('last_name') or payload.get('last_name')
-            if first or last:
-                full_name = f"{first or ''} {last or ''}".strip()
-
-        # phone
-        phone = (customer.get('phone') or customer.get('phone_number') or customer.get('mobile') or
-                 payload.get('phone') or payload.get('customer_phone'))
-
-        # sometimes phones come as list
-        if not phone:
-            phones = customer.get('phones') or payload.get('phones')
-            if isinstance(phones, list) and phones:
-                # try common fields
-                first_phone = phones[0]
-                if isinstance(first_phone, dict):
-                    phone = first_phone.get('number') or first_phone.get('phone')
-                else:
-                    phone = str(first_phone)
-
-        return email, full_name, phone
-
-    email, full_name, phone = extract_customer_info(data)
-    product_id = str(data.get('product_id') or data.get('product', {}).get('id') or data.get('product_id'))
+    # product id: tenta extrair o dict 'product' e pegar seu id
+    prod = find_key_recursive(data, 'product')
+    product_id = None
+    if isinstance(prod, dict):
+        product_id = prod.get('id') or prod.get('short_id')
+    # fallbacks
+    if not product_id:
+        product_id = data.get('product_id') or (data.get('data', {}) or {}).get('product_id')
+    if product_id is not None:
+        product_id = str(product_id)
 
     if not email:
         print(f"Webhook sem email válido: payload={data}")
@@ -93,7 +116,16 @@ def cacto_webhook(request):
                 return Response({"detail": "Usuário já registrado com este e-mail"}, status=status.HTTP_200_OK)
 
             # 2. Cria o Usuário
-            username = slugify(email.split('@')[0])[:30]
+            # prefer phone as username (digits only) because users login with phone
+            def only_digits(s):
+                return ''.join([c for c in (s or '') if c.isdigit()])
+
+            phone_digits = only_digits(phone) if phone else None
+            if phone_digits:
+                username = phone_digits[:30]
+            else:
+                username = slugify(email.split('@')[0])[:30]
+
             # Valida unicidade de username
             if User.objects.filter(username=username).exists():
                 username = f"{username}_{secrets.token_hex(2)}"
@@ -110,46 +142,16 @@ def cacto_webhook(request):
                 last_name=last_name
             )
 
-            # 3. Cria o Perfil de Dono
-            UserProfile.objects.create(user=user, role='OWNER')
+            # 3. Cria o Perfil de Dono (salvando CPF se disponível)
+            profile = UserProfile.objects.create(user=user, role='OWNER', cpf=cpf if cpf else None)
 
-            # 4. Cria a Barbearia (Slug baseada no nome ou e-mail)
-            shop_name = f"Barbearia de {user.first_name}"
-            base_slug = slugify(shop_name)
-            slug = base_slug
-            counter = 1
-            while Barbershop.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-
-            barbershop = Barbershop.objects.create(
-                name=shop_name,
-                slug=slug,
-                owner=user,
-                plan=plan,
-                is_active=True
-            )
-
-            # 5. Cria Perfil de Barbeiro inicial para o dono
-            barber_kwargs = dict(
-                user=user,
-                barbershop=barbershop,
-                name=user.get_full_name() or user.username,
-                email=user.email,
-                is_active=True
-            )
-            if phone:
-                barber_kwargs['phone'] = phone
-
-            Barber.objects.create(**barber_kwargs)
-
-            # Aqui você poderia disparar um e-mail para o cliente com as credenciais
+            # Não criar a barbearia aqui: o usuário será levado para a tela de registro
+            # onde ele finalizará os dados da barbearia. Retornamos sucesso indicando
+            # que o usuário foi criado e que a barbearia deve ser criada no fluxo de cadastro.
             print(f"Sucesso: Usuário {email} criado com plano {plan}. Senha: {default_password}")
-
             return Response({
-                "message": "Usuário e Barbearia criados com sucesso",
-                "username": username,
-                "slug": slug
+                "message": "Usuário criado com sucesso; crie a barbearia no fluxo de registro",
+                "username": username
             }, status=status.HTTP_201_CREATED)
 
     except Exception as e:

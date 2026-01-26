@@ -27,6 +27,8 @@ const LoginPage: React.FC = () => {
     };
 
     const [phone, setPhone] = useState(formatPhone(localStorage.getItem('saved_phone') || ''));
+    const [mode, setMode] = useState<'client' | 'owner'>('client');
+    const [ownerCpf, setOwnerCpf] = useState('');
     const [password, setPassword] = useState('');
     const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
 
@@ -44,7 +46,7 @@ const LoginPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [rememberMe, setRememberMe] = useState(true);
     
-    const { login } = useAuth();
+    const { login, refreshUser } = useAuth();
     const navigate = useNavigate();
     const { slug: urlSlug } = useParams<{ slug?: string }>();
 
@@ -74,29 +76,68 @@ const LoginPage: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-
-        const rawPhone = phone.replace(/\D/g, '');
-
         try {
-            // Passa o slug da URL para o login se existir
-            const loginData = { phone: rawPhone };
-            if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
+            if (mode === 'client') {
+                const rawPhone = phone.replace(/\D/g, '');
+                // Passa o slug da URL para o login se existir
+                const loginData = { phone: rawPhone };
+                if (urlSlug) (loginData as any).barbershop_slug = urlSlug;
 
-            const res = await login(loginData, rememberMe);
-            
-            if (res.error === 'CONFIRM_IDENTITY') {
-                setFoundName(res.name);
-                setStep('confirm');
-            } else if (res.error === 'NAME_REQUIRED') {
-                setStep('register');
-            } else if (res.error === 'PASSWORD_REQUIRED') {
-                setStep('password');
-            } else if (res.access) {
-                if (rememberMe) localStorage.setItem('saved_phone', phone);
-                navigate(getRedirectPath(res.role, res.barbershop));
+                const res = await login(loginData, rememberMe);
+
+                if (res.error === 'CONFIRM_IDENTITY') {
+                    setFoundName(res.name);
+                    setStep('confirm');
+                } else if (res.error === 'NAME_REQUIRED') {
+                    setStep('register');
+                } else if (res.error === 'PASSWORD_REQUIRED') {
+                    setStep('password');
+                } else if (res.access) {
+                    if (rememberMe) localStorage.setItem('saved_phone', phone);
+                    navigate(getRedirectPath(res.role, res.barbershop));
+                }
+            } else {
+                // owner mode: verify CPF exists then go to password
+                const cpfDigits = ownerCpf.replace(/\D/g, '');
+                if (!cpfDigits) {
+                    setError('Informe o CPF do proprietário');
+                    return;
+                }
+                try {
+                    await api.get('auth/check-cpf/', { params: { cpf: cpfDigits } });
+                    setStep('password');
+                } catch (err: any) {
+                    setError('CPF não encontrado');
+                }
             }
         } catch (err: any) {
-            setError(err.message || 'Erro ao verificar telefone.');
+            setError(err.response?.data?.message || err.message || 'Erro ao verificar credenciais.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOwnerSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            const cpfDigits = ownerCpf.replace(/\D/g, '');
+            const body = { cpf: cpfDigits, password };
+            const res = await api.post('auth/owner-login/', body);
+            const access = res.data?.access;
+            const refresh = res.data?.refresh;
+            if (access && refresh) {
+                localStorage.setItem('token', access);
+                localStorage.setItem('refresh_token', refresh);
+                if (res.data.barbershop) localStorage.setItem('last_barbershop_slug', res.data.barbershop);
+                await refreshUser();
+                navigate(getRedirectPath('barber', res.data.barbershop));
+            } else {
+                setError('Erro ao autenticar proprietário');
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || err.message || 'Erro ao autenticar proprietário');
         } finally {
             setLoading(false);
         }
@@ -177,43 +218,43 @@ const LoginPage: React.FC = () => {
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 p-8 rounded-[32px] shadow-2xl relative z-10"
+                className="w-full max-w-md bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 p-6 sm:p-8 rounded-[28px] sm:rounded-[32px] shadow-2xl relative z-10"
             >
                 <div className="flex flex-col items-center mb-8">
                     {barbershop?.logo ? (
-                        <div className="w-24 h-24 rounded-3xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5 flex items-center justify-center">
                             <img 
                                 src={getMediaUrl(barbershop.logo)} 
                                 alt={barbershop.name} 
-                                className="w-full h-full object-cover rounded-2xl"
+                                className="max-w-full max-h-full object-contain rounded-lg"
                             />
                         </div>
                     ) : barbershop?.banner ? (
-                        <div className="w-24 h-24 rounded-3xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-6 shadow-2xl border-2 border-white/10 p-1 bg-white/5 flex items-center justify-center">
                             <img 
                                 src={getMediaUrl(barbershop.banner)} 
                                 alt={barbershop.name} 
-                                className="w-full h-full object-cover rounded-2xl"
+                                className="max-w-full max-h-full object-contain rounded-lg"
                             />
                         </div>
                     ) : (
-                        <div className="flex items-center gap-4 mb-8 bg-white px-8 py-5 rounded-[32px] shadow-2xl">
+                        <div className="w-full max-w-xs sm:max-w-none flex items-center justify-center gap-3 mb-6 bg-white px-6 py-3 rounded-[28px] shadow-2xl overflow-hidden">
                             <img 
                                 src={brandLogo} 
                                 alt="AutoOpera" 
-                                className="h-8 w-auto object-contain"
+                                className="h-7 sm:h-8 w-auto object-contain max-w-[55%]"
                             />
                             <div className="w-px h-6 bg-gray-200" />
-                            <span className="text-4xl font-bold text-[#007AFF] tracking-tighter">Barber</span>
+                            <span className="text-2xl sm:text-4xl font-bold text-[#007AFF] tracking-tighter">Barber</span>
                         </div>
                     )}
                     
                     {barbershop ? (
-                        <h1 className="text-3xl font-black text-white mb-2 tracking-tighter uppercase">
+                        <h1 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tighter uppercase text-center">
                             {barbershop.name}
                         </h1>
                     ) : (
-                        <h1 className="text-xl md:text-2xl font-bold text-white mb-4 text-center">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-center">
                             Boas-vindas!
                         </h1>
                     )}
@@ -225,22 +266,45 @@ const LoginPage: React.FC = () => {
                     </p>
                 </div>
 
+                <div className="flex justify-center gap-3 mb-4">
+                    <button onClick={() => { setMode('client'); setStep('phone'); }} className={`px-3 py-2 rounded-full text-sm ${mode==='client' ? 'bg-[#007AFF] text-white' : 'bg-white/5 text-gray-300'}`}>Cliente</button>
+                    <button onClick={() => { setMode('owner'); setStep('phone'); }} className={`px-3 py-2 rounded-full text-sm ${mode==='owner' ? 'bg-[#007AFF] text-white' : 'bg-white/5 text-gray-300'}`}>Barbeiro</button>
+                </div>
+
                 <AnimatePresence mode="wait">
                     {step === 'phone' && (
                         <motion.form key="phone" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={handleInitialSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp</label>
-                                <div className="relative">
-                                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                                    <input 
-                                        type="text"
-                                        value={phone}
-                                        onChange={handlePhoneChange}
-                                        placeholder="(11) 99999-9999"
-                                        className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
-                                        required
-                                    />
-                                </div>
+                                {mode === 'client' ? (
+                                    <>
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">WhatsApp</label>
+                                        <div className="relative">
+                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                            <input 
+                                                type="text"
+                                                value={phone}
+                                                onChange={handlePhoneChange}
+                                                placeholder="(11) 99999-9999"
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 ml-4 tracking-widest">CPF</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={ownerCpf}
+                                                onChange={(e) => setOwnerCpf(e.target.value)}
+                                                placeholder="000.000.000-00"
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-4 pr-4 text-white focus:border-[#007AFF]/50 outline-none transition-all font-medium text-base"
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div className="flex items-center justify-between px-2">
@@ -341,7 +405,7 @@ const LoginPage: React.FC = () => {
                     )}
 
                     {step === 'password' && (
-                        <motion.form key="password" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={handlePasswordSubmit} className="space-y-6">
+                        <motion.form key="password" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} onSubmit={mode === 'owner' ? handleOwnerSubmit : handlePasswordSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase font-bold text-[#007AFF] ml-4 tracking-widest">Senha Administrativa</label>
                                 <div className="relative">

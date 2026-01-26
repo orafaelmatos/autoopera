@@ -26,6 +26,8 @@ from .services import BookingService
 from datetime import datetime
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+import re
+from django.conf import settings
 
 class TenantModelViewSet(viewsets.ModelViewSet):
     """Mixin para filtrar automaticamente por barbearia (tenant)"""
@@ -164,6 +166,9 @@ def whatsapp_login(request, barbershop_slug=None):
             'barbershop': barbershop.slug if barbershop else None
         })
 
+
+    
+
     except User.DoesNotExist:
         # Primeiro acesso
         if not first_name or not last_name:
@@ -205,38 +210,88 @@ def whatsapp_login(request, barbershop_slug=None):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def barber_register(request):
-    """Cria barbeiro, usuário e barbearia de uma vez"""
+def barber_register(request, barbershop_slug=None, *args, **kwargs):
+    ## TODO - quando barbearia é criada tem que retornar para a tela de dashboard do barbeiro e não para o login
     data = request.data
-    phone = data.get('phone')
-    password = data.get('password')
-    name = data.get('name')
-    shop_name = data.get('shop_name')
-    shop_slug = data.get('shop_slug')
-    shop_address = data.get('address', '')
-    shop_instagram = data.get('instagram', '')
-    shop_description = data.get('description', '')
-    banner = request.FILES.get('banner')
 
-    if not all([phone, password, name, shop_name, shop_slug]):
-        return Response({"error": "REQUIRED_FIELDS", "message": "Todos os campos são obrigatórios"}, status=400)
-    
-    # ... logic continues ...
-    if User.objects.filter(username=phone).exists():
-        return Response({"error": "USER_EXISTS", "message": "Este telefone já está cadastrado"}, status=400)
-    
-    if Barbershop.objects.filter(slug=shop_slug).exists():
-        return Response({"error": "SLUG_EXISTS", "message": "Este endereço de barbearia já está em uso"}, status=400)
+    cpf = re.sub(r"\D", "", data.get("cpf", ""))
+    phone = re.sub(r"\D", "", data.get("phone", ""))
+    password = data.get("password")
+    name = data.get("name")
+    shop_name = data.get("shop_name")
+    shop_slug = data.get("shop_slug")
+    shop_address = data.get("address", "")
+    shop_instagram = data.get("instagram", "")
+    shop_description = data.get("description", "")
+    banner = request.FILES.get("banner")
 
-    # Criar Usuário
-    user = User.objects.create_user(
-        username=phone,
-        password=password,
-        first_name=name.split(' ')[0],
-        last_name=' '.join(name.split(' ')[1:]) if ' ' in name else ''
-    )
+    # Validações básicas
+    if not all([cpf, password, shop_name, shop_slug]):
+        return Response(
+            {
+                "error": "REQUIRED_FIELDS",
+                "message": "cpf, password, shop_name e shop_slug são obrigatórios"
+            },
+            status=400
+        )
 
-    # Criar Barbearia
+    if len(cpf) != 11:
+        return Response(
+            {"error": "INVALID_CPF", "message": "CPF inválido"},
+            status=400
+        )
+
+    # 🔐 BUSCA USUÁRIO PELO CPF (username)
+    user = User.objects.filter(username=cpf).first()
+
+    # ===============================
+    # CASO 1 — Usuário já existe
+    # ===============================
+    if user:
+        auth_user = authenticate(username=cpf, password=password)
+
+        if not auth_user:
+            # Se veio do webhook e ainda não tinha senha definida
+            if not user.has_usable_password():
+                user.set_password(password)
+                user.save()
+                auth_user = authenticate(username=cpf, password=password)
+            else:
+                return Response(
+                    {
+                        "error": "INVALID_CREDENTIALS",
+                        "message": "CPF ou senha inválidos"
+                    },
+                    status=401
+                )
+
+        if Barbershop.objects.filter(slug=shop_slug).exists():
+            return Response(
+                {"error": "SLUG_EXISTS", "message": "Este endereço já está em uso"},
+                status=400
+            )
+
+    # ===============================
+    # CASO 2 — Novo usuário
+    # ===============================
+    else:
+        if not name:
+            return Response(
+                {"error": "NAME_REQUIRED", "message": "Nome é obrigatório"},
+                status=400
+            )
+
+        user = User.objects.create_user(
+            username=cpf,
+            password=password,
+            first_name=name.split(" ")[0],
+            last_name=" ".join(name.split(" ")[1:]),
+            email=data.get("email", "")
+        )
+
+    # ===============================
+    # CRIA BARBEARIA
+    # ===============================
     barbershop = Barbershop.objects.create(
         name=shop_name,
         slug=shop_slug,
@@ -247,26 +302,96 @@ def barber_register(request):
         banner=banner
     )
 
-    # Criar Perfil de Barbeiro
+    # ===============================
+    # PERFIL BARBEIRO
+    # ===============================
     Barber.objects.create(
         user=user,
         barbershop=barbershop,
-        name=name,
-        email=f"{phone}@auto.com" # Email placeholder
+        name=user.get_full_name() or "Barbeiro",
+        email=user.email,
+        phone=phone
     )
 
-    # Criar Perfil Universal
-    UserProfile.objects.create(user=user, role='BARBER')
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.role = "BARBER"
+    profile.save()
+
+    # ===============================
+    # JWT
+    # ===============================
+    refresh = RefreshToken.for_user(user)
+
+    return Response(
+        {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "role": "barber",
+            "name": user.get_full_name(),
+            "cpf": cpf,
+            "barbershop": barbershop.slug
+        },
+        status=201
+    )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def owner_login(request, barbershop_slug=None, *args, **kwargs):
+    """Login específico para donos de barbearia usando CPF + senha.
+
+    Corpo esperado: { cpf: '00000000000', password: 'senha' }
+    Retorna tokens e dados similares a `whatsapp_login` quando sucesso.
+    """
+    data = request.data
+    cpf = data.get('cpf')
+    password = data.get('password')
+
+    if not cpf or not password:
+        return Response({"error": "REQUIRED_FIELDS", "message": "cpf e password são obrigatórios"}, status=400)
+
+    cpf_digits = re.sub(r"\D", "", str(cpf))
+    if not cpf_digits:
+        return Response({"error": "CPF_INVALID", "message": "CPF inválido"}, status=400)
+
+    # Procura profile pelo CPF (normalizando formatos)
+    profile = None
+    try:
+        profile = UserProfile.objects.filter(cpf__isnull=False).filter(cpf__icontains=cpf_digits).first()
+    except Exception:
+        profile = None
+
+    if not profile:
+        for p in UserProfile.objects.exclude(cpf__isnull=True).exclude(cpf__exact=''):
+            if re.sub(r"\D", "", p.cpf or '') == cpf_digits:
+                profile = p
+                break
+
+    if not profile or not profile.user:
+        return Response({"error": "NOT_FOUND", "message": "CPF não encontrado"}, status=404)
+
+    user = profile.user
+
+    # Deve ser um barbeiro/owner
+    if not hasattr(user, 'barber_profile'):
+        return Response({"error": "NOT_OWNER", "message": "Usuário não é proprietário/barbeiro"}, status=403)
+
+    auth_user = authenticate(username=user.username, password=password)
+    if not auth_user:
+        return Response({"error": "INVALID_CREDENTIALS", "message": "CPF/senha inválidos"}, status=401)
 
     refresh = RefreshToken.for_user(user)
+    barbershop = user.barber_profile.barbershop if hasattr(user, 'barber_profile') else None
+
     return Response({
         'refresh': str(refresh),
         'access': str(refresh.access_token),
         'role': 'barber',
-        'name': name,
-        'phone': phone,
-        'barbershop': barbershop.slug
-    }, status=201)
+        'name': user.get_full_name() or user.username,
+        'phone': user.username,
+        'barbershop': barbershop.slug if barbershop else None
+    })
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -373,6 +498,29 @@ def get_me(request, **kwargs):
         'profile_id': profile_id,
         **extra_data
     })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_cpf(request, barbershop_slug=None, *args, **kwargs):
+    """Busca usuário por CPF (query param `cpf`) e retorna nome/telefone se existir."""
+    cpf = request.query_params.get('cpf')
+    if not cpf:
+        return Response({"error": "CPF_REQUIRED", "message": "Parâmetro cpf é obrigatório"}, status=400)
+
+    digits = re.sub(r"\D", "", cpf)
+    if not digits:
+        return Response({"error": "CPF_INVALID", "message": "CPF inválido"}, status=400)
+
+    # Normaliza comparando dígitos para tolerar formatos diferentes
+    for profile in UserProfile.objects.exclude(cpf__isnull=True).exclude(cpf__exact=''):
+        stored = re.sub(r"\D", "", profile.cpf or '')
+        if stored == digits and profile.user:
+            user = profile.user
+            full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+            return Response({"name": full_name, "phone": user.username}, status=200)
+
+    return Response({"message": "CPF não encontrado"}, status=404)
 
 
 class BarberViewSet(TenantModelViewSet):

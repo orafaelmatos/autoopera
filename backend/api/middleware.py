@@ -1,3 +1,4 @@
+from urllib import request
 from django.http import JsonResponse
 from .models import Barbershop
 import re
@@ -7,6 +8,9 @@ class BarbershopMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if request.path.startswith('/api/webhooks/'):
+            return self.get_response(request)
+        
         host = request.get_host().split(':')[0]
         slug = None
 
@@ -38,7 +42,8 @@ class BarbershopMiddleware:
                 request.barbershop = barbershop
             except Barbershop.DoesNotExist:
                 # Se a rota for de cadastro ou login global, ignoramos o erro de slug do host
-                if request.path.startswith('/api/auth/'):
+                # Também permitimos caminhos de auth que venham dentro de um tenant path: /api/b/<slug>/auth/...
+                if request.path.startswith('/api/auth/') or re.match(r'^/api/b/[^/]+/auth/', request.path):
                     request.barbershop = None
                 else:
                     return JsonResponse({"error": "barbershop_not_found", "message": "Barbearia não encontrada ou inativa."}, status=404)
