@@ -92,7 +92,7 @@ const ReportsView: React.FC<Props> = ({ appointments, services, onNavigateToProm
         </div>
         <div className="flex-1 text-center md:text-left relative z-10">
           <div className="flex items-center gap-3 justify-center md:justify-start mb-6">
-            <span className="text-[10px] sm:text-xs font-black italic uppercase tracking-[0.5em] text-cta font-title">Barber Flow AI Business</span>
+            <span className="text-[10px] sm:text-xs font-black italic uppercase tracking-[0.5em] text-cta font-title">AutoOpera AI Business</span>
           </div>
           <h4 className="text-3xl sm:text-5xl font-black italic text-white mb-6 tracking-tighter font-title uppercase leading-none">Otimize suas {weakestDayFull}s</h4>
           <p className="text-white/60 text-base sm:text-lg font-black italic uppercase tracking-tight leading-relaxed max-w-2xl font-title">

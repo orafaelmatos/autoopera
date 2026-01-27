@@ -223,14 +223,15 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
     shop_address = data.get("address", "")
     shop_instagram = data.get("instagram", "")
     shop_description = data.get("description", "")
+    barber_email = data.get("email") or data.get("barber_email")
     banner = request.FILES.get("banner")
 
     # Validações básicas
-    if not all([cpf, password, shop_name, shop_slug]):
+    if not all([cpf, password, shop_name, shop_slug, barber_email]):
         return Response(
             {
                 "error": "REQUIRED_FIELDS",
-                "message": "cpf, password, shop_name e shop_slug são obrigatórios"
+                "message": "cpf, password, shop_name, shop_slug e email do barbeiro são obrigatórios"
             },
             status=400
         )
@@ -270,6 +271,9 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
                 {"error": "SLUG_EXISTS", "message": "Este endereço já está em uso"},
                 status=400
             )
+        # Evita emails duplicados vazios ou iguais
+        if Barber.objects.filter(email=barber_email).exists():
+            return Response({"error": "EMAIL_EXISTS", "message": "E-mail do barbeiro já está em uso"}, status=400)
 
     # ===============================
     # CASO 2 — Novo usuário
@@ -286,7 +290,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
             password=password,
             first_name=name.split(" ")[0],
             last_name=" ".join(name.split(" ")[1:]),
-            email=data.get("email", "")
+            email=barber_email or data.get("email", "")
         )
 
     # ===============================
@@ -309,7 +313,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         user=user,
         barbershop=barbershop,
         name=user.get_full_name() or "Barbeiro",
-        email=user.email,
+        email=barber_email or user.email,
         phone=phone
     )
 
@@ -378,7 +382,17 @@ def owner_login(request, barbershop_slug=None, *args, **kwargs):
 
     auth_user = authenticate(username=user.username, password=password)
     if not auth_user:
-        return Response({"error": "INVALID_CREDENTIALS", "message": "CPF/senha inválidos"}, status=401)
+        # If the user was created by the webhook and doesn't have a usable password,
+        # allow setting the password here and authenticate again. This lets owners
+        # created by the payment webhook define their password on first login.
+        if not user.has_usable_password():
+            user.set_password(password)
+            user.save()
+            auth_user = authenticate(username=user.username, password=password)
+            if not auth_user:
+                return Response({"error": "INVALID_CREDENTIALS", "message": "CPF/senha inválidos"}, status=401)
+        else:
+            return Response({"error": "INVALID_CREDENTIALS", "message": "CPF/senha inválidos"}, status=401)
 
     refresh = RefreshToken.for_user(user)
     barbershop = user.barber_profile.barbershop if hasattr(user, 'barber_profile') else None
@@ -669,7 +683,7 @@ class AppointmentViewSet(TenantModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
-    def complete(self, request, pk=None):
+    def complete(self, request, pk=None, *args, **kwargs):
         """Marca um agendamento como concluído e gera transação"""
         appointment = BookingService.complete_appointment(pk)
         serializer = self.get_serializer(appointment)
@@ -907,6 +921,43 @@ class PromotionViewSet(TenantModelViewSet):
         active_promotions = self.get_queryset().filter(status='active')
         serializer = self.get_serializer(active_promotions, many=True)
         return Response(serializer.data)
+
+
+from django.http import JsonResponse
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def pwa_manifest(request, slug=None):
+    """
+    Retorna o manifest.json dinâmico baseado no slug da barbearia.
+    """
+    start_url = f"/b/{slug}/" if slug else "/"
+    
+    manifest = {
+        "name": "AutoOpera",
+        "short_name": "AutoOpera",
+        "description": "AutoOpera | Gestão de Barbearia Elite",
+        "start_url": start_url,
+        "display": "standalone",
+        "background_color": "#F5F5F5",
+        "theme_color": "#0F4C5C",
+        "orientation": "portrait",
+        "icons": [
+            {
+                "src": "/icon.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any maskable"
+            },
+            {
+                "src": "/icon.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }
+        ]
+    }
+    return JsonResponse(manifest)
 
 
 class ProductViewSet(TenantModelViewSet):

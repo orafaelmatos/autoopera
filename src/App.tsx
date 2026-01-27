@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import brandLogo from './assets/logo.png';
+import brandLogo from './assets/newlogo.png';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -21,9 +21,19 @@ import {
   Clock,
   ChevronRight,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
+
+// Scroll to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 import { Service, Appointment, Availability, Customer, Transaction, Product, ScheduleException, Barbershop } from './types';
 import { 
   servicesApi, 
@@ -262,6 +272,7 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-background text-primary ${user?.role === 'barber' ? 'flex flex-col md:flex-row' : ''}`}>
+      <ScrollToTop />
       <Toaster 
         position="top-center" 
         toastOptions={{
@@ -300,9 +311,9 @@ const App: React.FC = () => {
             
             {/* Logo da Marca */}
             <div className="flex items-center gap-4 bg-white px-6 py-4 rounded-[24px] shadow-2xl shadow-black/20 w-fit relative z-10">
-              <img src={brandLogo} className="h-6 w-auto object-contain" alt="BarberFlow" />
+              <img src={brandLogo} className="h-6 w-auto object-contain" alt="AutoOpera" />
               <div className="w-px h-4 bg-primary/10" />
-              <span className="text-lg font-title font-black text-primary tracking-tighter italic uppercase">Flow</span>
+              <span className="text-lg font-title font-black text-primary tracking-tighter italic uppercase">Opera</span>
             </div>
 
             {/* Nome da Barbearia */}
@@ -374,21 +385,33 @@ const App: React.FC = () => {
             <div className="relative z-10 px-8 md:px-12 pb-8 md:pb-10 flex items-center justify-between w-full">
                <div>
                   <div className="flex items-center gap-3 mb-1">
-                     <div className="w-2 h-2 bg-cta rounded-full" />
-                     <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic">Painel de Controle Elite</span>
+                     {barbershop?.plan === 'trial' ? (
+                       <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 bg-cta/20 px-3 py-1.5 rounded-full border border-cta/30 animate-pulse">
+                             <div className="w-1.5 h-1.5 bg-cta rounded-full" />
+                             <span className="text-[9px] text-white font-black uppercase tracking-[0.2em] italic">
+                                {barbershop.trial_days_left} DIAS RESTANTES
+                             </span>
+                          </div>
+                          <button 
+                            onClick={() => window.location.href = '/#precos'} 
+                            className="group flex items-center gap-2 bg-white/10 hover:bg-white text-white hover:text-primary px-4 py-1.5 rounded-full border border-white/10 transition-all duration-300 shadow-xl"
+                          >
+                            <span className="text-[9px] font-black uppercase tracking-[0.1em] italic">Mudar Plano</span>
+                            <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                          </button>
+                       </div>
+                     ) : (
+                       <>
+                          <div className="w-2 h-2 bg-cta rounded-full" />
+                          <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic">Painel de Controle Elite</span>
+                       </>
+                     )}
                   </div>
                   <h2 className="text-2xl md:text-4xl font-title font-black text-white tracking-tighter uppercase italic">
                     {barbershop?.name || user?.barbershop_name || "PROCESANDO..."}
                   </h2>
                </div>
-
-               {/* Mobile Menu Trigger */}
-               <button 
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-4 bg-white text-primary rounded-2xl shadow-xl active:scale-95 transition-all"
-               >
-                 <Menu size={24} />
-               </button>
             </div>
           </div>
         )}
@@ -444,6 +467,7 @@ const App: React.FC = () => {
                 customers={customers} 
                 setTransactions={setTransactions}
                 onNavigateToPromotions={() => handleNavigation('/promotions')} 
+                barbershop={barbershop}
               />
             </ProtectedRoute>
           } />
@@ -514,7 +538,7 @@ const App: React.FC = () => {
       {user?.role === 'barber' && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary/5 px-4 h-24 flex items-center justify-around z-[60] shadow-[0_-24px_48px_rgba(15,76,92,0.1)]">
           <MobileNavButton active={activeTab === 'calendar' || activeTab === ''} onClick={() => handleNavigation('/')} icon={<Calendar />} label="Agenda" />
-          <MobileNavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/dashboard')} icon={<LayoutDashboard />} label="Dashboard" />
+          <MobileNavButton active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Serviços" />
           <div className="relative -mt-12">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -523,8 +547,8 @@ const App: React.FC = () => {
                 <Menu size={28} strokeWidth={2.5} />
               </button>
           </div>
-          <MobileNavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign />} label="Finance" />
-          <MobileNavButton active={activeTab === 'settings'} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
+          <MobileNavButton active={location.search.includes('tab=schedule')} onClick={() => handleNavigation('/settings?tab=schedule')} icon={<Clock />} label="Horários" />
+          <MobileNavButton active={activeTab === 'settings' && !location.search.includes('tab=schedule')} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
         </nav>
       )}
 

@@ -11,9 +11,17 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 class BarbershopSerializer(serializers.ModelSerializer):
+    trial_days_left = serializers.SerializerMethodField()
+
     class Meta:
         model = Barbershop
-        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active']
+        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active', 'created_at', 'trial_days_left', 'plan']
+
+    def get_trial_days_left(self, obj):
+        from django.utils import timezone
+        delta = timezone.now() - obj.created_at
+        days_left = 15 - delta.days
+        return max(0, days_left)
 
 class BarberSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

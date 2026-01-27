@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Appointment, Service, Customer, Transaction } from '../types';
+import { Appointment, Service, Customer, Transaction, Barbershop } from '../types';
 import { Clock, User, CheckCircle2, TrendingUp, Wallet, Megaphone, ArrowRight, ListOrdered, Trophy, ChevronRight, Check } from 'lucide-react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { appointmentsApi, transactionsApi } from '../api';
@@ -128,6 +128,7 @@ interface Props {
   customers: Customer[];
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   onNavigateToPromotions?: () => void;
+  barbershop?: Barbershop;
 }
 
 const DashboardView: React.FC<Props> = ({ 
@@ -137,7 +138,8 @@ const DashboardView: React.FC<Props> = ({
   services, 
   customers, 
   setTransactions,
-  onNavigateToPromotions 
+  onNavigateToPromotions,
+  barbershop
 }) => {
   const getServiceName = (id: string) => services.find(s => s.id === id)?.name || 'Serviço';
   const getServicePrice = (id: string) => services.find(s => s.id === id)?.price || 0;

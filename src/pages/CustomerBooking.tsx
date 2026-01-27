@@ -238,7 +238,7 @@ const CustomerBooking: React.FC = () => {
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                     <h2 className="text-4xl font-black text-text mb-2 tracking-tighter uppercase font-title">Confirmado!</h2>
                     <p className="text-text/60 mb-8 max-w-[280px] mx-auto italic">
-                        Seu agendamento com o mestre <strong>{selectedBarber?.name}</strong> foi realizado com sucesso.
+                        Seu agendamento com o profissional <strong>{selectedBarber?.name}</strong> foi realizado com sucesso.
                     </p>
                     
                     <div className="bg-white p-8 rounded-[40px] shadow-[0_24px_48px_-12px_rgba(15,76,92,0.12)] border border-border mb-10 text-left space-y-4 max-w-sm mx-auto">
@@ -285,10 +285,10 @@ const CustomerBooking: React.FC = () => {
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-20 h-20 bg-white rounded-[32px] flex items-center justify-center border border-white/20 shadow-2xl mb-4 p-4"
+                        className="w-50 h-[150px] bg-white/40 rounded-[12px] flex items-center justify-center border border-white/20 shadow-2xl mb-2 mt-7 p-2"
                     >
-                        {barbershop?.logo ? (
-                             <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain" />
+                        {barbershop?.banner ? (
+                             <img src={getMediaUrl(barbershop.banner)} className="w-full h-full object-contain" />
                         ) : (
                             <Scissors className="text-primary" size={32} />
                         )}
@@ -298,7 +298,7 @@ const CustomerBooking: React.FC = () => {
                         animate={{ y: 0, opacity: 1 }}
                         className="text-3xl font-black text-white tracking-tighter italic uppercase font-title"
                     >
-                        {barbershop?.name || "BARBER FLOW"}
+                        {barbershop?.name || "AUTOOPERA"}
                     </motion.h1>
                     <p className="text-white font-black text-[10px] tracking-[0.3em] uppercase mt-2 opacity-60 italic">
                         {barbershop?.description || "Estilo & Tradição"}
@@ -343,7 +343,7 @@ const CustomerBooking: React.FC = () => {
                             <div className="flex justify-between items-center mb-8">
                                 <div className="space-y-1">
                                     <h2 className="text-2xl font-black text-text tracking-tighter font-title italic uppercase">
-                                        {step === 1 && "MESTRES"}
+                                    {step === 1 && "PROFISSIONAIS"}
                                         {step === 2 && "SERVIÇOS"}
                                         {step === 3 && "AGENDA"}
                                     </h2>
@@ -398,7 +398,7 @@ const CustomerBooking: React.FC = () => {
                                 {step === 2 && (
                                     <motion.div key="step2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
                                         <button onClick={() => setStep(1)} className="flex items-center gap-2 text-text/30 hover:text-text font-black text-[10px] uppercase tracking-widest mb-4 transition-colors italic">
-                                            <ChevronLeft size={16} /> Voltar aos Mestres
+                                            <ChevronLeft size={16} /> Voltar aos Profissionais
                                         </button>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {services.map(service => (
@@ -436,7 +436,7 @@ const CustomerBooking: React.FC = () => {
                                                     <Scissors size={20} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.2em] mb-0.5">Mestre {selectedBarber?.name}</p>
+                                                    <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.2em] mb-0.5">Profissional {selectedBarber?.name}</p>
                                                     <h4 className="text-sm font-black text-text uppercase italic font-title">{selectedService?.name}</h4>
                                                 </div>
                                             </div>
@@ -495,7 +495,7 @@ const CustomerBooking: React.FC = () => {
                                             ) : (
                                                 <div className="p-12 bg-white border-2 border-dashed border-border rounded-[40px] text-center space-y-4">
                                                     <Info size={32} className="text-text/10 mx-auto" />
-                                                    <p className="text-[10px] font-black text-text/30 uppercase tracking-widest italic">A agenda do mestre está cheia neste dia.</p>
+                                                    <p className="text-[10px] font-black text-text/30 uppercase tracking-widest italic">A agenda do profissional está cheia neste dia.</p>
                                                     <button
                                                         onClick={() => setSelectedDate(addDays(selectedDate, 1))}
                                                         className="px-6 py-3 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm italic"
@@ -513,7 +513,7 @@ const CustomerBooking: React.FC = () => {
                             {step === 3 && selectedTime && (
                                 <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/80 backdrop-blur-xl border-t border-border z-40 max-w-2xl mx-auto flex items-center gap-4">
                                     <div className="flex-1">
-                                        <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.3em] mb-1 italic">Consumação</p>
+                                        <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.3em] mb-1 italic">Valor Total</p>
                                         <h3 className="text-xl font-black text-text leading-none italic font-title">R$ {selectedService?.price}</h3>
                                     </div>
                                     <button 
@@ -557,7 +557,7 @@ const CustomerBooking: React.FC = () => {
                                                         <User size={24} className="text-text/10 group-hover:text-primary/40" />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em]">Mestre Executor</p>
+                                                        <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em]">Profissional Executor</p>
                                                         <p className="font-black text-text text-base leading-tight uppercase italic font-title">{appointment.barber_name || 'Especialista'}</p>
                                                     </div>
                                                 </div>
@@ -646,7 +646,7 @@ const CustomerBooking: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-center">
-                                        <h2 className="text-3xl font-black text-text leading-tight uppercase font-title italic tracking-tight">{profileData.name || "Mestre Anônimo"}</h2>
+                                        <h2 className="text-3xl font-black text-text leading-tight uppercase font-title italic tracking-tight">{profileData.name || "Profissional Anônimo"}</h2>
                                         <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em] mt-1">Status: Cliente Premium</p>
                                     </div>
                                 </div>

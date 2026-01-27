@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Smartphone, Lock, User, ArrowRight, Scissors, Store, Globe, CheckCircle2, MapPin, Instagram, AlignLeft, Camera, Image as ImageIcon } from 'lucide-react';
+import { Smartphone, Lock, User, ArrowRight, Scissors, Store, Globe, CheckCircle2, MapPin, Instagram, AlignLeft, Camera, Image as ImageIcon, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import brandLogo from '../assets/logo.png';
+import brandLogo from '../assets/newlogo.png';
 import api from '../api';
 import { useAuth } from '../AuthContext';
 import toast from 'react-hot-toast';
@@ -19,6 +19,7 @@ const BarberRegister: React.FC = () => {
         shop_name: '',
         shop_slug: '',
         address: '',
+        email: '',
         instagram: '',
         description: '',
         banner: null as File | null,
@@ -205,140 +206,79 @@ const BarberRegister: React.FC = () => {
                     {step === 1 ? (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">CPF para verificação</label>
-                                <div className="relative flex items-center gap-3">
-                                    <div className="relative flex-1 group">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
-                                            <User size={18} />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={formData.cpf}
-                                            onChange={e => setFormData({...formData, cpf: e.target.value})}
-                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                            placeholder="000.000.000-00"
-                                        />
+                                <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Seu CPF</label>
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                        <User size={18} />
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={checkCpf} 
-                                        className="px-6 py-4 bg-primary/5 border border-primary/20 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
-                                    >
-                                        Buscar
-                                    </button>
+                                    <input
+                                        type="text"
+                                        value={formData.cpf}
+                                        onChange={e => setFormData({...formData, cpf: e.target.value})}
+                                        className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                        placeholder="000.000.000-00"
+                                        required
+                                    />
                                 </div>
                             </div>
 
-                            {existingUser ? (
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="p-6 rounded-3xl bg-primary/5 border border-primary/10 shadow-inner space-y-4"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
-                                            <User size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-text font-black font-title uppercase italic">Olá, {formData.name}!</p>
-                                            <p className="text-[11px] text-text/40 font-medium">{formData.phone}</p>
-                                        </div>
+                            {/* Removido o botão de Busca - Sempre o primeiro acesso */}
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Nome Completo</label>
+                                    <div className="relative group">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                        <input 
+                                            type="text" required
+                                            value={formData.name}
+                                            onChange={e => setFormData({...formData, name: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                            placeholder="Seu nome"
+                                        />
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => { setExistingUser(false); setFormData({...formData, cpf: '', name: '', phone: ''}); }} 
-                                        className="text-[10px] font-black uppercase tracking-widest text-cta hover:underline italic"
-                                    >
-                                        Não é você? Trocar CPF
-                                    </button>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Nova Senha</label>
-                                            <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={16} />
-                                                <input 
-                                                    type="password" required
-                                                    value={formData.password}
-                                                    onChange={e => setFormData({...formData, password: e.target.value})}
-                                                    className="w-full bg-white border border-border rounded-xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-sm shadow-sm"
-                                                    placeholder="••••••••"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Confirmar</label>
-                                            <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={16} />
-                                                <input 
-                                                    type="password" required
-                                                    value={formData.confirmPassword}
-                                                    onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                                    className="w-full bg-white border border-border rounded-xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-sm shadow-sm"
-                                                    placeholder="••••••••"
-                                                />
-                                            </div>
-                                        </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">WhatsApp Profissional</label>
+                                    <div className="relative group">
+                                        <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                        <input 
+                                            type="text" required
+                                            value={formData.phone}
+                                            onChange={handlePhoneChange}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                            placeholder="(00) 00000-0000"
+                                        />
                                     </div>
-                                </motion.div>
-                            ) : (
-                                <div className="space-y-6">
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Nome Completo</label>
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Senha</label>
                                         <div className="relative group">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                             <input 
-                                                type="text" required
-                                                value={formData.name}
-                                                onChange={e => setFormData({...formData, name: e.target.value})}
+                                                type="password" required
+                                                value={formData.password}
+                                                onChange={e => setFormData({...formData, password: e.target.value})}
                                                 className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                placeholder="Seu nome"
+                                                placeholder="••••••••"
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">WhatsApp Profissional</label>
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Confirmar</label>
                                         <div className="relative group">
-                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                             <input 
-                                                type="text" required
-                                                value={formData.phone}
-                                                onChange={handlePhoneChange}
+                                                type="password" required
+                                                value={formData.confirmPassword}
+                                                onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
                                                 className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                placeholder="(00) 00000-0000"
+                                                placeholder="••••••••"
                                             />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Senha</label>
-                                            <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
-                                                <input 
-                                                    type="password" required
-                                                    value={formData.password}
-                                                    onChange={e => setFormData({...formData, password: e.target.value})}
-                                                    className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                    placeholder="••••••••"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Confirmar</label>
-                                            <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
-                                                <input 
-                                                    type="password" required
-                                                    value={formData.confirmPassword}
-                                                    onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                                    className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                    placeholder="••••••••"
-                                                />
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
                             <button 
                                 type="button" 
@@ -447,6 +387,20 @@ const BarberRegister: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">E-mail profissional</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                        <input 
+                                            type="email" required
+                                            value={formData.email}
+                                            onChange={e => setFormData({...formData, email: e.target.value})}
+                                            className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
+                                            placeholder="contato@suabarbearia.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
                                     <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Bio do Negócio</label>
                                     <div className="relative group">
                                         <AlignLeft className="absolute left-4 top-4 text-text/20 group-focus-within:text-primary" size={18} />
@@ -473,7 +427,7 @@ const BarberRegister: React.FC = () => {
                                         />
                                     </div>
                                     <p className="text-[10px] text-text/40 font-bold italic mt-2 px-2">
-                                        Visualização: <span className="text-primary italic">barberflow.com/b/{formData.shop_slug || '...'}</span>
+                                        Visualização: <span className="text-primary italic">autoopera.com/b/{formData.shop_slug || '...'}</span>
                                     </p>
                                 </div>
                             </div>

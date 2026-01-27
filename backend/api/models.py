@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class Barbershop(models.Model):
     """Representa uma empresa/estabelecimento (Tenant)"""
     PLAN_CHOICES = [
+        ('trial', 'Teste Grátis'),
         ('BASIC', 'Básico'),
         ('TEAM', 'Equipe'),
         ('PRO', 'IA Pro'),
@@ -13,7 +14,7 @@ class Barbershop(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_barbershops')
-    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='BASIC')
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='trial')
     logo = models.ImageField(upload_to='barbershops/logos/', null=True, blank=True)
     banner = models.ImageField(upload_to='barbershops/banners/', null=True, blank=True)
     description = models.TextField(blank=True, null=True)

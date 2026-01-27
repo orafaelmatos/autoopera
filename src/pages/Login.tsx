@@ -3,7 +3,7 @@ import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Lock, User, ArrowRight, Scissors, Info } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import brandLogo from '../assets/logo.png';
+import brandLogo from '../assets/newlogo.png';
 import api from '../api';
 import { Barbershop } from '../types';
 
@@ -221,27 +221,24 @@ const LoginPage: React.FC = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="w-full max-w-md bg-white p-8 sm:p-12 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(15,76,92,0.15)] border border-border relative z-10"
+                className="w-full max-w-lg bg-white p-10 sm:p-16 rounded-[48px] shadow-[0_48px_96px_-12px_rgba(15,76,92,0.2)] border border-border relative z-10"
             >
-                <div className="flex flex-col items-center mb-10">
-                    {/* Logo Area */}
-                    <div className="mb-8 group">
-                        {barbershop?.logo ? (
-                            <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl border-4 border-white p-2 bg-background flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                <div className="flex flex-col items-center mb-6">
+                    {/* Logo Area Prominente */}
+                    <div className="mb-10 group relative">
+                        <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-colors" />
+                        {barbershop?.banner ? (
+                            <div className="w-35 h-[130px] sm:w-40 sm:h-40 rounded-[35px] overflow-hidden shadow-2xl border-[12px] border-white p-2 bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-700 relative z-10">
                                 <img 
-                                    src={getMediaUrl(barbershop.logo)} 
+                                    src={getMediaUrl(barbershop?.banner)} 
                                     alt={barbershop.name} 
                                     className="max-w-full max-h-full object-contain"
                                 />
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center">
-                                <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transform rotate-3 group-hover:rotate-0 transition-transform">
-                                    <Scissors className="text-white w-8 h-8" />
-                                </div>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-3xl font-black text-text tracking-tighter uppercase font-title">Barber</span>
-                                    <span className="text-3xl font-light text-primary italic lowercase font-title">Flow</span>
+                            <div className="flex flex-col items-center relative z-10">
+                                <div className="w-20 h-20 bg-primary rounded-[28px] flex items-center justify-center shadow-2xl shadow-primary/30 transform rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                    <Scissors className="text-white" size={32} />
                                 </div>
                             </div>
                         )}
@@ -249,25 +246,25 @@ const LoginPage: React.FC = () => {
                     
                     <div className="text-center space-y-2">
                         {barbershop ? (
-                            <h1 className="text-2xl font-bold text-text tracking-tight font-title italic uppercase">
+                            <h1 className="text-3xl sm:text-4xl font-black text-text tracking-tighter font-title italic uppercase leading-tight">
                                 {barbershop.name}
                             </h1>
                         ) : (
-                            <h1 className="text-2xl font-bold text-text tracking-tight font-title">
+                            <h1 className="text-3xl font-black text-text tracking-tighter font-title uppercase italic">
                                 Central de Agendamento
                             </h1>
                         )}
-                        <p className="text-text/40 text-sm font-medium italic">
-                            {step === 'phone' && (barbershop ? `Bem-vindo à área de agendamentos.` : 'Entre para gerenciar seus horários')}
+                        <p className="text-text/40 text-xs sm:text-sm font-bold italic uppercase tracking-widest">
+                            {step === 'phone' && (barbershop ? `Acesse o Fluxo de Excelência` : 'Gerencie seus atendimentos')}
                             {step === 'confirm' && 'Verificação de Identidade'}
-                            {step === 'register' && 'Seja bem-vindo! Criar sua conta.'}
-                            {step === 'password' && 'Área restrita de acesso'}
+                            {step === 'register' && 'Crie seu Perfil Elite'}
+                            {step === 'password' && 'Acesso Restrito Professional'}
                         </p>
                     </div>
                 </div>
 
                 {/* Role Toggle */}
-                <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-10">
+                <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-5">
                     <button 
                         onClick={() => { setMode('client'); setStep('phone'); }} 
                         className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='client' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}

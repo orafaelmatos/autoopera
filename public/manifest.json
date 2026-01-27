@@ -1,0 +1,24 @@
+{
+  "name": "AutoOpera",
+  "short_name": "AutoOpera",
+  "description": "AutoOpera | Gestão de Barbearia Elite",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F5F5",
+  "theme_color": "#0F4C5C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/newlogo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/newlogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

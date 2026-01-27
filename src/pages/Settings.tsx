@@ -5,7 +5,8 @@ import {
   Settings, Link2, ExternalLink, 
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
-  Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert
+  Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
@@ -336,31 +337,33 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         </button>
       </header>
 
-      {/* Navegação Elite */}
-      <div className="px-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-primary/5 p-2 rounded-[32px] border border-primary/5">
-          {[
-            { id: 'shop', label: 'BARBEARIA', icon: Building2 },
-            { id: 'profile', label: 'MEU PERFIL', icon: User },
-            { id: 'schedule', label: 'AGENDA & JORNADA', icon: Clock }
-          ].map((tab) => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[24px] text-[10px] sm:text-xs font-black italic uppercase tracking-widest transition-all duration-300 ${
-                activeTab === tab.id 
-                  ? 'bg-white text-primary shadow-[0_12px_24px_-8px_rgba(15,76,92,0.15)] scale-105 z-10' 
-                  : 'text-primary/40 hover:text-primary hover:bg-white/50'
-              }`}
-            >
-              <tab.icon size={18} strokeWidth={activeTab === tab.id ? 3 : 2} />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          ))}
+      {/* Navegação Elite - Hidden on Schedule as requested */}
+      {activeTab !== 'schedule' && (
+        <div className="px-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-primary/5 p-2 rounded-[32px] border border-primary/5">
+            {[
+              { id: 'shop', label: 'BARBEARIA', icon: Building2 },
+              { id: 'profile', label: 'MEU PERFIL', icon: User },
+              { id: 'schedule', label: 'AGENDA & JORNADA', icon: Clock }
+            ].map((tab) => (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[24px] text-[10px] sm:text-xs font-black italic uppercase tracking-widest transition-all duration-300 ${
+                  activeTab === tab.id 
+                    ? 'bg-white text-primary shadow-[0_12px_24px_-8px_rgba(15,76,92,0.15)] scale-105 z-10' 
+                    : 'text-primary/40 hover:text-primary hover:bg-white/50'
+                }`}
+              >
+                <tab.icon size={18} strokeWidth={activeTab === tab.id ? 3 : 2} />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-12 px-4">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-12 px-4 whitespace-normal">
         
         {/* Lado Esquerdo - Configurações Principais */}
         <div className="xl:col-span-8 space-y-8 sm:space-y-12">
@@ -461,7 +464,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     type="text"
                                     value={shopData.name}
                                     onChange={e => setShopData({...shopData, name: e.target.value})}
-                                    placeholder="Ex: Barber Flow Elite"
+                                    placeholder="Ex: AutoOpera Elite"
                                     className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
@@ -678,71 +681,72 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </div>
               </section>
 
-              {/* Datas Especiais Elite */}
-              <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] p-8 sm:p-16">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-8">
-                  <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 rounded-2xl bg-cta/10 flex items-center justify-center text-cta">
-                        <Calendar size={28} strokeWidth={2.5} />
+              {/* Datas Especiais Elite - Redesenhado conforme screenshot */}
+              <section className="bg-white border border-primary/5 rounded-[64px] overflow-hidden shadow-[0_48px_96px_-12px_rgba(15,76,92,0.1)] p-6 sm:p-20">
+                <div className="flex flex-col items-center mb-16 text-center">
+                    <div className="w-20 h-20 rounded-[28px] bg-cta/10 flex items-center justify-center text-cta mb-8 shadow-inner">
+                        <Calendar size={40} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h3 className="text-2xl sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Datas Especiais</h3>
-                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Sobrescreve a jornada para turnos pontuais</p>
+                        <h3 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-4">Datas Especiais</h3>
+                        <p className="text-[11px] sm:text-[13px] font-black italic text-primary/30 uppercase tracking-[0.4em] leading-relaxed">Sobrescreve a jornada<br className="sm:hidden" /> para turnos pontuais</p>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 bg-background p-2 rounded-3xl border border-primary/5">
+                </div>
+
+                <div className="max-w-md mx-auto mb-16 px-4">
+                  <div className="flex items-center justify-between bg-primary/[0.03] p-3 rounded-[32px] border border-primary/5 shadow-inner">
                     <button 
                         onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} 
-                        className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white text-primary/40 hover:text-cta transition-colors shadow-sm"
+                        className="w-14 h-14 flex items-center justify-center rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronLeft size={20} />
+                        <ChevronLeft size={24} strokeWidth={3} />
                     </button>
-                    <div className="text-[11px] font-black italic uppercase tracking-[0.2em] text-primary min-w-[160px] text-center font-title">
+                    <div className="text-[12px] sm:text-[14px] font-black italic uppercase tracking-[0.3em] text-primary font-title">
                         {currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                     </div>
                     <button 
                         onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} 
-                        className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white text-primary/40 hover:text-cta transition-colors shadow-sm"
+                        className="w-14 h-14 flex items-center justify-center rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronRight size={20} />
+                        <ChevronRight size={24} strokeWidth={3} />
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-2 mb-6">
-                  {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
-                    <div key={d} className="py-2 text-[10px] font-black italic text-primary/20 uppercase tracking-[0.3em] text-center">{d}</div>
+                <div className="grid grid-cols-7 gap-1 sm:gap-4 mb-8">
+                  {['DOM','SEG','TER','QUA','QUI','SEX','SÁB'].map(d => (
+                    <div key={d} className="py-2 text-[9px] sm:text-[11px] font-black italic text-primary/20 uppercase tracking-[0.3em] text-center">{d}</div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-3 sm:gap-6">
+                <div className="grid grid-cols-7 gap-2 sm:gap-6">
                   {calendarMatrix(currentMonth).map((cell, idx) => (
                     <div 
                       key={idx} 
-                      className={`group relative p-4 h-28 sm:h-36 rounded-[32px] transition-all flex flex-col justify-between border-2 ${
+                      className={`group relative p-2 h-24 sm:h-44 rounded-full transition-all flex flex-col items-center justify-center border-2 ${
                         cell.isCurrentMonth 
-                        ? 'bg-white border-primary/5 hover:border-cta/20 cursor-pointer hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1' 
+                        ? 'bg-white border-primary/5 hover:border-cta/40 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2' 
                         : 'bg-transparent border-transparent opacity-0 pointer-events-none'
                       }`} 
                       onClick={() => cell.isCurrentMonth && openDay(cell.date)}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl font-black italic text-primary font-title leading-none">{cell.day}</span>
+                      <div className="flex flex-col items-center gap-2">
+                        <span className={`text-xl sm:text-4xl font-black italic font-title leading-none transition-colors ${cell.isCurrentMonth ? 'text-primary' : 'text-primary/10'}`}>
+                          {cell.day}
+                        </span>
                         {availMap[cell.date] && availMap[cell.date].length > 0 && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-cta shadow-[0_0_12px_rgba(230,126,34,0.5)]" />
+                          <div className="w-2 h-2 sm:w-4 sm:h-4 rounded-full bg-cta shadow-[0_0_15px_rgba(230,126,34,0.6)] animate-pulse" />
                         )}
                       </div>
-                      <div className="space-y-1">
-                        {availMap[cell.date] && availMap[cell.date].slice(0,2).map((a, i) => (
-                          <div key={i} className="text-[9px] font-black italic text-primary/40 uppercase tracking-tighter truncate leading-none">
-                            {a.startTime}—{a.endTime}
-                          </div>
-                        ))}
-                        {availMap[cell.date] && availMap[cell.date].length > 2 && (
-                          <div className="text-[9px] text-cta font-black italic uppercase tracking-widest">+ {availMap[cell.date].length - 2}</div>
-                        )}
-                      </div>
+                      
+                      {/* Indicador de Turnos para Desktop */}
+                      {cell.isCurrentMonth && availMap[cell.date] && availMap[cell.date].length > 0 && (
+                        <div className="hidden sm:flex mt-3 flex-col gap-1 items-center">
+                          <span className="text-[8px] font-black italic text-primary/30 uppercase tracking-tighter">
+                            {availMap[cell.date].length} Turnos
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -930,45 +934,61 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                       
                     <AnimatePresence mode="popLayout">
                         {exceptions.length === 0 ? (
-                          <motion.div layout className="bg-primary/[0.02] border-2 border-dashed border-primary/5 rounded-[40px] p-20 text-center">
+                          <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-primary/[0.02] border-2 border-dashed border-primary/5 rounded-[40px] p-20 text-center">
                             <Calendar size={48} className="text-primary/5 mx-auto mb-6" />
                             <p className="text-[10px] font-black italic text-primary/10 uppercase tracking-widest">Nenhum bloqueio registrado</p>
                           </motion.div>
                         ) : (
-                          <div className="space-y-4">
+                          <div className="grid grid-cols-1 gap-4">
                             {exceptions.map((ex) => (
                               <motion.div 
                                 layout
                                 key={ex.id} 
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="bg-white border border-primary/5 rounded-[32px] p-8 flex justify-between items-center group shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-white border border-primary/5 rounded-[32px] p-6 flex justify-between items-center group shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
                               >
                                 <div className="flex items-center gap-6">
-                                  <div className={`w-3 h-3 rounded-full ${ex.type === 'blocked' ? 'bg-red-500 shadow-[0_0_12_rgba(239,68,68,0.4)]' : 'bg-primary shadow-[0_0_12_rgba(15,76,92,0.4)]'}`}></div>
+                                  <div className={`w-14 h-14 rounded-[22px] flex items-center justify-center transition-colors ${
+                                    ex.type === 'blocked' ? 'bg-red-50 text-red-500 group-hover:bg-red-500 group-hover:text-white' : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'
+                                  }`}>
+                                    {ex.type === 'blocked' ? <X size={20} strokeWidth={3} /> : <Clock size={20} strokeWidth={3} />}
+                                  </div>
                                   <div>
-                                    <div className="flex items-center gap-4">
-                                      <span className="text-lg font-black italic text-primary uppercase font-title leading-none">
-                                        {new Date(ex.date + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
-                                      </span>
-                                      <span className={`text-[8px] font-black italic px-3 py-1 rounded-full uppercase tracking-tighter ${ex.type === 'blocked' ? 'bg-red-50 text-red-500' : 'bg-primary/5 text-primary'}`}>
-                                        {ex.type === 'blocked' ? 'Total' : 'Parcial'}
-                                      </span>
-                                    </div>
-                                    <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest mt-2">{ex.reason}</p>
-                                    {ex.type === 'extended' && (
-                                      <p className="text-primary text-[10px] mt-3 font-black italic flex items-center gap-2">
-                                        <Clock size={12} strokeWidth={3} /> {ex.startTime} {'\u003e'} {ex.endTime}
-                                      </p>
-                                    )}
+                                     <div className="flex items-center gap-3 mb-1.5">
+                                        <span className={`text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-[0.1em] ${
+                                          ex.type === 'blocked' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-primary text-white shadow-lg shadow-primary/20'
+                                        }`}>
+                                          {ex.type === 'blocked' ? 'Bloqueio Total' : 'Horário Especial'}
+                                        </span>
+                                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest leading-none">
+                                          {new Date(ex.date + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </p>
+                                     </div>
+                                     <p className="text-sm font-black italic text-primary uppercase font-title leading-tight">
+                                        {ex.reason || (ex.type === 'blocked' ? 'Ausência/Feriado' : 'Expediente Diferenciado')}
+                                     </p>
+                                     {ex.type === 'extended' && (
+                                       <div className="flex items-center gap-2 mt-2">
+                                          <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-lg border border-primary/5">
+                                             <Clock size={10} className="text-cta" />
+                                             <span className="text-[9px] font-black text-primary italic uppercase">{ex.startTime}</span>
+                                          </div>
+                                          <span className="text-[9px] font-black text-primary/20 italic">até</span>
+                                          <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-lg border border-primary/5">
+                                             <Clock size={10} className="text-cta" />
+                                             <span className="text-[9px] font-black text-primary italic uppercase">{ex.endTime}</span>
+                                          </div>
+                                       </div>
+                                     )}
                                   </div>
                                 </div>
                                 <button 
                                   onClick={() => handleDeleteException(ex.id)}
-                                  className="w-12 h-12 flex items-center justify-center rounded-2xl text-primary/10 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                  className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center hover:bg-red-500 hover:text-white shadow-lg shadow-red-500/10"
                                 >
-                                  <Trash2 size={20} />
+                                  <Trash2 size={18} strokeWidth={2.5} />
                                 </button>
                               </motion.div>
                             ))}

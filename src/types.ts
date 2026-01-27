@@ -9,6 +9,8 @@ export interface Barbershop {
   logo?: string;
   banner?: string;
   primary_color: string;
+  trial_days_left?: number;
+  plan?: 'trial' | 'basic' | 'pro' | 'elite';
 }
 
 export interface Barber {

@@ -75,11 +75,11 @@ const LandingPage: React.FC = () => {
             <header className="fixed top-0 left-0 right-0 z-50 bg-primary/95 backdrop-blur-md py-5 px-6 md:px-12 flex justify-between items-center shadow-2xl shadow-primary/20 border-b border-white/5">
                 <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
                     <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <Scissors className="text-primary" size={20} />
+                        <img src={brandLogo} alt="AutoOpera Logo" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-title font-black text-xl tracking-tighter text-white italic uppercase leading-none">Barber Flow</span>
-                        <span className="text-[10px] font-black text-cta uppercase tracking-[0.3em] mt-0.5 ml-0.5">Premium SaaS</span>
+                        <span className="font-title font-black text-xl tracking-tighter text-white italic uppercase leading-none">Auto Opera</span>
+                        <span className="text-[10px] font-black text-cta uppercase tracking-[0.3em] mt-0.5 ml-0.5">Barber</span>
                     </div>
                 </div>
 
@@ -147,7 +147,7 @@ const LandingPage: React.FC = () => {
                             className="inline-flex items-center gap-2 px-6 py-2 bg-primary/5 border border-primary/10 rounded-full mb-8"
                         >
                             <span className="w-2 h-2 bg-cta rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] italic">Lançamento Barber Flow 2.0</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] italic">Lançamento AutoOpera 2.0</span>
                         </motion.div>
 
                         <motion.h1 
@@ -179,7 +179,7 @@ const LandingPage: React.FC = () => {
                                 onClick={() => navigate('/register-barber')}
                                 className="flex-1 bg-cta text-white text-[11px] tracking-[0.2em] font-black py-6 rounded-[24px] shadow-2xl shadow-cta/30 hover:scale-105 active:scale-95 transition-all uppercase italic"
                             >
-                                COMEÇAR AGORA POR R$ 39,90/mês
+                                TESTE GRÁTIS POR 15 DIAS
                             </button>
                             <button 
                                 onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
@@ -396,18 +396,20 @@ const LandingPage: React.FC = () => {
             {/* Final CTA */}
             <section className="py-20 px-4 md:px-8 bg-primary text-white text-center">
                 <div className="max-w-4xl mx-auto">
-                    <h2 className="font-title text-3xl md:text-5xl font-bold mb-6">Pronto para organizar sua barbearia?</h2>
-                    <p className="text-xl opacity-90 mb-10">Recupere seu tempo e foque no que importa: o corte.</p>
+                    <h2 className="font-title text-3xl md:text-5xl font-bold mb-6 italic uppercase tracking-tighter">PRONTO PARA TRANSFORMAR SEU NEGÓCIO?</h2>
+                    <p className="text-xl md:text-2xl opacity-90 mb-10 italic">Experimente o poder do AutoOpera por 15 dias sem custo.</p>
                     <button 
                         onClick={() => navigate('/register-barber')}
-                        className="bg-cta text-white text-xl font-bold py-5 px-12 rounded-lg shadow-2xl hover:scale-105 transition-transform"
+                        className="bg-cta text-white text-[12px] font-black tracking-[0.2em] py-6 px-16 rounded-[24px] shadow-2xl hover:scale-105 transition-transform uppercase italic"
                     >
-                        TESTE GRÁTIS POR 7 DIAS
+                        COMEÇAR MEU TESTE GRÁTIS
                     </button>
-                    <div className="mt-8 flex items-center justify-center gap-6 opacity-60 text-xs font-bold uppercase tracking-widest">
-                        <span>Visa</span>
-                        <span>Master</span>
+                    <div className="mt-8 flex items-center justify-center gap-6 opacity-60 text-[10px] font-black uppercase tracking-widest italic">
+                        <span>Cartão de Crédito</span>
+                        <div className="w-1 h-1 bg-white/20 rounded-full" />
                         <span>Pix</span>
+                        <div className="w-1 h-1 bg-white/20 rounded-full" />
+                        <span>Sem Compromisso</span>
                     </div>
                 </div>
             </section>
