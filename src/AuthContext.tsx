@@ -13,7 +13,6 @@ interface User {
   profile_id?: number;
   barbershop_slug?: string;
   barbershop_name?: string;
-  barbershop_banner?: string;
   barbershop_logo?: string;
 }
 

@@ -22,8 +22,8 @@ const BarberRegister: React.FC = () => {
         email: '',
         instagram: '',
         description: '',
-        banner: null as File | null,
-        bannerPreview: ''
+        logo: null as File | null,
+        logoPreview: ''
     });
 
     const navigate = useNavigate();
@@ -35,8 +35,8 @@ const BarberRegister: React.FC = () => {
         if (file) {
             setFormData({
                 ...formData,
-                banner: file,
-                bannerPreview: URL.createObjectURL(file)
+                logo: file,
+                logoPreview: URL.createObjectURL(file)
             });
         }
     };
@@ -100,13 +100,13 @@ const BarberRegister: React.FC = () => {
 
         try {
             const rawPhone = formData.phone.replace(/\D/g, '');
-            const { confirmPassword, bannerPreview, ...dataToSubmit } = formData;
+            const { confirmPassword, logoPreview, ...dataToSubmit } = formData;
             
             const data = new FormData();
             Object.keys(dataToSubmit).forEach(key => {
-                if (key === 'banner' && formData.banner) {
-                    data.append('banner', formData.banner);
-                } else if (key !== 'banner') {
+                if (key === 'logo' && formData.logo) {
+                    data.append('logo', formData.logo);
+                } else if (key !== 'logo') {
                     data.append(key, (dataToSubmit as any)[key]);
                 }
             });
@@ -320,9 +320,9 @@ const BarberRegister: React.FC = () => {
                                         onClick={() => document.getElementById('logo-upload')?.click()}
                                         className="relative h-28 w-28 mx-auto bg-background border-2 border-dashed border-border rounded-[32px] overflow-hidden cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all flex items-center justify-center group shadow-inner"
                                     >
-                                        {formData.bannerPreview ? (
+                                        {formData.logoPreview ? (
                                             <>
-                                                <img src={formData.bannerPreview} alt="Logo Preview" className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110" />
+                                                <img src={formData.logoPreview} alt="Logo Preview" className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110" />
                                                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                                                     <Camera className="text-white" size={24} />
                                                 </div>

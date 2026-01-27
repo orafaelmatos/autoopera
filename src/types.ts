@@ -7,7 +7,6 @@ export interface Barbershop {
   address?: string;
   phone?: string;
   logo?: string;
-  banner?: string;
   primary_color: string;
   trial_days_left?: number;
   plan?: 'trial' | 'basic' | 'pro' | 'elite';

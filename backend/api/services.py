@@ -1,9 +1,69 @@
 from datetime import datetime, timedelta, time
+import threading
+import requests
+import logging
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
 from rest_framework import exceptions
 from .models import Appointment, TimeSlot, Service, Barber, Availability, ScheduleException, DailyAvailability
+
+logger = logging.getLogger(__name__)
+
+class WebhookService:
+    @staticmethod
+    def send_appointment_webhook(appointment):
+        """
+        Envia os dados do agendamento para o webhook do n8n de forma assíncrona.
+        """
+        def task():
+            try:
+                # Payload conforme requisitos do usuário
+                # O backend usa timezone UTC internamente, mas formatamos para o n8n em Horário de Brasília
+                try:
+                    from zoneinfo import ZoneInfo
+                except ImportError:
+                    from backports.zoneinfo import ZoneInfo
+                
+                br_tz = ZoneInfo('America/Sao_Paulo')
+                date_br = appointment.date.astimezone(br_tz)
+
+                payload = {
+                    "event": "appointment_created",
+                    "appointment_id": str(appointment.id),
+                    "barbershop": {
+                        "name": appointment.barbershop.name,
+                        "phone": appointment.barbershop.phone or appointment.barber.phone or ""
+                    },
+                    "client": {
+                        "name": appointment.client_name,
+                        "phone": getattr(appointment.customer, 'phone', None) or ""
+                    },
+                    "service": {
+                        "name": appointment.service.name
+                    },
+                    "appointment": {
+                        "date": date_br.strftime("%Y-%m-%d"),
+                        "time": date_br.strftime("%H:%M"),
+                        "datetime": date_br.isoformat(),
+                        "timezone": "America/Sao_Paulo"
+                    }
+                }
+
+                url = "https://webhook.autoopera.com.br/webhook/c8691b5e-51a8-47bf-a09a-41918a40eca3"
+                
+                # Timeout de 10s para não deixar a thread pendurada eternamente
+                response = requests.post(url, json=payload, timeout=10)
+                response.raise_for_status()
+                
+            except Exception as e:
+                # Loga o erro sem interromper o fluxo principal de agendamento
+                logger.error(f"Falha ao enviar webhook para n8n: {str(e)}")
+
+        # Executa em uma thread separada para ser assíncrono e não bloquear a resposta do Django
+        thread = threading.Thread(target=task)
+        thread.start()
+
 
 class BookingService:
     @staticmethod

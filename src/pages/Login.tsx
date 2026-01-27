@@ -205,18 +205,6 @@ const LoginPage: React.FC = () => {
                 <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '48px 48px' }} />
             </div>
 
-            {/* Banner Background (se houver) */}
-            {barbershop?.banner && (
-                <div className="absolute inset-0 z-0">
-                    <img 
-                        src={getMediaUrl(barbershop.banner)} 
-                        alt="Background" 
-                        className="w-full h-full object-cover opacity-10 blur-[2px]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent" />
-                </div>
-            )}
-
             <motion.div 
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -227,10 +215,10 @@ const LoginPage: React.FC = () => {
                     {/* Logo Area Prominente */}
                     <div className="mb-10 group relative">
                         <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-colors" />
-                        {barbershop?.banner ? (
-                            <div className="w-35 h-[130px] sm:w-40 sm:h-40 rounded-[35px] overflow-hidden shadow-2xl border-[12px] border-white p-2 bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-700 relative z-10">
+                        {barbershop?.logo ? (
+                            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[35px] overflow-hidden shadow-2xl border-[12px] border-white p-2 bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-700 relative z-10">
                                 <img 
-                                    src={getMediaUrl(barbershop?.banner)} 
+                                    src={getMediaUrl(barbershop?.logo)} 
                                     alt={barbershop.name} 
                                     className="max-w-full max-h-full object-contain"
                                 />

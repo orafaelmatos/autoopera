@@ -22,7 +22,7 @@ from .serializers import (
     ScheduleExceptionSerializer, TransactionSerializer, PromotionSerializer,
     ProductSerializer, BarberSerializer, DailyAvailabilitySerializer
 )
-from .services import BookingService
+from .services import BookingService, WebhookService
 from datetime import datetime
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -224,7 +224,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
     shop_instagram = data.get("instagram", "")
     shop_description = data.get("description", "")
     barber_email = data.get("email") or data.get("barber_email")
-    banner = request.FILES.get("banner")
+    logo = request.FILES.get("logo")
 
     # Validações básicas
     if not all([cpf, password, shop_name, shop_slug, barber_email]):
@@ -303,7 +303,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         address=shop_address,
         instagram=shop_instagram,
         description=shop_description,
-        banner=banner
+        logo=logo
     )
 
     # ===============================
@@ -670,6 +670,10 @@ class AppointmentViewSet(TenantModelViewSet):
                 platform=platform,
                 is_override=is_override
             )
+            
+            # 🚀 Envia Webhook para n8n (Assíncrono)
+            WebhookService.send_appointment_webhook(appointment)
+            
             serializer = self.get_serializer(appointment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -809,6 +813,13 @@ class DailyAvailabilityViewSet(TenantModelViewSet):
         Payload: lista de {date, startTime, endTime, isActive}
         """
         barber = getattr(request.user, 'barber_profile', None)
+        barbershop = getattr(request, 'barbershop', None)
+
+        if not barber:
+            # Se for owner, tenta pegar o primeiro barbeiro da barbearia para gerenciar
+            if barbershop:
+                barber = Barber.objects.filter(barbershop=barbershop).first()
+            
         if not barber:
             return Response({"error": "NOT_A_BARBER"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -828,7 +839,7 @@ class DailyAvailabilityViewSet(TenantModelViewSet):
             serializer = self.get_serializer(data=item)
             try:
                 serializer.is_valid(raise_exception=True)
-                serializer.save(barber=barber, barbershop=barber.barbershop)
+                serializer.save(barber=barber, barbershop=barbershop or barber.barbershop)
                 created.append(serializer.data)
             except DRFValidationError as e:
                 return Response({"error": "VALIDATION_ERROR", "index": idx, "details": e.detail}, status=status.HTTP_400_BAD_REQUEST)
@@ -840,8 +851,15 @@ class DailyAvailabilityViewSet(TenantModelViewSet):
 
     @action(detail=False, methods=['delete'])
     def clear(self, request, *args, **kwargs):
-        """Remove all daily availabilities for the barber on a given date. Expects query param `date=YYYY-MM-DD`."""
+        """Remove all daily availabilities for a given date. Expects query param `date=YYYY-MM-DD`."""
         barber = getattr(request.user, 'barber_profile', None)
+        barbershop = getattr(request, 'barbershop', None)
+
+        if not barber:
+            # Se for owner, tenta pegar o primeiro barbeiro da barbearia para gerenciar
+            if barbershop:
+                barber = Barber.objects.filter(barbershop=barbershop).first()
+
         if not barber:
             return Response({"error": "NOT_A_BARBER"}, status=status.HTTP_403_FORBIDDEN)
 

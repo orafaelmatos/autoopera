@@ -175,7 +175,6 @@ const App: React.FC = () => {
       return {
         name: user.barbershop_name,
         slug: user.barbershop_slug,
-        banner: user.barbershop_banner,
         logo: user.barbershop_logo
       } as any;
     }
@@ -249,6 +248,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+    setIsMobileMenuOpen(false);
     navigate('/login');
     toast.success('Desconectado com sucesso');
   };

@@ -172,7 +172,7 @@ export const dailyAvailabilityApi = {
   sync: (data: any[]) => api.post<any[]>('dailyavailability/sync/', data).then(r => r.data),
   getForDate: (date: string) => api.get<any[]>(`dailyavailability/?date=${date}`).then(r => r.data),
   getForRange: (start: string, end: string) => api.get<any[]>(`dailyavailability/?start=${start}&end=${end}`).then(r => r.data),
-  clearDate: (date: string) => api.delete(`dailyavailability/?date=${date}`).then(r => r.data),
+  clearDate: (date: string) => api.delete(`dailyavailability/clear/?date=${date}`).then(r => r.data),
 };
 
 export default api;

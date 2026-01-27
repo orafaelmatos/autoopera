@@ -337,32 +337,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         </button>
       </header>
 
-      {/* Navegação Elite - Hidden on Schedule as requested */}
-      {activeTab !== 'schedule' && (
-        <div className="px-4">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-primary/5 p-2 rounded-[32px] border border-primary/5">
-            {[
-              { id: 'shop', label: 'BARBEARIA', icon: Building2 },
-              { id: 'profile', label: 'MEU PERFIL', icon: User },
-              { id: 'schedule', label: 'AGENDA & JORNADA', icon: Clock }
-            ].map((tab) => (
-              <button 
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[24px] text-[10px] sm:text-xs font-black italic uppercase tracking-widest transition-all duration-300 ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-primary shadow-[0_12px_24px_-8px_rgba(15,76,92,0.15)] scale-105 z-10' 
-                    : 'text-primary/40 hover:text-primary hover:bg-white/50'
-                }`}
-              >
-                <tab.icon size={18} strokeWidth={activeTab === tab.id ? 3 : 2} />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-12 px-4 whitespace-normal">
         
         {/* Lado Esquerdo - Configurações Principais */}
@@ -371,24 +345,16 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
           {activeTab === 'shop' && (
             /* Perfil da Barbearia */
             <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-                {/* Header Estilizado com Banner e Logo */}
-                <div className="relative h-64 sm:h-80 bg-background overflow-hidden border-b border-primary/5">
-                    {/* Fundo Decorativo do Banner */}
+                {/* Header Estilizado com Logo */}
+                <div className="relative h-48 sm:h-64 bg-background overflow-hidden border-b border-primary/5">
+                    {/* Fundo Decorativo */}
                     <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '32px 32px' }} />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-white" />
                     
-                    {/* Botão para Alterar Banner */}
-                    <div className="absolute top-8 right-8">
-                        <button className="bg-white/90 backdrop-blur-md border border-primary/10 px-6 py-3 rounded-[20px] text-[10px] font-black italic uppercase tracking-widest text-primary hover:text-cta transition-all flex items-center gap-3 shadow-xl">
-                            <Camera size={16} strokeWidth={2.5} />
-                            Alterar Banner Elite
-                        </button>
-                    </div>
-
                     {/* Logo Preview Centralizado e Elevado */}
-                    <div className="absolute -bottom-12 left-10 flex items-end gap-8 h-fit">
+                    <div className="absolute -bottom-10 left-10 flex items-end gap-8 h-fit">
                         <div 
-                            className="w-40 h-40 sm:w-56 sm:h-56 rounded-[40px] bg-white border-[12px] border-white overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] group/logo cursor-pointer relative transition-transform duration-500 hover:scale-105"
+                            className="w-32 h-32 sm:w-48 sm:h-48 rounded-[40px] bg-white border-[12px] border-white overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] group/logo cursor-pointer relative transition-transform duration-500 hover:scale-105"
                             onClick={(e) => { e.stopPropagation(); logoInputRef.current?.click(); }}
                         >
                             {barbershop?.logo ? (
@@ -403,13 +369,13 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-6">Trocar Logo</span>
                             </div>
                         </div>
-                        <div className="mb-20 hidden sm:block">
+                        <div className="mb-14 hidden sm:block">
                             <h3 className="text-3xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2">{shopData.name || 'Sua Barbearia'}</h3>
                             <button 
                                 onClick={() => logoInputRef.current?.click()}
                                 className="text-cta text-[10px] font-black italic uppercase tracking-[0.2em] hover:text-primary transition-colors flex items-center gap-2"
                             >
-                                <Plus size={14} strokeWidth={3} /> Atualizar Identidade
+                                <Plus size={14} strokeWidth={3} /> Atualizar Logotipo
                             </button>
                         </div>
                     </div>
@@ -1028,7 +994,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                  <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic font-title">Master Intelligence</h4>
             </div>
             <p className="text-base text-white/80 leading-relaxed font-black italic uppercase tracking-tight relative z-10 font-title">
-                "Fotos de alta definição no seu <span className="text-cta">Banner</span> e no seu <span className="text-cta">Perfil</span> aumentam a conversão de novos clientes em até 40%."
+                "Um <span className="text-cta">Logotipo</span> profissional e uma boa <span className="text-cta">Descrição</span> aumentam a conversão de novos clientes em até 40%."
             </p>
             <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
                 <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Elite #042</span>

@@ -270,7 +270,7 @@ const CustomerBooking: React.FC = () => {
 
     return (
         <div key="booking-main-content" className="min-h-screen bg-background flex flex-col font-sans">
-            {/* Header / Banner */}
+            {/* Header Stylized */}
             <div className="relative w-full h-[220px] overflow-hidden bg-primary">
                 {/* Background Branding Decorativo */}
                 <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.1]">
@@ -285,22 +285,22 @@ const CustomerBooking: React.FC = () => {
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-50 h-[150px] bg-white/40 rounded-[12px] flex items-center justify-center border border-white/20 shadow-2xl mb-2 mt-7 p-2"
+                        className="w-32 h-32 bg-white rounded-[40px] flex items-center justify-center border-4 border-white/20 shadow-2xl mb-4 mt-7 p-4 overflow-hidden"
                     >
-                        {barbershop?.banner ? (
-                             <img src={getMediaUrl(barbershop.banner)} className="w-full h-full object-contain" />
+                        {barbershop?.logo ? (
+                             <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain" alt="Logo" />
                         ) : (
-                            <Scissors className="text-primary" size={32} />
+                            <Scissors className="text-primary" size={40} />
                         )}
                     </motion.div>
                     <motion.h1 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="text-3xl font-black text-white tracking-tighter italic uppercase font-title"
+                        className="text-2xl sm:text-3xl font-black text-white tracking-tighter italic uppercase font-title leading-tight text-center px-6"
                     >
                         {barbershop?.name || "AUTOOPERA"}
                     </motion.h1>
-                    <p className="text-white font-black text-[10px] tracking-[0.3em] uppercase mt-2 opacity-60 italic">
+                    <p className="text-white font-black text-[9px] sm:text-[10px] tracking-[0.3em] uppercase mt-2 opacity-60 italic text-center px-8 line-clamp-2 max-w-sm">
                         {barbershop?.description || "Estilo & Tradição"}
                     </p>
                 </div>
