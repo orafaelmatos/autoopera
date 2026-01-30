@@ -153,15 +153,15 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
   };
 
   return (
-    <div className="space-y-16 sm:space-y-24 animate-fadeIn max-w-[1400px] mx-auto px-6 sm:px-12 pb-32">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+    <div className="space-y-6 sm:space-y-24 animate-fadeIn max-w-[1400px] mx-auto px-2 sm:px-12 pb-10 sm:pb-32">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-10">
         <div>
-          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title leading-none">Ativos <span className="text-primary/20">&</span> Insumos</h2>
-          <p className="text-[10px] sm:text-xs text-primary/40 mt-6 font-black italic uppercase tracking-[0.4em] font-title italic">Controle patrimonial e gestão de suprimentos premium.</p>
+          <h2 className="text-2xl sm:text-6xl font-black italic uppercase text-primary font-title leading-tight">Ativos <span className="text-primary/20">&</span> Insumos</h2>
+          <p className="text-[10px] sm:text-xs text-primary/40 mt-2 sm:mt-6 font-black italic uppercase tracking-[0.2em] sm:tracking-[0.4em] font-title italic">Controle patrimonial e gestão de suprimentos premium.</p>
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="bg-cta text-white px-10 sm:px-14 py-5 sm:py-6 rounded-[28px] text-[10px] sm:text-xs font-black italic uppercase tracking-[0.4em] flex items-center justify-center gap-4 hover:bg-cta/90 transition-all shadow-2xl shadow-cta/20 active:scale-95 w-full md:w-auto font-title"
+          className="bg-cta text-white px-6 sm:px-14 py-4 sm:py-6 rounded-[20px] sm:rounded-[28px] text-[10px] sm:text-xs font-black italic uppercase tracking-[0.4em] flex items-center justify-center gap-4 hover:bg-cta/90 transition-all shadow-2xl shadow-cta/20 active:scale-95 w-full md:w-auto font-title"
         >
           <Plus size={20} strokeWidth={3} />
           <span>Novo Ativo</span>
@@ -169,44 +169,46 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
       </header>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8">
         <InventoryStatCard 
           title="Capital Imobilizado" 
           value={`R$ ${totalInventoryValue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`} 
-          icon={<DollarSign className="text-cta" size={28} strokeWidth={3} />} 
+          icon={<DollarSign className="text-cta" size={24} strokeWidth={3} />} 
         />
         <InventoryStatCard 
           title="Nível de Alerta" 
           value={lowStockCount.toString()} 
-          icon={<AlertTriangle className={lowStockCount > 0 ? 'text-cta' : 'text-primary/20'} size={28} strokeWidth={3} />} 
+          icon={<AlertTriangle className={lowStockCount > 0 ? 'text-cta' : 'text-primary/20'} size={24} strokeWidth={3} />} 
           highlight={lowStockCount > 0} 
         />
-        <InventoryStatCard 
-          title="Ciclo de Validade" 
-          value={expiringSoonCount.toString()} 
-          icon={<Calendar className={expiringSoonCount > 0 ? 'text-cta' : 'text-primary/20'} size={28} strokeWidth={3} />} 
-          warning={expiringSoonCount > 0} 
-        />
+        <div className="hidden lg:block">
+          <InventoryStatCard 
+            title="Ciclo de Validade" 
+            value={expiringSoonCount.toString()} 
+            icon={<Calendar className={expiringSoonCount > 0 ? 'text-cta' : 'text-primary/20'} size={24} strokeWidth={3} />} 
+            warning={expiringSoonCount > 0} 
+          />
+        </div>
       </div>
 
-      <div className="space-y-12">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+      <div className="space-y-4 sm:space-y-12">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-8">
           <div className="relative flex-1 max-w-xl group">
-            <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={3} />
+            <Search className="absolute left-6 sm:left-8 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} strokeWidth={3} />
             <input 
               type="text" 
-              placeholder="Rastrear produto no dossier..."
+              placeholder="Rastrear produto..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border-2 border-transparent rounded-[32px] pl-20 pr-10 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 outline-none transition-all placeholder:text-primary/10 font-title shadow-xl shadow-primary/[0.02]"
+              className="w-full bg-white border-2 border-transparent rounded-[24px] sm:rounded-[32px] pl-16 pr-6 sm:pl-20 sm:pr-10 py-4 sm:py-6 text-primary font-black italic uppercase text-[10px] sm:text-sm focus:border-cta/20 outline-none transition-all placeholder:text-primary/10 font-title shadow-xl shadow-primary/[0.02]"
             />
           </div>
-          <div className="flex bg-white p-2 rounded-[24px] border border-primary/5 overflow-x-auto no-scrollbar shadow-xl shadow-primary/[0.02]">
+          <div className="flex bg-white p-1 rounded-[20px] border border-primary/5 overflow-x-auto no-scrollbar shadow-xl shadow-primary/[0.02]">
             {(['all', 'consumo', 'venda', 'bar'] as const).map((cat) => (
               <button 
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
-                className={`px-8 py-4 rounded-[20px] text-[10px] font-black italic uppercase tracking-[0.2em] transition-all font-title whitespace-nowrap ${filterCategory === cat ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-primary/30 hover:text-primary'}`}
+                className={`px-4 sm:px-8 py-2 sm:py-4 rounded-[16px] text-[10px] font-black italic uppercase tracking-wider transition-all font-title whitespace-nowrap ${filterCategory === cat ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-primary/30 hover:text-primary'}`}
               >
                 {cat === 'all' ? 'Ver Todos' : cat}
               </button>
@@ -214,16 +216,16 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-xl border border-primary/5 rounded-[48px] overflow-hidden shadow-2xl shadow-primary/[0.02]">
+        <div className="bg-white/80 backdrop-blur-xl border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-2xl shadow-primary/[0.02]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
+            <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[1000px]">
               <thead>
                 <tr className="border-b border-primary/5 bg-background/30">
-                  <th className="px-12 py-8 text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Ativo / Segmento</th>
-                  <th className="px-12 py-8 text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] text-center font-title italic">Status de Estoque</th>
-                  <th className="px-12 py-8 text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Valores (C / V)</th>
-                  <th className="px-12 py-8 text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Performance</th>
-                  <th className="px-12 py-8 text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] text-right font-title italic">Controles</th>
+                  <th className="px-6 py-4 sm:px-12 sm:py-8 text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Ativo / Segmento</th>
+                  <th className="px-6 py-4 sm:px-12 sm:py-8 text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] text-center font-title italic">Estoque</th>
+                  <th className="px-6 py-4 sm:px-12 sm:py-8 text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Valores (C / V)</th>
+                  <th className="px-6 py-4 sm:px-12 sm:py-8 text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] font-title italic">Performance</th>
+                  <th className="px-6 py-4 sm:px-12 sm:py-8 text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.4em] text-right font-title italic">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-primary/5 font-title italic">
@@ -234,48 +236,43 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
 
                   return (
                     <tr key={p.id} className="hover:bg-primary/[0.01] transition-colors group">
-                      <td className="px-12 py-10">
-                        <div className="flex items-center gap-8">
-                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border transition-all duration-500 ${isLow ? 'bg-cta/10 text-cta border-cta/20' : 'bg-background text-primary/20 border-primary/5'}`}>
-                             <Package size={24} strokeWidth={2.5} />
+                      <td className="px-6 py-4 sm:px-12 sm:py-10">
+                        <div className="flex items-center gap-4 sm:gap-8">
+                          <div className={`w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center border transition-all duration-500 ${isLow ? 'bg-cta/10 text-cta border-cta/20' : 'bg-background text-primary/20 border-primary/5'}`}>
+                             <Package size={18} sm:size={24} />
                           </div>
                           <div>
-                            <p className="font-black italic text-primary uppercase text-sm tracking-tight">{p.name}</p>
-                            <p className="text-[10px] text-primary/30 font-black italic uppercase tracking-[0.2em] mt-1">{p.category}</p>
+                            <p className="font-black italic text-primary uppercase text-[10px] sm:text-sm tracking-tight">{p.name}</p>
+                            <p className="text-[8px] sm:text-[10px] text-primary/30 font-black italic uppercase tracking-[0.2em] mt-1">{p.category}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-12 py-10">
+                      <td className="px-6 py-4 sm:px-12 sm:py-10">
                         <div className="flex flex-col items-center">
-                          <span className={`text-xl font-black italic tracking-tighter ${isLow ? 'text-cta' : 'text-primary'}`}>{p.stock}</span>
-                          <div className="w-24 h-2 bg-background rounded-full mt-4 overflow-hidden border border-primary/5 relative">
-                             <div 
-                               className={`h-full rounded-full transition-all duration-1000 ${isLow ? 'bg-cta animate-pulse' : 'bg-primary'}`} 
-                               style={{ width: `${Math.min((p.stock / (p.minStock * 2)) * 100, 100)}%` }}
-                             />
-                          </div>
+                          <span className={`text-base sm:text-xl font-black italic tracking-tighter ${isLow ? 'text-cta' : 'text-primary'}`}>{p.stock}</span>
+                          <span className="text-[8px] sm:text-[9px] text-primary/20 uppercase font-black italic">mín: {p.minStock}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-10">
-                        <div className="flex flex-col gap-2">
-                           <span className="text-primary/30 text-[10px] font-black italic uppercase tracking-widest">C: R$ {p.costPrice.toFixed(2)}</span>
-                           <span className="text-primary text-sm font-black italic">V: {p.salePrice ? `R$ ${p.salePrice.toFixed(2)}` : '--'}</span>
+                      <td className="px-6 py-4 sm:px-12 sm:py-10">
+                        <div className="flex flex-col gap-1">
+                           <span className="text-primary/30 text-[9px] sm:text-[10px] font-black italic uppercase tracking-wider">C: R$ {p.costPrice.toFixed(2)}</span>
+                           <span className="text-primary text-[10px] sm:text-sm font-black italic">V: {p.salePrice ? `R$ ${p.salePrice.toFixed(2)}` : '--'}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-10">
+                      <td className="px-6 py-4 sm:px-12 sm:py-10">
                         {p.salePrice ? (
                           <div>
-                            <p className="text-sm font-black italic text-green-600 tracking-tight uppercase">+ R$ {profit.toFixed(2)}</p>
-                            <span className="text-[10px] text-primary/30 font-black italic uppercase tracking-[0.2em]">{profitMargin.toFixed(0)}% ROI</span>
+                            <p className="text-[10px] sm:text-sm font-black italic text-green-600 tracking-tight uppercase">+ R$ {profit.toFixed(2)}</p>
+                            <span className="text-[8px] sm:text-[10px] text-primary/30 font-black italic uppercase tracking-[0.2em]">{profitMargin.toFixed(0)}% ROI</span>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-primary/20 font-black italic uppercase tracking-[0.3em]">Patrimonial</span>
+                          <span className="text-[8px] sm:text-[10px] text-primary/20 font-black italic uppercase tracking-[0.3em] font-title italic">Patrimonial</span>
                         )}
                       </td>
-                      <td className="px-12 py-10 text-right">
-                        <div className="flex justify-end gap-4 opacity-0 group-hover:opacity-100 transition-all">
-                          <button className="w-12 h-12 flex items-center justify-center bg-background text-primary/20 rounded-2xl hover:text-primary border border-primary/5 shadow-sm transition-all"><Edit2 size={18} strokeWidth={2.5} /></button>
-                          <button onClick={() => handleDeleteProduct(p.id)} className="w-12 h-12 flex items-center justify-center bg-cta/10 text-cta rounded-2xl hover:bg-cta hover:text-white border border-cta/10 transition-all shadow-sm"><Trash2 size={18} strokeWidth={2.5} /></button>
+                      <td className="px-6 py-4 sm:px-12 sm:py-10 text-right">
+                        <div className="flex justify-end gap-2 sm:gap-4 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+                          <button className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center bg-background text-primary/20 rounded-xl sm:rounded-2xl hover:text-primary border border-primary/5 shadow-sm transition-all"><Edit2 size={14} sm:size={18} strokeWidth={2.5} /></button>
+                          <button onClick={() => handleDeleteProduct(p.id)} className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center bg-cta/10 text-cta rounded-xl sm:rounded-2xl hover:bg-cta hover:text-white border border-cta/10 transition-all shadow-sm"><Trash2 size={14} sm:size={18} strokeWidth={2.5} /></button>
                         </div>
                       </td>
                     </tr>
@@ -409,17 +406,17 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
 };
 
 const InventoryStatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean, warning?: boolean }> = ({ title, value, icon, trend, highlight, warning }) => (
-  <div className={`bg-white border p-10 sm:p-12 rounded-[48px] hover:translate-y-[-4px] transition-all group shadow-xl shadow-primary/[0.02] relative overflow-hidden ${highlight ? 'border-cta/30' : warning ? 'border-cta/20' : 'border-primary/5'}`}>
-    <div className="flex justify-between items-start mb-10 relative z-10">
-      <span className="text-primary/30 text-[10px] sm:text-xs font-black italic uppercase tracking-[0.3em] font-title italic leading-none">{title}</span>
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all bg-background border border-primary/5 group-hover:scale-110 duration-500`}>
+  <div className={`bg-white border p-4 sm:p-12 rounded-[24px] sm:rounded-[48px] hover:translate-y-[-4px] transition-all group shadow-xl shadow-primary/[0.02] relative overflow-hidden ${highlight ? 'border-cta/30' : warning ? 'border-cta/20' : 'border-primary/5'}`}>
+    <div className="flex justify-between items-start mb-4 sm:mb-10 relative z-10">
+      <span className="text-primary/30 text-[8px] sm:text-xs font-black italic uppercase tracking-[0.2em] sm:tracking-[0.3em] font-title italic leading-none">{title}</span>
+      <div className={`w-8 h-8 sm:w-14 sm:h-14 rounded-lg sm:rounded-2xl flex items-center justify-center transition-all bg-background border border-primary/5 group-hover:scale-110 duration-500`}>
         {icon}
       </div>
     </div>
     <div className="flex items-end justify-between relative z-10">
-      <div className={`text-3xl sm:text-5xl font-black italic tracking-tighter text-primary font-title`}>{value}</div>
+      <div className={`text-xl sm:text-5xl font-black italic tracking-tighter text-primary font-title`}>{value}</div>
       {trend && (
-        <span className={`text-[10px] font-black italic px-4 py-2 rounded-xl h-fit border ${trend.startsWith('+') ? 'bg-cta/5 text-cta border-cta/10' : 'bg-primary/5 text-primary/20 border-primary/5'} font-title`}>
+        <span className={`text-[8px] sm:text-[10px] font-black italic px-2 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl h-fit border ${trend.startsWith('+') ? 'bg-cta/5 text-cta border-cta/10' : 'bg-primary/5 text-primary/20 border-primary/5'} font-title`}>
           {trend}
         </span>
       )}

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Scissors, Calendar, Clock, ChevronRight, 
-  ChevronLeft, Check, Star, LogOut, Info, ArrowRight,
+  ChevronLeft, Check, Plus, Star, LogOut, Info, ArrowRight,
   CreditCard, Wallet, Camera, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../AuthContext';
@@ -60,7 +60,7 @@ const CustomerBooking: React.FC = () => {
     }, [user]);
 
     const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
-    const [selectedService, setSelectedService] = useState<Service | null>(null);
+    const [selectedServices, setSelectedServices] = useState<Service[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -89,19 +89,22 @@ const CustomerBooking: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (selectedBarber && selectedService && selectedDate) {
+        if (selectedBarber && selectedServices.length > 0 && selectedDate) {
             loadAvailableSlots();
         }
-    }, [selectedBarber, selectedService, selectedDate]);
+    }, [selectedBarber, selectedServices, selectedDate]);
 
     const loadAvailableSlots = async () => {
+        if (!selectedBarber || selectedServices.length === 0) return;
         setLoadingSlots(true);
         setSelectedTime(null);
         try {
             const dateStr = format(selectedDate, 'yyyy-MM-dd');
+            const serviceIds = selectedServices.map(s => s.id).join(',');
+            // API calls now use serviceIds parameter
             const slots = await appointmentsApi.getAvailableSlots(
-                selectedBarber!.id,
-                selectedService!.id,
+                selectedBarber.id,
+                serviceIds,
                 dateStr
             );
             setAvailableSlots(slots);
@@ -113,8 +116,22 @@ const CustomerBooking: React.FC = () => {
         }
     };
 
+    const handleServiceToggle = (service: Service) => {
+        setSelectedServices(prev => {
+            const exists = prev.find(s => s.id === service.id);
+            if (exists) {
+                return prev.filter(s => s.id !== service.id);
+            } else {
+                return [...prev, service];
+            }
+        });
+    };
+
+    const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration + (s.buffer_time || 0), 0);
+    const totalPrice = selectedServices.reduce((acc, s) => acc + s.price, 0);
+
     const handleBooking = async () => {
-        if (!selectedBarber || !selectedService || !selectedTime) return;
+        if (!selectedBarber || selectedServices.length === 0 || !selectedTime) return;
 
         setIsBooking(true);
         const [hours, minutes] = selectedTime.split(':');
@@ -124,7 +141,7 @@ const CustomerBooking: React.FC = () => {
         try {
             await appointmentsApi.create({
                 barberId: selectedBarber.id,
-                serviceId: selectedService.id,
+                serviceIds: selectedServices.map(s => s.id),
                 clientName: profileData.name || 'Cliente',
                 date: appointmentDate.toISOString(),
                 customer: user?.profile_id ? String(user.profile_id) : undefined,
@@ -252,7 +269,13 @@ const CustomerBooking: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black uppercase text-text/30 tracking-widest">Serviço</span>
-                            <span className="text-text font-black font-title italic truncate ml-4 text-right">{selectedService?.name}</span>
+                            <span className="text-text font-black font-title italic truncate ml-4 text-right">
+                                {selectedServices.map(s => s.name).join(', ')}
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-4 border-t border-border">
+                            <span className="text-[10px] font-black uppercase text-text/30 tracking-widest">Total</span>
+                            <span className="text-cta font-black font-title italic text-xl">R$ {totalPrice.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -270,65 +293,57 @@ const CustomerBooking: React.FC = () => {
 
     return (
         <div key="booking-main-content" className="min-h-screen bg-background flex flex-col font-sans">
-            {/* Header Stylized */}
-            <div className="relative w-full h-[220px] overflow-hidden bg-primary">
-                {/* Background Branding Decorativo */}
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.1]">
-                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-white blur-[160px] rounded-full" />
-                    <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #ffffff 1px, transparent 0)', backgroundSize: '48px 48px' }} />
-                </div>
-
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/50 to-background" />
-                
+            {/* Header Clean - Neutro e Flat */}
+            <div className="relative w-full h-[140px] sm:h-[220px] overflow-hidden bg-[#0F4C5C] shrink-0 border-b border-white/5">
                 {/* Logo Centered */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center -mt-6">
+                <div className="absolute inset-0 flex flex-col items-center justify-center -mt-2 sm:-mt-6">
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-32 h-32 bg-white rounded-[40px] flex items-center justify-center border-4 border-white/20 shadow-2xl mb-4 mt-7 p-4 overflow-hidden"
+                        className="w-16 h-16 sm:w-32 sm:h-32 bg-white rounded-2xl sm:rounded-[40px] flex items-center justify-center shadow-2xl mb-2 sm:mb-4 mt-4 sm:mt-7 p-2 sm:p-4 overflow-hidden border border-white/10"
                     >
                         {barbershop?.logo ? (
                              <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain" alt="Logo" />
                         ) : (
-                            <Scissors className="text-primary" size={40} />
+                            <Scissors className="text-primary" size={24} />
                         )}
                     </motion.div>
                     <motion.h1 
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="text-2xl sm:text-3xl font-black text-white tracking-tighter italic uppercase font-title leading-tight text-center px-6"
+                        className="text-lg sm:text-3xl font-black text-white tracking-tighter italic uppercase font-title leading-tight text-center px-6"
                     >
                         {barbershop?.name || "AUTOOPERA"}
                     </motion.h1>
-                    <p className="text-white font-black text-[9px] sm:text-[10px] tracking-[0.3em] uppercase mt-2 opacity-60 italic text-center px-8 line-clamp-2 max-w-sm">
+                    <p className="text-white/50 font-black text-[7px] sm:text-[10px] tracking-[0.3em] uppercase mt-1 sm:mt-2 italic text-center px-8 line-clamp-1 sm:line-clamp-2 max-w-sm">
                         {barbershop?.description || "Estilo & Tradição"}
                     </p>
                 </div>
             </div>
 
-            <main className="flex-1 max-w-2xl w-full mx-auto px-6 pt-8 pb-24 relative z-20">
+            <main className="flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-8 pb-24 relative z-20">
                 {/* Tabs Navigation */}
-                <div className="bg-white rounded-3xl p-1.5 flex gap-1 mb-8 shadow-[0_12px_32px_rgba(15,76,92,0.1)] border border-border/50">
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-1 sm:p-1.5 flex gap-1 mb-4 sm:mb-8 shadow-[0_12px_32px_rgba(15,76,92,0.1)] border border-border/50 relative z-10">
                     <button 
                         onClick={() => setTab('booking')}
-                        className={`flex-1 py-4 px-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'booking' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
+                        className={`flex-1 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'booking' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
                     >
-                        <Calendar size={14} /> Agendar
+                        <Calendar size={12} className="sm:size-[14px]" /> Agendar
                     </button>
                     <button 
                         onClick={() => {
                             setTab('history');
                             loadHistory();
                         }}
-                        className={`flex-1 py-4 px-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'history' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
+                        className={`flex-1 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'history' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
                     >
-                        <Clock size={14} /> Histórico
+                        <Clock size={12} className="sm:size-[14px]" /> Histórico
                     </button>
                     <button 
                          onClick={() => setTab('profile')}
-                        className={`flex-1 py-4 px-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'profile' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
+                        className={`flex-1 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'profile' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
                     >
-                        <User size={14} /> Perfil
+                        <User size={12} className="sm:size-[14px]" /> Perfil
                     </button>
                 </div>
 
@@ -340,55 +355,57 @@ const CustomerBooking: React.FC = () => {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
                         >
-                            <div className="flex justify-between items-center mb-8">
-                                <div className="space-y-1">
-                                    <h2 className="text-2xl font-black text-text tracking-tighter font-title italic uppercase">
-                                    {step === 1 && "PROFISSIONAIS"}
+                            
+
+                            <div className="flex justify-between items-center mb-4 sm:mb-8">
+                                <div className="space-y-0.5">
+                                    <h2 className="text-xl sm:text-2xl font-black text-text tracking-tighter font-title italic uppercase">
+                                        {step === 1 && "PROFISSIONAIS"}
                                         {step === 2 && "SERVIÇOS"}
                                         {step === 3 && "AGENDA"}
                                     </h2>
-                                    <p className="text-text/30 text-[10px] font-black uppercase tracking-widest">Etapa {step} de 3</p>
+                                    <p className="text-text/30 text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Etapa {step} de 3</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 sm:gap-2">
                                     {[1, 2, 3].map(i => (
-                                        <div key={i} className={`h-1.5 rounded-full transition-all duration-700 ${step >= i ? 'w-8 bg-primary shadow-[0_0_10px_rgba(15,76,92,0.2)]' : 'w-2 bg-border'}`} />
+                                        <div key={i} className={`h-1 sm:h-1.5 rounded-full transition-all duration-700 ${step >= i ? 'w-6 sm:w-8 bg-primary shadow-sm' : 'w-1.5 sm:w-2 bg-border'}`} />
                                     ))}
                                 </div>
                             </div>
 
                             <AnimatePresence mode="wait">
                                 {step === 1 && (
-                                    <motion.div key="step1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
+                                    <motion.div key="step1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-3 sm:space-y-4">
                                         {barbers.map(barber => (
                                             <button 
                                                 key={barber.id}
                                                 onClick={() => { setSelectedBarber(barber); setStep(2); }}
-                                                className="w-full bg-white p-5 rounded-[32px] border border-border flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl hover:border-primary/20 shadow-sm"
+                                                className="w-full bg-white p-3 sm:p-5 rounded-2xl sm:rounded-[32px] border border-border flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl hover:border-primary/20 shadow-sm"
                                             >
-                                                <div className="flex items-center gap-5">
-                                                    <div className="relative w-20 h-20 flex-shrink-0">
+                                                <div className="flex items-center gap-3 sm:gap-5">
+                                                    <div className="relative w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0">
                                                         <img 
                                                             src={barber.profile_picture ? getMediaUrl(barber.profile_picture) : "https://via.placeholder.com/150"} 
-                                                            className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 shadow-md"
+                                                            className="w-full h-full object-cover rounded-xl sm:rounded-2xl group-hover:scale-105 transition-transform duration-500 shadow-md"
                                                         />
-                                                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-cta rounded-lg flex items-center justify-center shadow-lg border-2 border-white">
-                                                            <Star size={12} className="text-white fill-white" />
+                                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-cta rounded-lg flex items-center justify-center shadow-lg border-2 border-white">
+                                                            <Star size={10} className="text-white fill-white sm:size-[12px]" />
                                                         </div>
                                                     </div>
                                                     <div className="text-left">
-                                                        <p className="font-black text-text text-xl leading-tight uppercase italic font-title">{barber.name}</p>
-                                                        <div className="mt-2 flex flex-col gap-1.5">
+                                                        <p className="font-black text-text text-base sm:text-xl leading-tight uppercase italic font-title">{barber.name}</p>
+                                                        <div className="mt-1 sm:mt-2 flex flex-col gap-1 sm:gap-1.5">
                                                             <div className="flex items-center gap-1">
-                                                                <span className="text-[10px] font-black text-cta uppercase tracking-widest italic">Especialista Master</span>
+                                                                <span className="text-[8px] sm:text-[10px] font-black text-cta uppercase tracking-widest italic">Especialista Master</span>
                                                             </div>
                                                             {barber.description && (
-                                                                <p className="text-[11px] text-text/40 line-clamp-2 max-w-[180px] font-medium leading-relaxed italic">"{barber.description}"</p>
+                                                                <p className="text-[9px] sm:text-[11px] text-text/40 line-clamp-1 sm:line-clamp-2 max-w-[150px] sm:max-w-[180px] font-medium leading-relaxed italic">"{barber.description}"</p>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center text-text/10 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
-                                                    <ChevronRight size={24} />
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-background flex items-center justify-center text-text/10 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                                                    <ChevronRight size={20} className="sm:size-[24px]" />
                                                 </div>
                                             </button>
                                         ))}
@@ -396,56 +413,99 @@ const CustomerBooking: React.FC = () => {
                                 )}
 
                                 {step === 2 && (
-                                    <motion.div key="step2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
-                                        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-text/30 hover:text-text font-black text-[10px] uppercase tracking-widest mb-4 transition-colors italic">
-                                            <ChevronLeft size={16} /> Voltar aos Profissionais
+                                    <motion.div key="step2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4 sm:space-y-6 pb-32">
+                                        <button onClick={() => setStep(1)} className="flex items-center gap-2 text-text/30 hover:text-text font-black text-[9px] sm:text-[10px] uppercase tracking-widest mb-2 sm:mb-4 transition-colors italic">
+                                            <ChevronLeft size={14} className="sm:size-[16px]" /> Voltar aos Profissionais
                                         </button>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            {services.map(service => (
-                                                <button 
-                                                    key={service.id}
-                                                    onClick={() => { setSelectedService(service); setStep(3); }}
-                                                    className="w-full bg-white p-6 rounded-[32px] border border-border flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl hover:border-primary/20 shadow-sm"
-                                                >
-                                                    <div className="text-left space-y-2">
-                                                        <p className="font-black text-text text-lg uppercase italic font-title tracking-tight">{service.name}</p>
-                                                        <div className="flex items-center gap-4">
-                                                            <span className="text-[10px] font-black text-text/20 uppercase tracking-widest">{service.duration} MIN</span>
-                                                            <span className="text-lg font-black text-primary italic font-title">R$ {service.price}</span>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                            {services.map(service => {
+                                                const isSelected = selectedServices.some(s => s.id === service.id);
+                                                return (
+                                                    <button 
+                                                        key={service.id}
+                                                        onClick={() => handleServiceToggle(service)}
+                                                        className={`w-full p-4 sm:p-6 rounded-2xl sm:rounded-[32px] border flex items-center justify-between group active:scale-[0.98] transition-all shadow-sm ${
+                                                            isSelected ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20' : 'bg-white border-border hover:shadow-xl hover:border-primary/20'
+                                                        }`}
+                                                    >
+                                                        <div className="text-left space-y-1 sm:space-y-2">
+                                                            <p className={`font-black text-sm sm:text-lg uppercase italic font-title tracking-tight ${isSelected ? 'text-white' : 'text-text'}`}>{service.name}</p>
+                                                            <div className="flex items-center gap-3 sm:gap-4">
+                                                                <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white/60' : 'text-text/20'}`}>{service.duration} MIN</span>
+                                                                <span className={`text-base sm:text-lg font-black italic font-title ${isSelected ? 'text-white' : 'text-primary'}`}>R$ {service.price}</span>
+                                                            </div>
                                                         </div>
+                                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-colors ${isSelected ? 'bg-white/20 text-white' : 'bg-background text-text/10 group-hover:bg-primary group-hover:text-white'}`}>
+                                                            {isSelected ? <Check size={16} strokeWidth={3} className="sm:size-[20px]" /> : <Plus size={16} strokeWidth={3} className="sm:size-[20px]" />}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Barra de Carrinho flutuante - Compacta */}
+                                        <div className="fixed bottom-6 left-4 right-4 sm:bottom-10 sm:left-6 sm:right-6 z-50">
+                                            <button 
+                                                disabled={selectedServices.length === 0}
+                                                onClick={() => setStep(3)}
+                                                className={`w-full max-w-2xl mx-auto flex items-center justify-between p-4 sm:p-6 rounded-2xl sm:rounded-[32px] shadow-2xl transition-all active:scale-95 ${
+                                                    selectedServices.length > 0 
+                                                    ? 'bg-cta text-white opacity-100' 
+                                                    : 'bg-white/80 backdrop-blur text-text/20 opacity-50 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3 sm:gap-4">
+                                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                                                        <Scissors size={18} className="sm:size-[20px]" />
                                                     </div>
-                                                    <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                                                        <ArrowRight size={20} className="text-text/10 group-hover:text-white" />
+                                                    <div className="text-left">
+                                                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] opacity-60 block">Serviços Selecionados</span>
+                                                        <span className="text-xs sm:text-sm font-black italic font-title uppercase">{selectedServices.length} {selectedServices.length === 1 ? 'item' : 'itens'}</span>
                                                     </div>
-                                                </button>
-                                            ))}
+                                                </div>
+                                                <div className="flex items-center gap-4 sm:gap-6">
+                                                    <div className="text-right">
+                                                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] opacity-60 block">Total</span>
+                                                        <span className="text-sm sm:text-lg font-black italic font-title uppercase">R$ {totalPrice.toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white text-cta rounded-xl sm:rounded-2xl flex items-center justify-center">
+                                                        <ArrowRight size={20} strokeWidth={3} className="sm:size-[24px]" />
+                                                    </div>
+                                                </div>
+                                            </button>
                                         </div>
                                     </motion.div>
                                 )}
 
                                 {step === 3 && (
-                                    <motion.div key="step3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8 pb-24">
+                                    <motion.div key="step3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-2 pb-24">
                                         <button onClick={() => setStep(2)} className="flex items-center gap-2 text-text/30 hover:text-text font-black text-[10px] uppercase tracking-widest transition-colors italic">
                                             <ChevronLeft size={16} /> Outros Serviços
                                         </button>
 
-                                        {/* Review Selected */}
-                                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-6 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-primary">
-                                                    <Scissors size={20} />
+                                        {/* Review Selected - Compacto */}
+                                        <div className="bg-primary/5 border border-primary/10 rounded-2xl sm:rounded-[32px] p-4 sm:p-6 flex items-center justify-between">
+                                            <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center shadow-sm text-primary">
+                                                    <Scissors size={18} className="sm:size-[20px]" />
                                                 </div>
-                                                <div>
-                                                    <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.2em] mb-0.5">Profissional {selectedBarber?.name}</p>
-                                                    <h4 className="text-sm font-black text-text uppercase italic font-title">{selectedService?.name}</h4>
+                                                <div className="overflow-hidden">
+                                                    <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-text/30 italic">Confirmando Serviços</p>
+                                                    <p className="text-xs sm:text-lg font-black italic font-title text-text uppercase leading-tight truncate">
+                                                        {selectedServices.map(s => s.name).join(', ')}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <p className="text-sm font-black text-primary italic font-title">R$ {selectedService?.price}</p>
+                                            <div className="text-right flex-shrink-0 pl-2">
+                                                <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-text/30 italic">Total</p>
+                                                <p className="text-base sm:text-xl font-black italic font-title text-primary uppercase leading-tight">R$ {totalPrice.toFixed(2)}</p>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <label className="text-[10px] font-black text-text/30 uppercase tracking-[0.2em] ml-2">Escolha a Data</label>
-                                            <div className="flex gap-3 overflow-x-auto pb-4 px-2 scrollbar-hide">
+                                        <div className="space-y-3 sm:space-y-4">
+                                            <label className="text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] ml-2 italic">Escolha a Data</label>
+                                            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-4 px-1 scrollbar-hide">
                                                 {[...Array(14)].map((_, i) => {
                                                     const date = addDays(startOfToday(), i);
                                                     const isActive = isSameDay(date, selectedDate);
@@ -453,36 +513,36 @@ const CustomerBooking: React.FC = () => {
                                                         <button 
                                                             key={i}
                                                             onClick={() => setSelectedDate(date)}
-                                                            className={`flex flex-col items-center justify-center min-w-[75px] aspect-[4/5] rounded-[24px] transition-all border-2 active:scale-95 ${
+                                                            className={`flex flex-col items-center justify-center min-w-[65px] sm:min-w-[75px] aspect-[4/5] rounded-xl sm:rounded-[24px] transition-all border-2 active:scale-95 ${
                                                                 isActive 
                                                                 ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-105' 
                                                                 : 'bg-white border-border text-text/30 hover:border-primary/20'
                                                             }`}
                                                         >
-                                                            <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white/60' : 'text-text/20'}`}>
+                                                            <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white/60' : 'text-text/20'}`}>
                                                                 {isSameDay(date, startOfToday()) ? 'HOJE' : isTomorrow(date) ? 'AMN' : format(date, 'EEE', { locale: ptBR }).toUpperCase()}
                                                             </span>
-                                                            <span className="text-xl font-black font-title italic uppercase">{format(date, 'dd')}</span>
+                                                            <span className="text-lg sm:text-xl font-black font-title italic uppercase">{format(date, 'dd')}</span>
                                                         </button>
                                                     );
                                                 })}
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <label className="text-[10px] font-black text-text/30 uppercase tracking-[0.2em] ml-2">Horários Disponíveis</label>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            <label className="text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] ml-2 italic">Horários Disponíveis</label>
                                             {loadingSlots ? (
-                                                <div className="flex flex-col items-center py-12 gap-3">
-                                                    <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                                                    <p className="text-[10px] uppercase font-black text-text/20 tracking-[0.3em] italic">Consultando Agenda...</p>
+                                                <div className="flex flex-col items-center py-8 sm:py-12 gap-3">
+                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                                    <p className="text-[8px] sm:text-[10px] uppercase font-black text-text/20 tracking-[0.3em] italic">Consultando Agenda...</p>
                                                 </div>
                                             ) : availableSlots.length > 0 ? (
-                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 px-2">
+                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 px-1">
                                                     {availableSlots.map(time => (
                                                         <button 
                                                             key={time}
                                                             onClick={() => setSelectedTime(time)}
-                                                            className={`py-4 rounded-2xl font-black text-xs transition-all border-2 tracking-tighter italic font-title ${
+                                                            className={`py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs transition-all border-2 tracking-tighter italic font-title ${
                                                                 selectedTime === time 
                                                                 ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105' 
                                                                 : 'bg-white border-border text-text/60 hover:border-primary/20 active:bg-background'
@@ -493,12 +553,12 @@ const CustomerBooking: React.FC = () => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="p-12 bg-white border-2 border-dashed border-border rounded-[40px] text-center space-y-4">
-                                                    <Info size={32} className="text-text/10 mx-auto" />
-                                                    <p className="text-[10px] font-black text-text/30 uppercase tracking-widest italic">A agenda do profissional está cheia neste dia.</p>
+                                                <div className="p-8 sm:p-12 bg-white border-2 border-dashed border-border rounded-2xl sm:rounded-[40px] text-center space-y-4">
+                                                    <Info size={24} className="text-text/10 mx-auto sm:size-[32px]" />
+                                                    <p className="text-[9px] sm:text-[10px] font-black text-text/30 uppercase tracking-widest italic">A agenda do profissional está cheia neste dia.</p>
                                                     <button
                                                         onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-                                                        className="px-6 py-3 bg-primary/5 text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm italic"
+                                                        className="px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm italic"
                                                     >
                                                         Ver Próxima Data
                                                     </button>
@@ -509,22 +569,24 @@ const CustomerBooking: React.FC = () => {
                                 )}
                             </AnimatePresence>
 
-                            {/* Confirm Action Bar (Step 3 only) */}
+                            {/* Confirm Action Bar (Step 3 only) - Compacto */}
                             {step === 3 && selectedTime && (
-                                <div className="fixed bottom-0 left-0 right-0 p-6 bg-background/80 backdrop-blur-xl border-t border-border z-40 max-w-2xl mx-auto flex items-center gap-4">
+                                <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-background/80 backdrop-blur-xl border-t border-border z-40 max-w-2xl mx-auto flex items-center gap-4">
                                     <div className="flex-1">
-                                        <p className="text-[9px] font-black text-text/30 uppercase tracking-[0.3em] mb-1 italic">Valor Total</p>
-                                        <h3 className="text-xl font-black text-text leading-none italic font-title">R$ {selectedService?.price}</h3>
+                                        <p className="text-[8px] sm:text-[9px] font-black text-text/30 uppercase tracking-[0.3em] mb-1 italic">
+                                            {selectedServices.length} {selectedServices.length === 1 ? 'SERVIÇO' : 'SERVIÇOS'}
+                                        </p>
+                                        <h3 className="text-lg sm:text-xl font-black text-text leading-none italic font-title">R$ {totalPrice.toFixed(2)}</h3>
                                     </div>
                                     <button 
                                         onClick={handleBooking}
                                         disabled={isBooking}
-                                        className="flex-[2] bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-[0.98]"
+                                        className="flex-[2] bg-cta text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-30 active:scale-[0.98]"
                                     >
                                         {isBooking ? (
-                                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                         ) : (
-                                            <>Confirmar Agora <CheckCircle2 size={18} /></>
+                                            <>Confirmar <CheckCircle2 size={16} className="sm:size-[18px]" /></>
                                         )}
                                     </button>
                                 </div>
@@ -574,12 +636,12 @@ const CustomerBooking: React.FC = () => {
 
                                             <div className="grid grid-cols-2 gap-4 mb-6">
                                                 <div className="bg-background p-4 rounded-2xl shadow-inner border border-border/40">
-                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Serviço</p>
-                                                    <p className="text-xs font-black text-text truncate uppercase italic font-title">{appointment.service_name}</p>
+                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Serviços</p>
+                                                    <p className="text-xs font-black text-text truncate uppercase italic font-title">{appointment.service_names}</p>
                                                 </div>
                                                 <div className="bg-background p-4 rounded-2xl shadow-inner border border-border/40">
-                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Valor</p>
-                                                    <p className="text-xs font-black text-primary italic font-title">R$ {appointment.service_price || '0.00'}</p>
+                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Total</p>
+                                                    <p className="text-xs font-black text-primary italic font-title">R$ {appointment.total_price || '0.00'}</p>
                                                 </div>
                                             </div>
 

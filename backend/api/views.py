@@ -487,6 +487,7 @@ def get_me(request, **kwargs):
             'description': barber.description,
             'barbershop_slug': barber.barbershop.slug if barber.barbershop else None,
             'barbershop_name': barber.barbershop.name if barber.barbershop else None,
+            'barbershop_onboarding_completed': barber.barbershop.onboarding_completed if barber.barbershop else True,
             'barbershop_banner': barber.barbershop.banner.url if barber.barbershop and barber.barbershop.banner else None,
             'barbershop_logo': barber.barbershop.logo.url if barber.barbershop and barber.barbershop.logo else None,
         }
@@ -630,6 +631,13 @@ class AppointmentViewSet(TenantModelViewSet):
                 barber_id = first_barber.id
         
         service_id = request.data.get('serviceId')
+        service_ids = request.data.get('serviceIds')
+        
+        if not service_ids and service_id:
+            service_ids = service_id.split(',') if isinstance(service_id, str) else [service_id]
+        elif service_ids and isinstance(service_ids, str):
+            service_ids = service_ids.split(',')
+
         customer_id = request.data.get('customer')
         client_name = request.data.get('clientName')
         client_phone = request.data.get('clientPhone')
@@ -637,7 +645,7 @@ class AppointmentViewSet(TenantModelViewSet):
         platform = request.data.get('platform', 'manual')
         is_override = request.data.get('isOverride', False)
 
-        if not all([barber_id, service_id, client_name, date_str]):
+        if not all([barber_id, service_ids, client_name, date_str]):
             return Response({"error": "MISSING_FIELDS"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Se não tem customer_id mas tem telefone, tenta vincular ou criar cliente
@@ -663,7 +671,7 @@ class AppointmentViewSet(TenantModelViewSet):
             appointment = BookingService.create_appointment(
                 barbershop=barbershop,
                 barber_id=barber_id,
-                service_id=service_id,
+                service_ids=service_ids,
                 customer_id=customer_id,
                 client_name=client_name,
                 start_time=date_obj,
@@ -706,14 +714,20 @@ class AppointmentViewSet(TenantModelViewSet):
         barbershop = request.barbershop
         barber_id = request.query_params.get('barberId')
         service_id = request.query_params.get('serviceId')
+        service_ids = request.query_params.get('serviceIds')
         date_str = request.query_params.get('date')
 
-        if not all([barber_id, service_id, date_str]):
+        if not service_ids and service_id:
+            service_ids = service_id.split(',') if isinstance(service_id, str) else [service_id]
+        elif service_ids:
+            service_ids = service_ids.split(',') if isinstance(service_ids, str) else service_ids
+
+        if not all([barber_id, service_ids, date_str]):
             return Response({"error": "MISSING_PARAMS"}, status=400)
 
         try:
             target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            slots = BookingService.get_available_slots(barbershop, barber_id, service_id, target_date)
+            slots = BookingService.get_available_slots(barbershop, barber_id, service_ids, target_date)
             return Response([s.strftime('%H:%M') for s in slots])
         except Exception as e:
             import traceback

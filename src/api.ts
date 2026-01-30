@@ -127,8 +127,8 @@ export const customersApi = {
 export const appointmentsApi = {
   getAll: () => api.get<Appointment[]>('appointments/').then(r => r.data),
   getToday: () => api.get<Appointment[]>('appointments/today/').then(r => r.data),
-  getAvailableSlots: (barberId: string, serviceId: string, date: string) => 
-    api.get<string[]>('appointments/available_slots/', { params: { barberId, serviceId, date } }).then(r => r.data),
+  getAvailableSlots: (barberId: string, serviceIds: string, date: string) => 
+    api.get<string[]>('appointments/available_slots/', { params: { barberId, serviceIds, date } }).then(r => r.data),
   create: (data: Partial<Appointment>) => api.post<Appointment>('appointments/', data).then(r => r.data),
   update: (id: string, data: Partial<Appointment>) => api.patch<Appointment>(`appointments/${id}/`, data).then(r => r.data),
   delete: (id: string) => api.delete(`appointments/${id}/`),

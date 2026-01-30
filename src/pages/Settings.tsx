@@ -19,11 +19,12 @@ interface Props {
   setAvailability: (a: Availability[]) => void;
   barbershop: Barbershop | null;
   setBarbershop: (b: Barbershop) => void;
+  setHasDailyAvailability?: (v: boolean) => void;
 }
 
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbershop, setBarbershop }) => {
+const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbershop, setBarbershop, setHasDailyAvailability }) => {
   const { user, refreshUser } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'shop' | 'profile' | 'schedule'>('shop');
@@ -140,6 +141,11 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         map[d.date].push(d);
       });
       setAvailMap(map);
+      
+      // Atualiza o estado de configuração no App principal se encontrar horários
+      if (setHasDailyAvailability && res.length > 0) {
+        setHasDailyAvailability(true);
+      }
     } catch (err) {
       setAvailMap({});
     }
@@ -317,93 +323,84 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   };
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
+    <div className="space-y-4 sm:space-y-12 animate-fadeIn max-w-[1400px] mx-auto pb-10 sm:pb-32 px-1 sm:px-0">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 px-1 sm:px-4">
         <div>
-          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-2">
+          <h2 className="text-2xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-1 sm:mb-2">
             Configurações <span className="text-cta">Elite</span>
           </h2>
-          <div className="flex items-center gap-3">
-             <div className="h-[2px] w-12 bg-cta/30 rounded-full" />
-             <p className="text-primary/60 font-black italic text-xs sm:text-sm uppercase tracking-widest font-title">Gestão de Identidade & Fluxo</p>
+          <div className="flex items-center gap-2 sm:gap-3">
+             <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
+             <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Gestão de Identidade & Fluxo</p>
           </div>
         </div>
         <button 
           onClick={handleSaveAvailability}
-          className="bg-primary text-white px-8 sm:px-10 py-5 sm:py-6 rounded-[24px] text-xs sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-[0_20px_40px_-10px_rgba(15,76,92,0.3)] active:scale-95 font-title group"
+          className="bg-primary text-white px-6 sm:px-10 py-4 sm:py-6 rounded-[20px] sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title group"
         >
-          <Save size={20} strokeWidth={3} className="group-hover:scale-110 transition-transform duration-500" />
+          <Save size={18} sm:size={20} strokeWidth={3} />
           <span>Salvar Alterações</span>
         </button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-12 px-4 whitespace-normal">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-12 px-1 sm:px-4">
         
         {/* Lado Esquerdo - Configurações Principais */}
         <div className="xl:col-span-8 space-y-8 sm:space-y-12">
           
           {activeTab === 'shop' && (
             /* Perfil da Barbearia */
-            <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+            <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
                 {/* Header Estilizado com Logo */}
-                <div className="relative h-48 sm:h-64 bg-background overflow-hidden border-b border-primary/5">
+                <div className="relative h-32 sm:h-64 bg-background overflow-hidden border-b border-primary/5">
                     {/* Fundo Decorativo */}
                     <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '32px 32px' }} />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-white" />
                     
                     {/* Logo Preview Centralizado e Elevado */}
-                    <div className="absolute -bottom-10 left-10 flex items-end gap-8 h-fit">
+                    <div className="absolute -bottom-6 sm:-bottom-10 left-6 sm:left-10 flex items-end gap-4 sm:gap-8 h-fit">
                         <div 
-                            className="w-32 h-32 sm:w-48 sm:h-48 rounded-[40px] bg-white border-[12px] border-white overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] group/logo cursor-pointer relative transition-transform duration-500 hover:scale-105"
+                            className="w-20 h-20 sm:w-48 sm:h-48 rounded-2xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden shadow-xl group/logo cursor-pointer relative transition-transform duration-500"
                             onClick={(e) => { e.stopPropagation(); logoInputRef.current?.click(); }}
                         >
                             {barbershop?.logo ? (
-                                <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain p-4 transition-transform duration-700 group-hover/logo:scale-110" />
+                                <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain p-2 sm:p-4 transition-transform duration-700 group-hover/logo:scale-110" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-background">
-                                    <Building2 size={64} className="text-primary/10" />
+                                    <Building2 size={32} sm:size={64} className="text-primary/10" />
                                 </div>
                             )}
                             <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                <Camera size={32} className="text-white mb-2" strokeWidth={3} />
-                                <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-6">Trocar Logo</span>
+                                <Camera size={24} sm:size={32} className="text-white mb-2" strokeWidth={3} />
+                                <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
                             </div>
-                        </div>
-                        <div className="mb-14 hidden sm:block">
-                            <h3 className="text-3xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2">{shopData.name || 'Sua Barbearia'}</h3>
-                            <button 
-                                onClick={() => logoInputRef.current?.click()}
-                                className="text-cta text-[10px] font-black italic uppercase tracking-[0.2em] hover:text-primary transition-colors flex items-center gap-2"
-                            >
-                                <Plus size={14} strokeWidth={3} /> Atualizar Logotipo
-                            </button>
                         </div>
                     </div>
                     <input type="file" ref={logoInputRef} className="hidden" onChange={(e) => handleFileChange('logo', e)} accept="image/*" />
                 </div>
 
-                <div className="pt-24 p-8 sm:p-16 space-y-12">
+                <div className="pt-12 sm:pt-24 p-4 sm:p-16 space-y-6 sm:space-y-12">
                     {/* Informativo de Identidade Visual */}
-                    <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 flex items-start gap-6">
-                        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-cta shrink-0 shadow-lg">
-                            <Sparkles size={24} strokeWidth={2.5} />
+                    <div className="bg-primary/5 border border-primary/10 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 flex items-start gap-4 sm:gap-6">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-cta shrink-0 shadow-lg">
+                            <Sparkles size={20} sm:size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade de Elite</h4>
-                            <p className="text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest">Sua marca é o primeiro contato do cliente. Mantenha-a impecável no fluxo.</p>
+                            <h4 className="text-sm sm:text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade de Elite</h4>
+                            <p className="text-[10px] sm:text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest font-title italic">Marca impecável no fluxo Elite.</p>
                         </div>
                     </div>
 
                     {/* Link da Agenda */}
-                    <div className="bg-background border border-primary/5 rounded-[40px] p-8 sm:p-10 relative overflow-hidden group">
+                    <div className="bg-background border border-primary/5 rounded-2xl sm:rounded-[40px] p-4 sm:p-10 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:scale-110 transition-transform">
-                            <Link2 size={120} className="text-primary" />
+                            <Link2 size={80} sm:size={120} className="text-primary" />
                         </div>
-                        <div className="relative z-10 flex flex-col gap-6">
+                        <div className="relative z-10 flex flex-col gap-4">
                             <div>
-                              <label className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em] mb-4 block">Link Público da Agenda</label>
-                              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                                  <div className="flex-1 bg-white border-2 border-primary/5 px-8 py-5 rounded-[24px] text-primary font-black italic text-sm sm:text-base truncate shadow-inner">
+                              <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-widest mb-2 sm:mb-4 block">Link Público da Agenda</label>
+                              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                                  <div className="flex-1 bg-white border-2 border-primary/5 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[24px] text-primary font-black italic text-xs sm:text-base truncate shadow-inner">
                                       {`${window.location.host}/b/${shopData.slug}/booking`}
                                   </div>
                                   <button 
@@ -411,10 +408,10 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                           navigator.clipboard.writeText(`${window.location.origin}/b/${shopData.slug}/booking`);
                                           toast.success("Link Elite Copiado!");
                                       }}
-                                      className="bg-cta text-white font-black italic px-10 py-5 rounded-[24px] hover:bg-[#D35400] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 text-xs uppercase tracking-[0.2em]"
+                                      className="bg-cta text-white font-black italic px-6 py-3 sm:py-5 rounded-xl sm:rounded-[24px] hover:bg-[#D35400] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest"
                                   >
-                                      <ExternalLink size={20} strokeWidth={2.5} />
-                                      <span>Copiar Flow Link</span>
+                                      <ExternalLink size={16} sm:size={20} strokeWidth={2.5} />
+                                      <span>Copiar Link</span>
                                   </button>
                               </div>
                             </div>
@@ -468,81 +465,81 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
             <motion.section 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]"
+              className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]"
             >
-                <div className="p-8 sm:p-16 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent">
-                    <div className="flex flex-col sm:flex-row items-center gap-12">
+                <div className="p-4 sm:p-16 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-12 text-center sm:text-left">
                         {/* Foto de Perfil */}
                         <div 
                             className="relative group cursor-pointer" 
                             onClick={() => profilePicInputRef.current?.click()}
                         >
-                            <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-[40px] bg-white border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-[0_24px_48px_-12px_rgba(15,76,92,0.25)] transition-transform duration-500 hover:scale-105">
+                            <div className="w-24 h-24 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-xl transition-all duration-500 hover:scale-105">
                                 {user?.profile_picture ? (
                                     <img src={getMediaUrl(user.profile_picture)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                 ) : (
-                                    <User size={80} className="text-primary/10" />
+                                    <User size={32} className="sm:size-[80px] text-primary/10" />
                                 )}
                                 <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <Camera size={28} className="text-white mb-2" strokeWidth={3} />
-                                    <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-6">Identidade</span>
+                                    <Camera size={20} className="sm:size-[28px] text-white mb-2" strokeWidth={3} />
+                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
                                 </div>
                             </div>
                             <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
                         </div>
 
-                        <div className="flex-1 text-center sm:text-left">
-                            <h3 className="text-3xl sm:text-5xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-3">{user?.name || 'Mestre Barbeiro'}</h3>
-                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-6">
-                              <span className="px-5 py-2 bg-primary text-white rounded-full text-[10px] font-black italic uppercase tracking-widest shadow-lg shadow-primary/20 font-title">
+                        <div className="flex-1">
+                            <h3 className="text-2xl sm:text-5xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2 sm:mb-3">{user?.name || 'Mestre Barbeiro'}</h3>
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 mt-2 sm:mt-6">
+                              <span className="px-4 sm:px-5 py-1.5 sm:py-2 bg-primary text-white rounded-full text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest shadow-lg shadow-primary/20 font-title">
                                 Barbeiro Elite
                               </span>
-                              <div className="px-5 py-2 bg-background border border-primary/5 rounded-full inline-flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                  <span className="text-[10px] font-black italic text-primary uppercase tracking-[0.2em] font-title">Online no Fluxo</span>
+                              <div className="px-4 sm:px-5 py-1.5 sm:py-2 bg-background border border-primary/5 rounded-full inline-flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                  <span className="text-[8px] sm:text-[10px] font-black italic text-primary uppercase tracking-[0.2em] font-title">Online no Fluxo</span>
                               </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-8 sm:p-16 space-y-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="p-4 sm:p-16 space-y-6 sm:space-y-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10">
                         <div>
-                            <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Seu Nome de Elite</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu Nome de Elite</label>
                             <div className="relative group">
-                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={profileData.name}
                                     onChange={e => setProfileData({...profileData, name: e.target.value})}
-                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
+                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
                             <div className="relative group">
-                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
                                 <input 
                                     type="email"
                                     value={profileData.email}
                                     onChange={e => setProfileData({...profileData, email: e.target.value})}
-                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
+                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
+                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
                         <div className="relative group">
-                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
                             <textarea 
                                 value={profileData.description || ''}
                                 onChange={e => setProfileData({...profileData, description: e.target.value})}
-                                rows={5}
-                                className="w-full bg-background border-2 border-transparent rounded-[32px] pl-16 pr-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[140px] font-title"
+                                rows={4}
+                                className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[32px] pl-16 pr-6 sm:pr-8 py-4 sm:py-6 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[100px] sm:min-h-[140px] font-title"
                             />
                         </div>
                     </div>
@@ -554,17 +551,17 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
                animate={{ opacity: 1, y: 0 }}
-               className="space-y-12"
+               className="space-y-4 sm:space-y-12"
             >
               {/* Jornada Semanal Elite */}
-              <section className="bg-white border border-primary/5 rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-                <div className="p-8 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-6">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                        <Clock size={28} strokeWidth={2.5} />
+              <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+                <div className="p-4 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-4 sm:gap-6">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <Clock size={20} className="sm:size-[28px]" strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h3 className="text-2xl sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Jornada Semanal</h3>
-                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Seus turnos recorrentes</p>
+                        <h3 className="text-lg sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Jornada Semanal</h3>
+                        <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Seus turnos recorrentes</p>
                     </div>
                 </div>
                 
@@ -576,10 +573,10 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     const isActive = dayIntervalsIndices.length > 0;
 
                     return (
-                      <div key={dayIdx} className="p-8 sm:px-12 flex flex-col md:flex-row md:items-center gap-8 group hover:bg-primary/[0.01] transition-colors">
+                      <div key={dayIdx} className="p-4 sm:px-12 flex flex-col md:flex-row md:items-center gap-4 sm:gap-8 group hover:bg-primary/[0.01] transition-colors">
                         <div className="w-full md:w-44 flex items-center justify-between md:block shrink-0">
-                          <span className="text-sm font-black italic uppercase text-primary tracking-widest block font-title">{dayName}</span>
-                          <div className="mt-2">
+                          <span className="text-[10px] sm:text-sm font-black italic uppercase text-primary tracking-widest block font-title">{dayName}</span>
+                          <div className="mt-1 sm:mt-2">
                              <label className="relative inline-flex items-center cursor-pointer">
                                 <input 
                                     type="checkbox" 
@@ -587,8 +584,8 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     onChange={() => toggleDay(dayIdx)}
                                     className="sr-only peer" 
                                 />
-                                <div className="w-12 h-6 bg-primary/10 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6"></div>
-                                <span className="ml-3 text-[10px] font-black italic text-primary/40 uppercase tracking-widest peer-checked:text-primary transition-colors">
+                                <div className="w-10 h-5 sm:w-12 sm:h-6 bg-primary/10 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-3 sm:after:h-4 after:w-3 sm:after:w-4 after:transition-all peer-checked:after:translate-x-5 sm:peer-checked:after:translate-x-6"></div>
+                                <span className="ml-3 text-[8px] sm:text-[10px] font-black italic text-primary/40 uppercase tracking-widest peer-checked:text-primary transition-colors">
                                     {isActive ? 'Ativo' : 'Folga'}
                                 </span>
                              </label>
@@ -600,45 +597,45 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             layout
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex-1 flex flex-wrap gap-4"
+                            className="flex-1 flex flex-wrap gap-2 sm:gap-4"
                           >
                             {dayIntervalsIndices.map((globalIdx) => (
-                              <div key={globalIdx} className="flex items-center gap-3 bg-background border border-primary/5 rounded-2xl px-5 py-3 shadow-[0_4px_12px_rgba(15,76,92,0.03)] group/shift">
+                              <div key={globalIdx} className="flex items-center gap-2 sm:gap-3 bg-background border border-primary/5 rounded-xl sm:rounded-2xl px-3 sm:px-5 py-2 sm:py-3 shadow-sm group/shift">
                                 <div className="flex items-center gap-2">
                                   <input 
                                     type="time" 
                                     value={availability[globalIdx].startTime} 
                                     onChange={(e) => updateIntervalTime(globalIdx, 'startTime', e.target.value)}
-                                    className="bg-transparent text-sm font-black italic text-primary outline-none font-title" 
+                                    className="bg-transparent text-[10px] sm:text-sm font-black italic text-primary outline-none font-title w-12 sm:w-auto" 
                                   />
-                                  <span className="text-primary/20 text-[10px] uppercase font-black italic">às</span>
+                                  <span className="text-primary/20 text-[6px] sm:text-[10px] uppercase font-black italic">às</span>
                                   <input 
                                     type="time" 
                                     value={availability[globalIdx].endTime} 
                                     onChange={(e) => updateIntervalTime(globalIdx, 'endTime', e.target.value)}
-                                    className="bg-transparent text-sm font-black italic text-primary outline-none font-title" 
+                                    className="bg-transparent text-[10px] sm:text-sm font-black italic text-primary outline-none font-title w-12 sm:w-auto" 
                                   />
                                 </div>
                                 <button 
                                   onClick={() => removeInterval(globalIdx)}
-                                  className="p-2 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover/shift:opacity-100"
+                                  className="p-1 sm:p-2 rounded-lg sm:rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover/shift:opacity-100"
                                 >
-                                  <Trash2 size={16} strokeWidth={2.5} />
+                                  <Trash2 size={12} sm:size={16} strokeWidth={2.5} />
                                 </button>
                               </div>
                             ))}
                             
                             <button 
                               onClick={() => addInterval(dayIdx)}
-                              className="h-12 px-6 rounded-2xl border-2 border-dashed border-primary/10 text-[10px] font-black italic uppercase tracking-widest text-primary/40 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all flex items-center gap-2"
+                              className="h-8 sm:h-12 px-3 sm:px-6 rounded-xl sm:rounded-2xl border-2 border-dashed border-primary/10 text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-primary/40 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all flex items-center gap-2 font-title"
                             >
-                              <Plus size={14} strokeWidth={3} />
-                              Novo Turno
+                              <Plus size={12} sm:size={14} strokeWidth={3} />
+                              Turno
                             </button>
                           </motion.div>
                         ) : (
-                          <div className="flex-1 flex items-center border-2 border-dashed border-primary/5 rounded-[32px] p-8">
-                            <span className="text-[10px] font-black italic text-primary/10 uppercase tracking-[0.4em]">Dia de descanso e recuperação</span>
+                          <div className="flex-1 flex items-center border-2 border-dashed border-primary/5 rounded-2xl sm:rounded-[32px] p-2 sm:p-8">
+                            <span className="text-[8px] sm:text-[10px] font-black italic text-primary/10 uppercase tracking-[0.4em] font-title">Dia de descanso</span>
                           </div>
                         )}
                       </div>
@@ -647,61 +644,61 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </div>
               </section>
 
-              {/* Datas Especiais Elite - Redesenhado conforme screenshot */}
-              <section className="bg-white border border-primary/5 rounded-[64px] overflow-hidden shadow-[0_48px_96px_-12px_rgba(15,76,92,0.1)] p-6 sm:p-20">
-                <div className="flex flex-col items-center mb-16 text-center">
-                    <div className="w-20 h-20 rounded-[28px] bg-cta/10 flex items-center justify-center text-cta mb-8 shadow-inner">
-                        <Calendar size={40} strokeWidth={2.5} />
+              {/* Datas Especiais Elite - Redesenhado para Mobile */}
+              <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[64px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] p-4 sm:p-20">
+                <div className="flex flex-col items-center mb-6 sm:mb-16 text-center">
+                    <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[28px] bg-cta/10 flex items-center justify-center text-cta mb-4 sm:mb-8 shadow-inner">
+                        <Calendar size={24} className="sm:size-[32px]" strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h3 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-4">Datas Especiais</h3>
-                        <p className="text-[11px] sm:text-[13px] font-black italic text-primary/30 uppercase tracking-[0.4em] leading-relaxed">Sobrescreve a jornada<br className="sm:hidden" /> para turnos pontuais</p>
+                        <h3 className="text-xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-1 sm:mb-4">Datas Especiais</h3>
+                        <p className="text-[8px] sm:text-[13px] font-black italic text-primary/30 uppercase tracking-[0.3em] leading-relaxed">Sobrescreve a jornada para turnos pontuais</p>
                     </div>
                 </div>
 
-                <div className="max-w-md mx-auto mb-16 px-4">
-                  <div className="flex items-center justify-between bg-primary/[0.03] p-3 rounded-[32px] border border-primary/5 shadow-inner">
+                <div className="max-w-md mx-auto mb-6 sm:mb-16 px-2">
+                  <div className="flex items-center justify-between bg-primary/[0.03] p-1.5 sm:p-3 rounded-2xl sm:rounded-[32px] border border-primary/5 shadow-inner">
                     <button 
                         onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} 
-                        className="w-14 h-14 flex items-center justify-center rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
+                        className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronLeft size={24} strokeWidth={3} />
+                        <ChevronLeft size={18} sm:size={24} strokeWidth={3} />
                     </button>
-                    <div className="text-[12px] sm:text-[14px] font-black italic uppercase tracking-[0.3em] text-primary font-title">
+                    <div className="text-[9px] sm:text-[14px] font-black italic uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary font-title">
                         {currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                     </div>
                     <button 
                         onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} 
-                        className="w-14 h-14 flex items-center justify-center rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
+                        className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronRight size={24} strokeWidth={3} />
+                        <ChevronRight size={18} sm:size={24} strokeWidth={3} />
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1 sm:gap-4 mb-8">
+                <div className="grid grid-cols-7 gap-1 mb-2 sm:mb-8">
                   {['DOM','SEG','TER','QUA','QUI','SEX','SÁB'].map(d => (
-                    <div key={d} className="py-2 text-[9px] sm:text-[11px] font-black italic text-primary/20 uppercase tracking-[0.3em] text-center">{d}</div>
+                    <div key={d} className="py-2 text-[7px] sm:text-[11px] font-black italic text-primary/20 uppercase tracking-[0.2em] text-center">{d}</div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-2 sm:gap-6">
+                <div className="grid grid-cols-7 gap-1 sm:gap-6">
                   {calendarMatrix(currentMonth).map((cell, idx) => (
                     <div 
                       key={idx} 
-                      className={`group relative p-2 h-24 sm:h-44 rounded-full transition-all flex flex-col items-center justify-center border-2 ${
+                      className={`group relative h-12 sm:h-44 rounded-xl sm:rounded-full transition-all flex flex-col items-center justify-center border-2 ${
                         cell.isCurrentMonth 
-                        ? 'bg-white border-primary/5 hover:border-cta/40 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2' 
+                        ? 'bg-white border-primary/5 hover:border-cta/40 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1' 
                         : 'bg-transparent border-transparent opacity-0 pointer-events-none'
                       }`} 
                       onClick={() => cell.isCurrentMonth && openDay(cell.date)}
                     >
-                      <div className="flex flex-col items-center gap-2">
-                        <span className={`text-xl sm:text-4xl font-black italic font-title leading-none transition-colors ${cell.isCurrentMonth ? 'text-primary' : 'text-primary/10'}`}>
+                      <div className="flex flex-col items-center sm:gap-2">
+                        <span className={`text-sm sm:text-4xl font-black italic font-title leading-none transition-colors ${cell.isCurrentMonth ? 'text-primary' : 'text-primary/10'}`}>
                           {cell.day}
                         </span>
                         {availMap[cell.date] && availMap[cell.date].length > 0 && (
-                          <div className="w-2 h-2 sm:w-4 sm:h-4 rounded-full bg-cta shadow-[0_0_15px_rgba(230,126,34,0.6)] animate-pulse" />
+                          <div className="w-1.5 h-1.5 sm:w-4 sm:h-4 rounded-full bg-cta shadow-[0_0_10px_rgba(230,126,34,0.6)] animate-pulse mt-1 sm:mt-0" />
                         )}
                       </div>
                       
@@ -781,6 +778,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                               try {
                                 const payload = dailyShifts.map(s => ({ date: selectedDate, startTime: s.startTime, endTime: s.endTime, isActive: s.isActive }));
                                 await dailyAvailabilityApi.sync(payload);
+                                if (setHasDailyAvailability) setHasDailyAvailability(true);
                                 toast.success('Agenda salva com sucesso!');
                                 await loadMonthAvailabilities(currentMonth);
                                 setShowDayModal(false);
@@ -815,79 +813,79 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </AnimatePresence>
               </section>
 
-              {/* Bloqueios & Exceções Elite */}
-              <section className="bg-white border border-primary/5 rounded-[48px] p-8 sm:p-16 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-                <div className="flex items-center gap-8 mb-16">
-                  <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-inner">
-                    <AlertTriangle size={32} strokeWidth={2.5} />
+              {/* Bloqueios & Exceções Elite - Otimizado para Mobile */}
+              <section className="bg-white border border-primary/5 rounded-[48px] p-4 sm:p-16 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+                <div className="flex items-center gap-4 sm:gap-8 mb-10 sm:mb-16 px-2">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-inner">
+                    <AlertTriangle size={24} className="sm:size-[32px]" strokeWidth={2.5} />
                   </div>
                   <div>
-                    <h3 className="text-2xl sm:text-4xl font-black italic uppercase text-primary font-title tracking-tight text-red-600 leading-none mb-2">Bloqueios Críticos</h3>
+                    <h3 className="text-2xl sm:text-4xl font-black italic uppercase text-red-600 font-title tracking-tight leading-none mb-2">Bloqueios Críticos</h3>
                     <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Feriados e ausências que travam a agenda</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-16">
                   {/* Nova Exceção */}
-                  <div className="bg-background border border-primary/5 rounded-[40px] p-10 relative overflow-hidden">
-                    <h4 className="text-[10px] font-black italic text-primary uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                  <div className="bg-background border border-primary/5 rounded-[32px] sm:rounded-[40px] p-4 sm:p-10 relative overflow-hidden">
+                    <h4 className="text-[10px] font-black italic text-primary uppercase tracking-[0.3em] mb-8 sm:mb-10 flex items-center gap-3 px-2">
                       <Plus size={16} className="text-cta" strokeWidth={3} />
                       Registrar Novo Bloqueio
                     </h4>
                     
-                    <div className="space-y-8">
+                    <div className="space-y-6 sm:space-y-8">
                       <div>
-                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-[0.2em]">Impacto na Agenda</label>
+                        <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mb-3 sm:mb-4 ml-4 block tracking-[0.2em]">Impacto na Agenda</label>
                         <select 
                           value={newException.type}
                           onChange={(e) => setNewException({...newException, type: e.target.value as any})}
-                          className="w-full bg-white border-2 border-transparent rounded-[24px] px-6 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none appearance-none shadow-sm font-title"
+                          className="w-full bg-white border-2 border-transparent rounded-[20px] sm:rounded-[24px] px-5 sm:px-6 py-4 sm:py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none appearance-none shadow-sm font-title"
                         >
                           <option value="blocked">Bloqueio Total (Folga/Feriado)</option>
                           <option value="extended">Horário Especial (Exceção)</option>
                         </select>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                          <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-widest">Data</label>
+                          <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mb-3 sm:mb-4 ml-4 block tracking-widest">Data</label>
                           <input 
                             type="date" 
                             value={newException.date}
                             onChange={(e) => setNewException({...newException, date: e.target.value})}
-                            className="w-full bg-white border-2 border-transparent rounded-[24px] px-6 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title"
+                            className="w-full bg-white border-2 border-transparent rounded-[20px] sm:rounded-[24px] px-5 sm:px-6 py-4 sm:py-5 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title"
                           />
                         </div>
                         {newException.type === 'extended' && (
                           <div className="grid grid-cols-2 gap-2">
                              <div>
-                                <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block">Início</label>
-                                <input type="time" value={newException.startTime} onChange={(e) => setNewException({...newException, startTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-2xl px-4 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
+                                <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mb-3 sm:mb-4 ml-2 block">Início</label>
+                                <input type="time" value={newException.startTime} onChange={(e) => setNewException({...newException, startTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-xl sm:rounded-2xl px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
                              </div>
                              <div>
-                                <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block">Fim</label>
-                                <input type="time" value={newException.endTime} onChange={(e) => setNewException({...newException, endTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-2xl px-4 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
+                                <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mb-3 sm:mb-4 ml-2 block">Fim</label>
+                                <input type="time" value={newException.endTime} onChange={(e) => setNewException({...newException, endTime: e.target.value})} className="w-full bg-white border-2 border-transparent rounded-xl sm:rounded-2xl px-3 sm:px-4 py-4 sm:py-5 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title" />
                              </div>
                           </div>
                         )}
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-4 block tracking-widest">Motivo do Bloqueio</label>
+                        <label className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mb-3 sm:mb-4 ml-4 block tracking-widest">Motivo do Bloqueio</label>
                         <input 
                           type="text" 
-                          placeholder="Ex: Treinamento Barber Elite"
+                          placeholder="Ex: Treinamento"
                           value={newException.reason}
                           onChange={(e) => setNewException({...newException, reason: e.target.value})}
-                          className="w-full bg-white border-2 border-transparent rounded-[24px] px-8 py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title placeholder:text-primary/5"
+                          className="w-full bg-white border-2 border-transparent rounded-[20px] sm:rounded-[24px] px-6 py-4 sm:py-5 text-sm font-black italic text-primary focus:border-cta/20 outline-none shadow-sm font-title placeholder:text-primary/5"
                         />
                       </div>
 
                       <button 
                         onClick={handleAddException}
-                        className="w-full bg-primary text-white py-6 rounded-[28px] text-[10px] font-black italic uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/[0.95] transition-all"
+                        className="w-full bg-primary text-white py-5 sm:py-6 rounded-[24px] sm:rounded-[28px] text-[10px] font-black italic uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/[0.95] transition-all"
                       >
-                        Ativar Bloqueio No Fluxo
+                        Ativar Bloqueio
                       </button>
                     </div>
                   </div>
@@ -900,12 +898,12 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                       
                     <AnimatePresence mode="popLayout">
                         {exceptions.length === 0 ? (
-                          <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-primary/[0.02] border-2 border-dashed border-primary/5 rounded-[40px] p-20 text-center">
+                          <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-primary/[0.02] border-2 border-dashed border-primary/5 rounded-[40px] p-10 sm:p-20 text-center">
                             <Calendar size={48} className="text-primary/5 mx-auto mb-6" />
-                            <p className="text-[10px] font-black italic text-primary/10 uppercase tracking-widest">Nenhum bloqueio registrado</p>
+                            <p className="text-[10px] font-black italic text-primary/10 uppercase tracking-widest">Nenhum bloqueio</p>
                           </motion.div>
                         ) : (
-                          <div className="grid grid-cols-1 gap-4">
+                          <div className="grid grid-cols-1 gap-3 sm:gap-4">
                             {exceptions.map((ex) => (
                               <motion.div 
                                 layout
@@ -913,48 +911,35 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-white border border-primary/5 rounded-[32px] p-6 flex justify-between items-center group shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
+                                className="bg-white border border-primary/5 rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 flex justify-between items-center group shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
                               >
-                                <div className="flex items-center gap-6">
-                                  <div className={`w-14 h-14 rounded-[22px] flex items-center justify-center transition-colors ${
+                                <div className="flex items-center gap-4 sm:gap-6">
+                                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-[22px] flex items-center justify-center transition-colors ${
                                     ex.type === 'blocked' ? 'bg-red-50 text-red-500 group-hover:bg-red-500 group-hover:text-white' : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'
                                   }`}>
                                     {ex.type === 'blocked' ? <X size={20} strokeWidth={3} /> : <Clock size={20} strokeWidth={3} />}
                                   </div>
                                   <div>
-                                     <div className="flex items-center gap-3 mb-1.5">
-                                        <span className={`text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-[0.1em] ${
-                                          ex.type === 'blocked' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-primary text-white shadow-lg shadow-primary/20'
+                                     <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-1.5">
+                                        <span className={`text-[7px] sm:text-[8px] font-black px-2 py-0.5 sm:py-1 rounded-lg uppercase tracking-[0.1em] ${
+                                          ex.type === 'blocked' ? 'bg-red-500 text-white shadow-lg' : 'bg-primary text-white shadow-lg'
                                         }`}>
-                                          {ex.type === 'blocked' ? 'Bloqueio Total' : 'Horário Especial'}
+                                          {ex.type === 'blocked' ? 'Bloqueio' : 'Especial'}
                                         </span>
-                                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest leading-none">
-                                          {new Date(ex.date + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-widest leading-none">
+                                          {new Date(ex.date + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
                                         </p>
                                      </div>
-                                     <p className="text-sm font-black italic text-primary uppercase font-title leading-tight">
-                                        {ex.reason || (ex.type === 'blocked' ? 'Ausência/Feriado' : 'Expediente Diferenciado')}
+                                     <p className="text-xs sm:text-sm font-black italic text-primary uppercase font-title leading-tight truncate max-w-[120px] sm:max-w-none">
+                                        {ex.reason || 'Pausa'}
                                      </p>
-                                     {ex.type === 'extended' && (
-                                       <div className="flex items-center gap-2 mt-2">
-                                          <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-lg border border-primary/5">
-                                             <Clock size={10} className="text-cta" />
-                                             <span className="text-[9px] font-black text-primary italic uppercase">{ex.startTime}</span>
-                                          </div>
-                                          <span className="text-[9px] font-black text-primary/20 italic">até</span>
-                                          <div className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-lg border border-primary/5">
-                                             <Clock size={10} className="text-cta" />
-                                             <span className="text-[9px] font-black text-primary italic uppercase">{ex.endTime}</span>
-                                          </div>
-                                       </div>
-                                     )}
                                   </div>
                                 </div>
                                 <button 
                                   onClick={() => handleDeleteException(ex.id)}
-                                  className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center hover:bg-red-500 hover:text-white shadow-lg shadow-red-500/10"
+                                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-50 text-red-500 sm:opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center hover:bg-red-500 hover:text-white"
                                 >
-                                  <Trash2 size={18} strokeWidth={2.5} />
+                                  <Trash2 size={16} sm:size={18} strokeWidth={2.5} />
                                 </button>
                               </motion.div>
                             ))}

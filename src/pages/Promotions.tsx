@@ -65,60 +65,60 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
   const activePromos = history.filter(p => p.status === 'active');
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-20">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+    <div className="space-y-6 animate-fadeIn max-w-[1200px] mx-auto px-2 sm:px-12 pb-10 sm:pb-32">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
         <div>
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tighter text-text font-title italic uppercase">Marketing & <span className="text-text/20">Crescimento</span></h2>
-          <p className="text-[10px] sm:text-xs text-text/40 mt-2 font-black uppercase tracking-[0.3em] italic">Potencialize sua marca com campanhas inteligentes.</p>
+          <h2 className="text-2xl sm:text-5xl font-black tracking-tighter text-text font-title italic uppercase">Marketing & <span className="text-text/20">Crescimento</span></h2>
+          <p className="text-[10px] sm:text-xs text-text/40 mt-2 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] italic">Potencialize sua marca com campanhas inteligentes.</p>
         </div>
         <button 
           onClick={() => setIsCreating(true)}
-          className="bg-primary text-white px-10 py-5 rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-2xl shadow-primary/20 active:scale-95 italic"
+          className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-5 rounded-[20px] sm:rounded-[24px] text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-2xl shadow-primary/20 active:scale-95 italic font-title"
         >
           <Plus size={18} />
-          <span>Criar Campanha</span>
+          <span>Nova Campanha</span>
         </button>
       </header>
 
       {/* Campanhas Ativas */}
-      <section className="space-y-10">
-        <div className="flex items-center justify-between px-4 sm:px-2">
-           <h3 className="text-xl font-black font-title italic uppercase tracking-tight text-text">Campanhas em Curso</h3>
+      <section className="space-y-4 sm:space-y-10">
+        <div className="flex items-center justify-between px-2 sm:px-2">
+           <h3 className="text-lg sm:text-xl font-black font-title italic uppercase tracking-tight text-text">Campanhas em Curso</h3>
            <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-cta rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cta italic">{activePromos.length} ATIVAS</span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-cta italic font-title">{activePromos.length} ATIVAS</span>
            </div>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
           {activePromos.map(promo => (
             <motion.div 
               key={promo.id}
               whileHover={{ y: -8 }}
-              className="bg-white border border-border p-8 rounded-[48px] group relative overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.1)] transition-all duration-500"
+              className="bg-white border border-border p-5 sm:p-8 rounded-[32px] sm:rounded-[48px] group relative overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.1)] transition-all duration-500"
             >
-              <div className="absolute top-0 right-0 bg-cta text-white px-6 py-2 text-[9px] font-black uppercase tracking-[0.3em] rounded-bl-[24px] italic">Live Now</div>
-              <h4 className="text-2xl font-black text-text mb-8 tracking-tighter font-title italic uppercase">{promo.name}</h4>
+              <div className="absolute top-0 right-0 bg-cta text-white px-4 sm:px-6 py-1.5 sm:py-2 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.3em] rounded-bl-xl sm:rounded-bl-[24px] italic font-title">Live Now</div>
+              <h4 className="text-lg sm:text-2xl font-black text-text mb-4 sm:mb-8 tracking-tighter font-title italic uppercase">{promo.name}</h4>
               
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-background p-5 rounded-[28px] border border-border/50 shadow-inner">
-                  <p className="text-[9px] text-text/20 uppercase font-black tracking-[0.3em] mb-1 italic">Reach</p>
-                  <p className="text-2xl font-black text-text font-title italic tracking-tight">{promo.reach}</p>
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8">
+                <div className="bg-background p-3 sm:p-5 rounded-2xl sm:rounded-[28px] border border-border/50 shadow-inner">
+                  <p className="text-[8px] sm:text-[9px] text-text/20 uppercase font-black tracking-[0.2em] mb-1 italic">Alcance</p>
+                  <p className="text-xl sm:text-2xl font-black text-text font-title italic tracking-tight">{promo.reach}</p>
                 </div>
-                <div className="bg-primary/5 p-5 rounded-[28px] border border-primary/10 shadow-inner">
-                  <p className="text-[9px] text-primary/40 uppercase font-black tracking-[0.3em] mb-1 italic">Discount</p>
-                  <p className="text-2xl font-black text-primary font-title italic tracking-tight">{promo.discount}%</p>
+                <div className="bg-primary/5 p-3 sm:p-5 rounded-2xl sm:rounded-[28px] border border-primary/10 shadow-inner">
+                  <p className="text-[8px] sm:text-[9px] text-primary/40 uppercase font-black tracking-[0.2em] mb-1 italic">Off</p>
+                  <p className="text-xl sm:text-2xl font-black text-primary font-title italic tracking-tight">{promo.discount}%</p>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center bg-background p-5 rounded-[28px] border border-border/50">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary/20 group-hover:text-primary transition-colors">
-                        <Users size={16} />
+              <div className="flex justify-between items-center bg-background p-3 sm:p-5 rounded-2xl sm:rounded-[28px] border border-border/50">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg shadow-sm flex items-center justify-center text-primary/20 group-hover:text-primary transition-colors">
+                        <Users size={14} sm:size={16} />
                     </div>
-                    <span className="text-[10px] font-black text-text/40 uppercase tracking-widest italic">{promo.targetAudience}</span>
+                    <span className="text-[8px] sm:text-[10px] font-black text-text/40 uppercase tracking-widest italic">{promo.targetAudience}</span>
                 </div>
-                <button className="text-cta text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all italic">Pausar</button>
+                <button className="text-cta text-[8px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all italic">Pausar</button>
               </div>
             </motion.div>
           ))}
@@ -132,51 +132,51 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
       </section>
 
       {/* Histórico */}
-      <section className="space-y-8">
+      <section className="space-y-4 sm:space-y-8">
         <div className="flex items-center justify-between px-2">
-           <h3 className="text-xl font-black font-title italic uppercase tracking-tight text-text">Registro de Atividades</h3>
-           <History size={20} className="text-text/10" />
+           <h3 className="text-base sm:text-xl font-black font-title italic uppercase tracking-tight text-text">Registro de Atividades</h3>
+           <History size={16} className="sm:size-[18px] text-text/10" />
         </div>
 
-        <div className="bg-white border border-border rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.1)]">
+        <div className="bg-white border border-border rounded-[24px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.1)]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[600px]">
               <thead>
                 <tr className="border-b border-border bg-background">
-                  <th className="px-10 py-8 text-[10px] font-black text-text/30 uppercase tracking-[0.3em] italic">Campanha / Público</th>
-                  <th className="px-10 py-8 text-[10px] font-black text-text/30 uppercase tracking-[0.3em] italic">Estratégia Oferecida</th>
-                  <th className="px-10 py-8 text-[10px] font-black text-text/30 uppercase tracking-[0.3em] italic text-center">ROI / Conversão</th>
-                  <th className="px-10 py-8 text-[10px] font-black text-text/30 uppercase tracking-[0.3em] italic text-right">Status</th>
+                  <th className="px-4 py-3 sm:px-10 sm:py-8 text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic">Campanha</th>
+                  <th className="px-4 py-3 sm:px-10 sm:py-8 text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic">Estratégia</th>
+                  <th className="px-4 py-3 sm:px-10 sm:py-8 text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic text-center">Impacto</th>
+                  <th className="px-4 py-3 sm:px-10 sm:py-8 text-[8px] sm:text-[10px] font-black text-text/30 uppercase tracking-[0.2em] sm:tracking-[0.3em] italic text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {history.map(p => (
-                  <tr key={p.id} className="hover:bg-background/50 transition-colors group cursor-default">
-                    <td className="px-10 py-8">
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-background border border-border/50 flex items-center justify-center text-text/10 group-hover:text-primary transition-colors shadow-inner">
-                          <Target size={20} />
+                  <tr key={p.id} className="hover:bg-background/50 transition-colors group">
+                    <td className="px-4 py-3 sm:px-10 sm:py-8">
+                      <div className="flex items-center gap-2 sm:gap-5">
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-background border border-border/50 flex items-center justify-center text-text/10 group-hover:text-primary transition-colors shadow-inner">
+                          <Target size={14} sm:size={20} />
                         </div>
                         <div>
-                          <p className="font-black text-text tracking-tighter uppercase italic leading-none">{p.name}</p>
-                          <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.3em] mt-1 italic">{p.targetAudience}</p>
+                          <p className="font-black text-text text-[9px] sm:text-sm tracking-tighter uppercase italic leading-none">{p.name}</p>
+                          <p className="text-[7px] sm:text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mt-0.5 sm:mt-1 italic">{p.targetAudience}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-10 py-8">
+                    <td className="px-4 py-3 sm:px-10 sm:py-8">
                       <div className="flex flex-col">
-                        <span className="text-text text-sm font-black italic uppercase tracking-tight">{services.find(s => s.id === p.serviceId)?.name}</span>
-                        <span className="text-cta text-[10px] font-black uppercase tracking-widest mt-0.5">{p.discount}% OFF EXCLUSIVE</span>
+                        <span className="text-text text-[9px] sm:text-sm font-black italic uppercase tracking-tight">{services.find(s => s.id === p.serviceId)?.name}</span>
+                        <span className="text-cta text-[7px] sm:text-[10px] font-black uppercase tracking-widest mt-0.5">{p.discount}% OFF</span>
                       </div>
                     </td>
-                    <td className="px-10 py-8 text-center">
-                      <div className="inline-flex items-center gap-3 bg-background px-4 py-2 rounded-xl border border-border/50">
-                        <TrendingUp size={14} className="text-primary" />
-                        <span className="text-text font-black text-xs italic tracking-tighter">{p.reach} IMPACTOS</span>
+                    <td className="px-4 py-3 sm:px-10 sm:py-8 text-center">
+                      <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-background px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-border/50">
+                        <TrendingUp size={10} sm:size={12} className="text-primary" />
+                        <span className="text-text font-black text-[8px] sm:text-xs italic tracking-tighter uppercase">{p.reach} IMPACTOS</span>
                       </div>
                     </td>
-                    <td className="px-10 py-8 text-right">
-                       <span className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] italic shadow-sm border ${
+                    <td className="px-4 py-3 sm:px-10 sm:py-8 text-right">
+                       <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[7px] sm:text-[9px] font-black uppercase tracking-widest italic border ${
                          p.status === 'active' ? 'bg-cta/5 border-cta/20 text-cta' : 'bg-text/5 border-border text-text/30 grayscale'
                        }`}>
                          {p.status}

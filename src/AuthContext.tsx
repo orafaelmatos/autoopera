@@ -14,6 +14,7 @@ interface User {
   barbershop_slug?: string;
   barbershop_name?: string;
   barbershop_logo?: string;
+  barbershop_onboarding_completed?: boolean;
 }
 
 interface AuthContextType {

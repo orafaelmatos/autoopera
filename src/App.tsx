@@ -44,7 +44,8 @@ import {
   availabilityApi, 
   scheduleExceptionsApi,
   barbershopApi,
-  getMediaUrl
+  getMediaUrl,
+  dailyAvailabilityApi
 } from './api';
 import Dashboard from './pages/Dashboard';
 import CalendarPage from './pages/Calendar';
@@ -59,12 +60,14 @@ import LoginPage from './pages/Login';
 import CustomerBooking from './pages/CustomerBooking';
 import BarberRegister from './pages/BarberRegister';
 import LandingPage from './pages/LandingPage';
+import Onboarding from './components/Onboarding';
 
-const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
+const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, badge?: string, id?: string }> = ({ active, onClick, icon, label, badge, id }) => (
   <button 
+    id={id}
     onClick={onClick} 
     className={`
-      flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 relative group
+      flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 relative group w-full
       ${active 
         ? 'bg-white shadow-[0_12px_24px_-8px_rgba(0,0,0,0.1)] text-primary' 
         : 'text-white/40 hover:text-white hover:bg-white/5'}
@@ -83,15 +86,30 @@ const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.Re
         strokeWidth: active ? 2.5 : 2
       }) : icon}
     </div>
-    <span className={`text-[12px] uppercase font-black tracking-[0.15em] italic ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
+    <span className={`text-[12px] uppercase font-black tracking-[0.15em] italic flex-1 text-left ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
+    {badge && (
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cta opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-cta"></span>
+      </span>
+    )}
   </button>
 );
 
-const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
+const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, badge?: boolean, id?: string }> = ({ active, onClick, icon, label, badge, id }) => (
   <button 
+    id={id}
     onClick={onClick} 
-    className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all ${active ? 'text-cta' : 'text-primary/30'}`}
+    className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all relative ${active ? 'text-cta' : 'text-primary/30'}`}
   >
+     {badge && (
+      <div className="absolute top-4 right-1/2 translate-x-4">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cta opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cta border border-white"></span>
+        </span>
+      </div>
+    )}
     <div className={`transition-transform duration-500 ${active ? 'scale-110' : ''}`}>
       {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { 
         size: 20,
@@ -102,11 +120,19 @@ const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, icon: Re
   </button>
 );
 
-const MobileMenuRow: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, description?: string }> = ({ active, onClick, icon, label, description }) => (
+const MobileMenuRow: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, description?: string, badge?: boolean }> = ({ active, onClick, icon, label, description, badge }) => (
   <button 
     onClick={onClick}
-    className={`flex items-center gap-6 p-6 rounded-[32px] w-full transition-all active:scale-95 border ${active ? 'bg-primary text-white border-primary shadow-2xl shadow-primary/20' : 'bg-white text-primary border-primary/5 hover:border-cta/20 shadow-sm'}`}
+    className={`flex items-center gap-6 p-6 rounded-[32px] w-full transition-all active:scale-95 border relative ${active ? 'bg-primary text-white border-primary shadow-2xl shadow-primary/20' : 'bg-white text-primary border-primary/5 hover:border-cta/20 shadow-sm'}`}
   >
+    {badge && (
+      <div className="absolute top-6 right-6">
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cta opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-cta border border-white"></span>
+        </span>
+      </div>
+    )}
     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-white/10 text-white' : 'bg-background text-primary/40'}`}>
       {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { size: 24, strokeWidth: 2.5 }) : icon}
     </div>
@@ -162,6 +188,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const { user, logout, isLoading: authLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -170,6 +197,7 @@ const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [exceptions, setExceptions] = useState<ScheduleException[]>([]);
+  const [hasDailyAvailability, setHasDailyAvailability] = useState(false);
   const [barbershop, setBarbershop] = useState<Barbershop | null>(() => {
     if (user?.barbershop_name) {
       return {
@@ -181,6 +209,12 @@ const App: React.FC = () => {
     return null;
   });
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  React.useEffect(() => {
+    if (user?.role === 'barber' && user.barbershop_onboarding_completed === false) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
 
   React.useEffect(() => {
     if (!user || user.role !== 'barber') return;
@@ -195,7 +229,8 @@ const App: React.FC = () => {
           productsData, 
           availabilityData,
           exceptionsData,
-          shopData
+          shopData,
+          dailyData
         ] = await Promise.all([
           servicesApi.getAll(),
           appointmentsApi.getAll(),
@@ -204,7 +239,11 @@ const App: React.FC = () => {
           productsApi.getAll(),
           availabilityApi.getAll(),
           scheduleExceptionsApi.getAll(),
-          barbershopApi.get()
+          barbershopApi.get(),
+          dailyAvailabilityApi.getForRange(
+            new Date().toISOString().split('T')[0],
+            new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          )
         ]);
 
         setServices(servicesData);
@@ -215,6 +254,7 @@ const App: React.FC = () => {
         setAvailability(availabilityData);
         setExceptions(exceptionsData);
         setBarbershop(shopData);
+        setHasDailyAvailability(dailyData && dailyData.length > 0);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -303,6 +343,13 @@ const App: React.FC = () => {
           },
         }}
       />
+
+      {showOnboarding && user?.barbershop_slug && (
+        <Onboarding 
+          barbershopSlug={user.barbershop_slug} 
+          onComplete={() => setShowOnboarding(false)} 
+        />
+      )}
       
       {user?.role === 'barber' && (
         <nav className="hidden md:flex flex-col w-[300px] bg-primary h-screen sticky top-0 p-8 z-50">
@@ -334,7 +381,14 @@ const App: React.FC = () => {
           <div className="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2 flex-grow">
             <NavButton active={activeTab === 'calendar' || activeTab === ''} onClick={() => handleNavigation('/')} icon={<Calendar size={18} />} label="Agenda" />
             <NavButton active={activeTab === 'dashboard'} onClick={() => handleNavigation('/dashboard')} icon={<LayoutDashboard size={18} />} label="Resumo" />
-            <NavButton active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors size={18} />} label="Serviços" />
+            <NavButton 
+              id="nav-services"
+              active={activeTab === 'services'} 
+              onClick={() => handleNavigation('/services')} 
+              icon={<Scissors size={18} />} 
+              label="Serviços" 
+              badge={(!isLoadingData && services.length === 0) ? "Configurar" : undefined}
+            />
             <NavButton active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users size={18} />} label="Clientes" />
             <NavButton active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign size={18} />} label="Financeiro" />
             <NavButton active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package size={18} />} label="Estoque" />
@@ -344,7 +398,14 @@ const App: React.FC = () => {
             </div>
 
             <NavButton active={activeTab === 'settings' && (location.search.includes('tab=shop') || (!location.search.includes('tab=profile') && !location.search.includes('tab=schedule')))} onClick={() => handleNavigation('/settings?tab=shop')} icon={<Settings size={18} />} label="Unidade" />
-            <NavButton active={activeTab === 'settings' && location.search.includes('tab=schedule')} onClick={() => handleNavigation('/settings?tab=schedule')} icon={<Clock size={18} />} label="Horários" />
+            <NavButton 
+              id="nav-schedule"
+              active={activeTab === 'settings' && location.search.includes('tab=schedule')} 
+              onClick={() => handleNavigation('/settings?tab=schedule')} 
+              icon={<Clock size={18} />} 
+              label="Horários" 
+              badge={(!isLoadingData && availability.length === 0 && !hasDailyAvailability) ? "Configurar" : undefined}
+            />
             <NavButton active={activeTab === 'settings' && location.search.includes('tab=profile')} onClick={() => handleNavigation('/settings?tab=profile')} icon={<User size={18} />} label="Perfil" />
           </div>
 
@@ -416,7 +477,7 @@ const App: React.FC = () => {
           </div>
         )}
         
-        <div className={user?.role === 'barber' ? 'p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-140px)]' : ''}>
+        <div className={user?.role === 'barber' ? 'p-2 sm:p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-140px)]' : ''}>
           <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register-barber" element={<BarberRegister />} />
@@ -517,6 +578,7 @@ const App: React.FC = () => {
                 setAvailability={setAvailability} 
                 barbershop={barbershop}
                 setBarbershop={setBarbershop}
+                setHasDailyAvailability={setHasDailyAvailability}
               />
             </ProtectedRoute>
           } />
@@ -536,9 +598,16 @@ const App: React.FC = () => {
 
       {/* Mobile Bottom Navigation */}
       {user?.role === 'barber' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary/5 px-4 h-24 flex items-center justify-around z-[60] shadow-[0_-24px_48px_rgba(15,76,92,0.1)]">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary/5 px-4 h-24 flex items-center justify-around z-[60] shadow-[0_-24px_48px_rgba(15,76,92,0.1) ]">
           <MobileNavButton active={activeTab === 'calendar' || activeTab === ''} onClick={() => handleNavigation('/')} icon={<Calendar />} label="Agenda" />
-          <MobileNavButton active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Serviços" />
+          <MobileNavButton 
+            id="mobile-nav-services"
+            active={activeTab === 'services'} 
+            onClick={() => handleNavigation('/services')} 
+            icon={<Scissors />} 
+            label="Serviços" 
+            badge={!isLoadingData && services.length === 0}
+          />
           <div className="relative -mt-12">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -547,7 +616,14 @@ const App: React.FC = () => {
                 <Menu size={28} strokeWidth={2.5} />
               </button>
           </div>
-          <MobileNavButton active={location.search.includes('tab=schedule')} onClick={() => handleNavigation('/settings?tab=schedule')} icon={<Clock />} label="Horários" />
+          <MobileNavButton 
+            id="mobile-nav-schedule"
+            active={location.search.includes('tab=schedule')} 
+            onClick={() => handleNavigation('/settings?tab=schedule')} 
+            icon={<Clock />} 
+            label="Horários" 
+            badge={!isLoadingData && availability.length === 0 && !hasDailyAvailability}
+          />
           <MobileNavButton active={activeTab === 'settings' && !location.search.includes('tab=schedule')} onClick={() => handleNavigation('/settings')} icon={<Settings />} label="Ajustes" />
         </nav>
       )}
@@ -580,9 +656,30 @@ const App: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-3">
-                <MobileMenuRow active={activeTab === 'calendar'} onClick={() => handleNavigation('/')} icon={<Calendar />} label="Agenda Profissional" description="Gestão de horários" />
+                <MobileMenuRow 
+                  active={activeTab === 'calendar'} 
+                  onClick={() => handleNavigation('/')} 
+                  icon={<Calendar />} 
+                  label="Agenda Profissional" 
+                  description="Gestão de horários" 
+                />
+                <MobileMenuRow 
+                  active={location.search.includes('tab=schedule')} 
+                  onClick={() => handleNavigation('/settings?tab=schedule')} 
+                  icon={<Clock />} 
+                  label="Horários & Turnos" 
+                  description="Configuração da jornada" 
+                  badge={!isLoadingData && availability.length === 0 && !hasDailyAvailability}
+                />
                 <MobileMenuRow active={activeTab === 'dashboard'} onClick={() => handleNavigation('/dashboard')} icon={<LayoutDashboard />} label="Dashboard IA" description="Métricas de performance" />
-                <MobileMenuRow active={activeTab === 'services'} onClick={() => handleNavigation('/services')} icon={<Scissors />} label="Catálogo de Serviços" description="Preços e durações" />
+                <MobileMenuRow 
+                  active={activeTab === 'services'} 
+                  onClick={() => handleNavigation('/services')} 
+                  icon={<Scissors />} 
+                  label="Catálogo de Serviços" 
+                  description="Preços e durações" 
+                  badge={!isLoadingData && services.length === 0}
+                />
                 <MobileMenuRow active={activeTab === 'customers'} onClick={() => handleNavigation('/customers')} icon={<Users />} label="Gestão de Clientes" description="CRM e fidelidade" />
                 <MobileMenuRow active={activeTab === 'finance'} onClick={() => handleNavigation('/finance')} icon={<DollarSign />} label="Fluxo de Caixa" description="Entradas e saídas" />
                 <MobileMenuRow active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package />} label="Controle de Estoque" description="Produtos e vendas" />

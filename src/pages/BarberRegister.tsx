@@ -179,12 +179,13 @@ const BarberRegister: React.FC = () => {
                 <div className="flex flex-col items-center mb-10">
                     <div className="mb-6 group">
                         <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transform rotate-3 group-hover:rotate-0 transition-transform">
-                                <Scissors className="text-white w-8 h-8" />
+                            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 group-hover:rotate-0 ">
+                                
+                                <img src="src/assets/newlogo.png" alt="" />
                             </div>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-text tracking-tighter uppercase font-title">Barber</span>
-                                <span className="text-2xl font-light text-primary italic lowercase font-title">Flow</span>
+                                <span className="text-2xl font-black text-text tracking-tighter uppercase font-title">Autoopera</span>
+                                <span className="text-2xl font-light text-primary italic lowercase font-title">barber</span>
                             </div>
                         </div>
                     </div>
@@ -192,7 +193,7 @@ const BarberRegister: React.FC = () => {
                 </div>
 
                 {/* Progress Steps */}
-                <div className="flex gap-3 mb-12 items-center justify-center">
+                <div className="flex gap-3 mb-5 items-center justify-center">
                     {[1, 2].map(i => (
                         <div key={i} className="flex items-center gap-2">
                              <div className={`h-2 rounded-full transition-all duration-700 ${step >= i ? 'w-16 bg-primary shadow-[0_0_15px_rgba(15,76,92,0.3)]' : 'w-4 bg-background border border-border'}`} />
@@ -445,7 +446,7 @@ const BarberRegister: React.FC = () => {
                                     disabled={loading}
                                     className="flex-1 bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)]"
                                 >
-                                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Cadastro <CheckCircle2 size={18} /></>}
+                                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Cadastro </>}
                                 </button>
                             </div>
                         </motion.div>

@@ -18,7 +18,7 @@ import {
   Users
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import brandLogo from '../assets/newlogo-white.png';
+import brandLogo from '../assets/logo-rebranding.png';
 import heroBarber from '../assets/barber.jpg';
 import agendamentoImg from '../assets/agendamento.jpg';
 import atendimentoImg from '../assets/atendimento.jpg';
@@ -72,7 +72,7 @@ const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-background font-sans text-text selection:bg-cta selection:text-white">
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-primary/95 backdrop-blur-md py-5 px-6 md:px-12 flex justify-between items-center shadow-2xl shadow-primary/20 border-b border-white/5">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-primary backdrop-blur-md py-5 px-6 md:px-12 flex justify-between items-center shadow-2xl shadow-primary/20 border-b border-white/5">
                 <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
                     <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <img src={brandLogo} alt="AutoOpera Logo" />

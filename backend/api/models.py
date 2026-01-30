@@ -22,6 +22,7 @@ class Barbershop(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     instagram = models.CharField(max_length=100, blank=True, null=True)
     primary_color = models.CharField(max_length=7, default='#007AFF')
+    onboarding_completed = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -50,6 +51,7 @@ class Service(models.Model):
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration = models.IntegerField(help_text="Duração em minutos")
+    buffer_time = models.IntegerField(default=0, help_text="Tempo de folga após o serviço em minutos")
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -143,7 +145,7 @@ class Appointment(models.Model):
     
     barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='appointments', null=True)
     client_name = models.CharField(max_length=200)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='appointments')
+    services = models.ManyToManyField(Service, related_name='appointments')
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='appointments')
     date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -156,7 +158,7 @@ class Appointment(models.Model):
         ordering = ['date']
 
     def __str__(self):
-        return f"{self.client_name} - {self.service.name} - {self.date}"
+        return f"{self.client_name} - {self.date}"
 
 
 class TimeSlot(models.Model):

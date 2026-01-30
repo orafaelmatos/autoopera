@@ -124,50 +124,45 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
   };
 
   return (
-    <div className="space-y-12 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 sm:gap-12">
+    <div className="space-y-4 sm:space-y-20 max-w-[1400px] mx-auto px-2 sm:px-12 pb-10 sm:pb-32">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-12">
         <div>
-          <div className="flex items-center gap-4 mb-4 text-cta">
-              <UserPlus size={20} strokeWidth={2.5} />
-              <span className="text-[10px] font-black italic uppercase tracking-[0.4em]">CRM & Loyalty Portal Elite</span>
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4 text-cta">
+              <UserPlus size={16} sm:size={20} strokeWidth={2.5} />
+              <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.2em] sm:tracking-[0.4em]">CRM & Loyalty Portal Elite</span>
           </div>
-          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
+          <h2 className="text-2xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-tight">
             Gestão de <span className="text-primary/20">Membros</span>
           </h2>
-          <p className="text-[10px] font-black italic text-primary/30 uppercase mt-4 tracking-[0.2em] ml-1">Cultive relacionamentos, maximize recorrência</p>
+          <p className="text-[9px] sm:text-[10px] font-black italic text-primary/30 uppercase mt-2 tracking-[0.2em] ml-1">Cultive relacionamentos, maximize recorrência</p>
         </div>
         <button 
           onClick={() => setIsAddingNew(true)}
-          className="bg-primary text-white px-10 py-6 rounded-[28px] text-[10px] font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
+          className="bg-primary text-white px-6 sm:px-10 py-4 sm:py-6 rounded-[20px] sm:rounded-[28px] text-[10px] sm:text-xs font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
         >
-          <UserPlus size={20} strokeWidth={3} />
-          <span>Registrar Novo Membro</span>
+          <UserPlus size={18} sm:size={20} strokeWidth={3} />
+          <span>Novo Membro</span>
         </button>
       </header>
 
       <div className="relative group max-w-4xl mx-auto w-full">
-        <div className="absolute left-8 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors z-10">
-            <Search size={22} strokeWidth={2.5} />
+        <div className="absolute left-6 sm:left-8 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors z-10">
+            <Search size={18} sm:size={22} strokeWidth={2.5} />
         </div>
         <input 
           type="text" 
-          placeholder="Rastrear membro por nome ou contato..."
-          className="w-full bg-white border border-primary/5 rounded-[32px] pl-20 pr-10 py-7 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title shadow-xl shadow-primary/[0.02]"
+          placeholder="Rastrear membro..."
+          className="w-full bg-white border border-primary/5 rounded-[24px] sm:rounded-[32px] pl-16 pr-6 sm:pl-20 sm:pr-10 py-4 sm:py-7 text-primary font-black italic uppercase text-[10px] sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title shadow-xl shadow-primary/[0.02]"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden sm:block">
-            <div className="bg-primary/5 px-4 py-2 rounded-full border border-primary/5 text-[10px] font-black italic text-primary/30 uppercase tracking-widest font-title">
-                {filtered.length} Resultados
-            </div>
-        </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-3 sm:gap-6">
         {filtered.length > 0 ? filtered.map(customer => (
-          <div key={customer.id} className="bg-white border border-primary/5 p-8 sm:p-10 rounded-[48px] flex flex-col md:flex-row md:items-center justify-between gap-8 hover:shadow-[0_48px_96px_-12px_rgba(15,76,92,0.12)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden">
-            <div className="flex items-center gap-8 relative z-10">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[32px] bg-background flex items-center justify-center text-primary/20 border border-primary/5 group-hover:bg-primary transition-all duration-500 overflow-hidden shadow-inner relative group/avatar">
+          <div key={customer.id} className="bg-white border border-primary/5 p-4 sm:p-10 rounded-[28px] sm:rounded-[48px] flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-8 hover:shadow-[0_48px_96px_-12px_rgba(15,76,92,0.12)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden">
+            <div className="flex items-center gap-4 sm:gap-8 relative z-10">
+              <div className="w-12 h-12 sm:w-24 sm:h-24 rounded-2xl sm:rounded-[32px] bg-background flex items-center justify-center text-primary/20 border border-primary/5 group-hover:bg-primary transition-all duration-500 overflow-hidden shadow-inner relative group/avatar">
                 {customer.profile_picture ? (
                   <img 
                     src={getMediaUrl(customer.profile_picture)} 
@@ -175,42 +170,41 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
                     alt={customer.name} 
                   />
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-black italic group-hover:text-white transition-colors">{customer.name.charAt(0)}</span>
+                  <span className="text-xl sm:text-3xl font-black italic group-hover:text-white transition-colors">{customer.name.charAt(0)}</span>
                 )}
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-4 mb-4">
-                  <h4 className="text-2xl sm:text-3xl font-black italic text-primary uppercase font-title truncate group-hover:text-primary transition-colors">{customer.name}</h4>
-                  <div className="flex items-center gap-2 bg-cta px-4 py-1.5 rounded-full text-white text-[10px] font-black italic uppercase tracking-[0.2em] shadow-lg shadow-cta/20 border border-white/10 whitespace-nowrap font-title">
-                    <Trophy size={12} strokeWidth={3} /> {customer.points} PTS
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+                  <h4 className="text-lg sm:text-3xl font-black italic text-primary uppercase font-title truncate">{customer.name}</h4>
+                  <div className="flex items-center gap-1.5 bg-cta px-3 py-1 rounded-full text-white text-[8px] sm:text-[10px] font-black italic uppercase tracking-wider border border-white/10 whitespace-nowrap font-title">
+                    <Trophy size={10} sm:size={12} strokeWidth={3} /> {customer.points} PTS
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-x-8 gap-y-3 font-title">
-                  <span className="flex items-center gap-2 text-[10px] font-black italic text-primary/30 uppercase tracking-widest bg-primary/5 px-4 py-2 rounded-2xl">
-                     <Phone size={14} className="text-cta" strokeWidth={3} /> {customer.phone}
+                <div className="flex flex-wrap gap-x-4 gap-y-2 font-title">
+                  <span className="flex items-center gap-2 text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-xl">
+                     <Phone size={12} className="text-cta" strokeWidth={3} /> {customer.phone}
                   </span>
-                  <span className="flex items-center gap-2 text-[10px] font-black italic text-primary/30 uppercase tracking-widest bg-primary/5 px-4 py-2 rounded-2xl">
-                     <Calendar size={14} className="text-cta" strokeWidth={3} /> Visto: {customer.lastVisit}
+                  <span className="flex items-center gap-2 text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-xl">
+                     <Calendar size={12} className="text-cta" strokeWidth={3} /> Visto: {customer.lastVisit}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 relative z-10">
+            <div className="flex items-center gap-2 sm:gap-4 relative z-10">
               <button 
                 onClick={() => openWhatsApp(customer.phone)}
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-background text-primary/20 rounded-[28px] hover:bg-green-500 hover:text-white transition-all duration-300 border border-primary/5 flex items-center justify-center shadow-sm"
+                className="w-12 h-12 sm:w-20 sm:h-20 bg-background text-primary/20 rounded-2xl sm:rounded-[28px] hover:bg-green-500 hover:text-white transition-all duration-300 border border-primary/5 flex items-center justify-center shadow-sm"
                 title="Mensagem"
               >
-                <MessageCircle size={28} strokeWidth={2.5} />
+                <MessageCircle size={20} sm:size={28} strokeWidth={2.5} />
               </button>
               <button 
                 onClick={() => handleOpenProfile(customer)}
-                className="px-10 py-6 bg-primary text-white rounded-[28px] text-[10px] font-black italic uppercase tracking-[0.2em] shadow-xl shadow-primary/10 hover:bg-primary/[0.95] active:scale-95 transition-all font-title border border-white/5"
+                className="flex-1 sm:flex-none px-6 sm:px-10 py-4 sm:py-6 bg-primary text-white rounded-2xl sm:rounded-[28px] text-[10px] font-black italic uppercase tracking-wider shadow-xl shadow-primary/10 hover:bg-primary/[0.95] transition-all font-title border border-white/5"
               >
-                Visualizar Dossier
+                Perfil
               </button>
             </div>
             

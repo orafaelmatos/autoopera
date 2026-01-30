@@ -41,7 +41,7 @@ class LoyaltyRewardAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['client_name', 'barbershop', 'service', 'date', 'status', 'platform']
+    list_display = ['client_name', 'barbershop', 'date', 'status', 'platform']
     list_filter = ['barbershop', 'status', 'platform', 'date']
     search_fields = ['client_name']
 

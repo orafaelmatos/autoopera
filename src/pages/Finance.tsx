@@ -119,85 +119,85 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
   };
 
   return (
-    <div className="space-y-16 sm:space-y-24 animate-fadeIn max-w-[1400px] mx-auto px-6 sm:px-12 pb-32">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-10">
+    <div className="space-y-6 sm:space-y-24 animate-fadeIn max-w-[1400px] mx-auto px-2 sm:px-12 pb-32">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 sm:gap-10">
         <div>
-          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title leading-none">Capital <span className="text-primary/20">&</span> Fluxo</h2>
-          <p className="text-[10px] sm:text-xs text-primary/40 mt-6 font-black italic uppercase tracking-[0.4em] font-title italic">Gestão estratégica de ativos e performance financeira.</p>
+          <h2 className="text-3xl sm:text-6xl font-black italic uppercase text-primary font-title leading-none">Capital <span className="text-primary/20">&</span> Fluxo</h2>
+          <p className="text-[8px] sm:text-xs text-primary/40 mt-2 sm:mt-6 font-black italic uppercase tracking-[0.3em] sm:tracking-[0.4em] font-title italic">Gestão estratégica de ativos e performance financeira.</p>
         </div>
-        <div className="flex gap-4">
-          <button className="w-16 h-16 sm:w-20 sm:h-20 bg-white text-primary/20 rounded-[28px] flex items-center justify-center hover:text-primary transition-all shadow-xl shadow-primary/[0.02] border border-primary/5">
-            <Download size={24} strokeWidth={2.5} />
+        <div className="flex gap-3 sm:gap-4">
+          <button className="w-12 h-12 sm:w-20 sm:h-20 bg-white text-primary/20 rounded-2xl sm:rounded-[28px] flex items-center justify-center hover:text-primary transition-all shadow-xl shadow-primary/[0.02] border border-primary/5">
+            <Download size={20} sm:size={24} strokeWidth={2.5} />
           </button>
           <button 
             onClick={() => setIsAdding(true)}
-            className="flex-1 sm:flex-none bg-cta text-white px-10 sm:px-14 py-5 sm:py-6 rounded-[28px] text-[10px] sm:text-xs font-black italic uppercase tracking-[0.4em] flex items-center justify-center gap-4 hover:bg-cta/90 transition-all shadow-2xl shadow-cta/20 active:scale-95 font-title"
+            className="flex-1 sm:flex-none bg-cta text-white px-6 sm:px-14 py-4 sm:py-6 rounded-2xl sm:rounded-[28px] text-[8px] sm:text-xs font-black italic uppercase tracking-[0.3em] sm:tracking-[0.4em] flex items-center justify-center gap-2 sm:gap-4 hover:bg-cta/90 transition-all shadow-2xl shadow-cta/20 active:scale-95 font-title"
           >
-            <Plus size={20} strokeWidth={3} />
+            <Plus size={18} sm:size={20} strokeWidth={3} />
             <span>Nova Operação</span>
           </button>
         </div>
       </header>
 
       {/* Resumo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-8">
         <FinanceStatCard 
-          title="Receita Operacional" 
-          value={`R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
-          icon={<ArrowUpCircle className="text-cta" size={28} strokeWidth={3} />} 
+          title="Receita" 
+          value={`R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
+          icon={<ArrowUpCircle className="text-cta" size={24} sm:size={28} strokeWidth={3} />} 
           trend="+12%"
         />
         <FinanceStatCard 
-          title="Deduções e Custos" 
-          value={`R$ ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
-          icon={<ArrowDownCircle className="text-primary/20" size={28} strokeWidth={3} />} 
+          title="Custos" 
+          value={`R$ ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
+          icon={<ArrowDownCircle className="text-primary/20" size={24} sm:size={28} strokeWidth={3} />} 
           trend="-4%"
         />
         <FinanceStatCard 
-          title="Capital Pendente" 
-          value={`R$ ${pendingExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
-          icon={<Clock className="text-cta" size={28} strokeWidth={3} />} 
+          title="Pendente" 
+          value={`R$ ${pendingExpense.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
+          icon={<Clock className="text-cta" size={24} sm:size={28} strokeWidth={3} />} 
         />
         <FinanceStatCard 
-          title="Saldo Líquido" 
-          value={`R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} 
-          icon={<TrendingUp className="text-primary" size={28} strokeWidth={3} />} 
+          title="Saldo" 
+          value={`R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`} 
+          icon={<TrendingUp className="text-primary" size={24} sm:size={28} strokeWidth={3} />} 
           highlight 
         />
       </div>
 
-      <div className="space-y-12">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 border-b border-primary/5 pb-10">
-          <h3 className="text-xl sm:text-2xl font-black italic uppercase text-primary font-title italic">Histórico de Lançamentos</h3>
-          <div className="flex bg-white p-2 rounded-[24px] border border-primary/5 shadow-xl shadow-primary/[0.02]">
-            <FilterButton active={filterType === 'all'} onClick={() => setFilterType('all')} label="Consolidado" />
+      <div className="space-y-6 sm:space-y-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-8 border-b border-primary/5 pb-6 sm:pb-10">
+          <h3 className="text-xl sm:text-2xl font-black italic uppercase text-primary font-title italic">Histórico</h3>
+          <div className="flex bg-white p-1.5 sm:p-2 rounded-[18px] sm:rounded-[24px] border border-primary/5 shadow-xl shadow-primary/[0.02] overflow-x-auto">
+            <FilterButton active={filterType === 'all'} onClick={() => setFilterType('all')} label="Tudo" />
             <FilterButton active={filterType === 'income'} onClick={() => setFilterType('income')} label="Entradas" />
             <FilterButton active={filterType === 'expense'} onClick={() => setFilterType('expense')} label="Saídas" />
           </div>
         </div>
 
         {/* Listagem de Transações - Mobile & Desktop */}
-        <div className="space-y-6 sm:space-y-0 sm:bg-white/80 sm:backdrop-blur-xl sm:border sm:border-primary/5 sm:rounded-[48px] sm:overflow-hidden sm:shadow-2xl sm:shadow-primary/[0.02]">
-          <div className="sm:hidden space-y-6">
+        <div className="space-y-3 sm:space-y-0 sm:bg-white/80 sm:backdrop-blur-xl sm:border sm:border-primary/5 sm:rounded-[48px] sm:overflow-hidden sm:shadow-2xl sm:shadow-primary/[0.02]">
+          <div className="sm:hidden space-y-3">
             {filteredTransactions.map(t => (
-              <div key={t.id} className="bg-white border border-primary/5 p-8 rounded-[40px] flex items-center justify-between shadow-xl shadow-primary/[0.02]">
-                <div className="flex items-center gap-6">
-                  <div className="text-[10px] text-primary/30 font-black italic uppercase bg-background w-14 h-14 flex flex-col items-center justify-center rounded-2xl border border-primary/5 leading-none shrink-0 font-title">
-                    <span className="text-sm text-primary">{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit' })}</span>
-                    <span className="text-[8px] mt-1 tracking-widest">{new Date(t.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()}</span>
+              <div key={t.id} className="bg-white border border-primary/5 p-5 rounded-3xl flex items-center justify-between shadow-xl shadow-primary/[0.02]">
+                <div className="flex items-center gap-4">
+                  <div className="text-[8px] text-primary/30 font-black italic uppercase bg-background w-10 h-10 flex flex-col items-center justify-center rounded-xl border border-primary/5 leading-none shrink-0 font-title">
+                    <span className="text-xs text-primary">{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit' })}</span>
+                    <span className="text-[6px] mt-0.5 tracking-widest">{new Date(t.date).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()}</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-black italic text-primary uppercase leading-tight font-title">{t.description}</h4>
-                    <p className="text-[9px] text-primary/30 font-black italic uppercase tracking-[0.2em] mt-1 font-title">{t.category}</p>
+                    <h4 className="text-xs font-black italic text-primary uppercase leading-tight font-title">{t.description}</h4>
+                    <p className="text-[8px] text-primary/30 font-black italic uppercase tracking-[0.1em] mt-0.5 font-title">{t.category}</p>
                   </div>
                 </div>
-                <div className="text-right flex flex-col items-end gap-3">
-                  <span className={`text-sm font-black italic tracking-tighter font-title ${t.type === 'income' ? 'text-cta' : 'text-primary/40'}`}>
+                <div className="text-right flex flex-col items-end gap-2">
+                  <span className={`text-xs font-black italic tracking-tighter font-title ${t.type === 'income' ? 'text-cta' : 'text-primary/40'}`}>
                     {t.type === 'income' ? '+' : '-'} R$ {Number(t.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                   <button 
                     onClick={() => handleToggleStatus(t.id)}
-                    className={`px-4 py-2 rounded-xl text-[8px] font-black italic uppercase tracking-[0.2em] border transition-all font-title ${
+                    className={`px-3 py-1.5 rounded-lg text-[7px] font-black italic uppercase tracking-[0.1em] border transition-all font-title ${
                       t.status === 'paid' 
                         ? 'bg-cta/5 text-cta border-cta/10' 
                         : 'bg-primary/5 text-primary/30 border-primary/5'
@@ -363,23 +363,23 @@ const FinanceView: React.FC<Props> = ({ transactions, setTransactions }) => {
 };
 
 const FinanceStatCard: React.FC<{ title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean }> = ({ title, value, icon, trend, highlight }) => (
-  <div className={`bg-white border p-10 sm:p-12 rounded-[48px] hover:translate-y-[-4px] transition-all group shadow-xl shadow-primary/[0.02] relative overflow-hidden ${highlight ? 'border-primary/20' : 'border-primary/5'}`}>
-    <div className="flex justify-between items-start mb-10 relative z-10">
-      <span className="text-primary/30 text-[10px] sm:text-xs font-black italic uppercase tracking-[0.3em] font-title italic leading-none">{title}</span>
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all bg-background border border-primary/5 group-hover:scale-110 duration-500`}>
+  <div className={`bg-white border p-5 sm:p-12 rounded-[32px] sm:rounded-[48px] hover:translate-y-[-4px] transition-all group shadow-xl shadow-primary/[0.02] relative overflow-hidden ${highlight ? 'border-primary/20' : 'border-primary/5'}`}>
+    <div className="flex justify-between items-start mb-4 sm:mb-10 relative z-10">
+      <span className="text-primary/30 text-[8px] sm:text-xs font-black italic uppercase tracking-[0.2em] sm:tracking-[0.3em] font-title italic leading-none">{title}</span>
+      <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all bg-background border border-primary/5 group-hover:scale-110 duration-500`}>
         {icon}
       </div>
     </div>
-    <div className="flex items-end justify-between relative z-10">
-      <div className={`text-3xl sm:text-5xl font-black italic tracking-tighter text-primary font-title`}>{value}</div>
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between relative z-10 gap-2">
+      <div className={`text-xl sm:text-5xl font-black italic tracking-tighter text-primary font-title`}>{value}</div>
       {trend && (
-        <span className={`text-[10px] font-black italic px-4 py-2 rounded-xl h-fit border ${trend.startsWith('+') ? 'bg-cta/5 text-cta border-cta/10' : 'bg-primary/5 text-primary/20 border-primary/5'} font-title`}>
+        <span className={`text-[8px] sm:text-[10px] font-black italic px-2 py-1 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl h-fit border w-fit ${trend.startsWith('+') ? 'bg-cta/5 text-cta border-cta/10' : 'bg-primary/5 text-primary/20 border-primary/5'} font-title`}>
           {trend}
         </span>
       )}
     </div>
     {highlight && (
-      <div className="absolute top-0 right-0 w-32 h-32 bg-cta/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-cta/10 transition-all duration-700" />
+      <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-cta/5 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-cta/10 transition-all duration-700" />
     )}
   </div>
 );
@@ -387,7 +387,7 @@ const FinanceStatCard: React.FC<{ title: string, value: string, icon: React.Reac
 const FilterButton: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
   <button 
     onClick={onClick}
-    className={`px-8 sm:px-12 py-4 rounded-[20px] text-[10px] font-black italic uppercase tracking-[0.2em] transition-all font-title ${active ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-primary/30 hover:text-primary hover:bg-background'}`}
+    className={`px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-[20px] text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all font-title shrink-0 ${active ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-primary/30 hover:text-primary hover:bg-background'}`}
   >
     {label}
   </button>

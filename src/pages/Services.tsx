@@ -18,6 +18,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState(45);
+  const [bufferTime, setBufferTime] = useState(5);
   const [description, setDescription] = useState('');
 
   const formatCurrency = (value: string | number) => {
@@ -40,6 +41,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
     setName(service.name);
     setPrice(formatCurrency(service.price));
     setDuration(service.duration);
+    setBufferTime(service.buffer_time || 0);
     setDescription(service.description || '');
     setIsAdding(true);
   };
@@ -58,6 +60,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
           name,
           price: numericPrice,
           duration,
+          buffer_time: bufferTime,
           description
         });
         setServices(services.map(s => s.id === editingService.id ? updated : s));
@@ -67,6 +70,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
           name,
           price: numericPrice,
           duration,
+          buffer_time: bufferTime,
           description
         });
         setServices([...services, newService]);
@@ -84,6 +88,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
     setName('');
     setPrice('');
     setDuration(45);
+    setBufferTime(5);
     setDescription('');
     setEditingService(null);
   };
@@ -130,71 +135,71 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
   };
 
   return (
-    <div className="space-y-12 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 sm:gap-12">
+    <div className="space-y-6 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-12 px-2 sm:px-0">
         <div>
-          <div className="flex items-center gap-4 mb-4 text-cta">
-              <Scissors size={20} strokeWidth={2.5} />
-              <span className="text-[10px] font-black italic uppercase tracking-[0.4em]">Service Menu Elite</span>
+          <div className="flex items-center gap-3 mb-2 sm:mb-4 text-cta">
+              <Scissors size={16} className="sm:size-5" strokeWidth={2.5} />
+              <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.4em]">Service Menu Elite</span>
           </div>
-          <h2 className="text-4xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
+          <h2 className="text-3xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
             Catálogo de <span className="text-primary/20">Experiências</span>
           </h2>
-          <p className="text-[10px] font-black italic text-primary/30 uppercase mt-4 tracking-[0.2em] ml-1">Defina o valor da sua arte no fluxo</p>
+          <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase mt-2 sm:mt-4 tracking-[0.2em] ml-1">Defina o valor da sua arte no fluxo</p>
         </div>
         <button 
           onClick={() => {
             resetForm();
             setIsAdding(true);
           }}
-          className="bg-primary text-white px-10 py-6 rounded-[28px] text-[10px] font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
+          className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-6 rounded-2xl sm:rounded-[28px] text-[9px] sm:text-[10px] font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
         >
-          <Plus size={20} strokeWidth={3} />
+          <Plus size={18} sm:size={20} strokeWidth={3} />
           <span>Criar Nova Experiência</span>
         </button>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 px-2 sm:px-0">
         {services.map(service => (
-          <div key={service.id} className="bg-white border border-primary/5 p-10 rounded-[48px] group relative hover:shadow-[0_48px_96px_-12px_rgba(15,76,92,0.12)] hover:-translate-y-2 transition-all duration-500 flex flex-col min-h-[420px]">
-            <div className="flex justify-between items-start mb-10">
-              <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center text-primary/40 border border-primary/5 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
-                <Scissors size={28} strokeWidth={2.5} />
+          <div key={service.id} className="bg-white border border-primary/5 p-6 sm:p-10 rounded-[32px] sm:rounded-[48px] group relative hover:shadow-[0_48px_96px_-12px_rgba(15,76,92,0.12)] hover:-translate-y-2 transition-all duration-500 flex flex-col min-h-0 sm:min-h-[420px]">
+            <div className="flex justify-between items-start mb-6 sm:mb-10">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-background rounded-xl sm:rounded-2xl flex items-center justify-center text-primary/40 border border-primary/5 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                <Scissors size={20} sm:size={28} strokeWidth={2.5} />
               </div>
-              <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-all">
+              <div className="flex gap-2 sm:gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all">
                 <button 
                   onClick={() => handleOpenEdit(service)}
-                  className="w-12 h-12 bg-white text-primary/30 rounded-xl hover:text-cta hover:bg-cta/5 transition-all shadow-sm flex items-center justify-center border border-primary/5"
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-white text-primary/30 rounded-lg sm:rounded-xl hover:text-cta hover:bg-cta/5 transition-all shadow-sm flex items-center justify-center border border-primary/5"
                 >
-                  <Edit2 size={18} strokeWidth={2.5} />
+                  <Edit2 size={16} sm:size={18} strokeWidth={2.5} />
                 </button>
                 <button 
                   onClick={() => removeService(service.id)} 
-                  className="w-12 h-12 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 text-red-500 rounded-lg sm:rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
                 >
-                  <Trash2 size={18} strokeWidth={2.5} />
+                  <Trash2 size={16} sm:size={18} strokeWidth={2.5} />
                 </button>
               </div>
             </div>
             
-            <h4 className="text-2xl font-black italic text-primary uppercase font-title leading-tight mb-4 group-hover:text-primary transition-colors">{service.name}</h4>
-            <p className="text-primary/30 text-[11px] font-black italic uppercase tracking-widest mb-10 line-clamp-3 leading-relaxed">{service.description || 'Manifesto de estilo não definido.'}</p>
+            <h4 className="text-xl sm:text-2xl font-black italic text-primary uppercase font-title leading-tight mb-2 sm:mb-4 group-hover:text-primary transition-colors">{service.name}</h4>
+            <p className="text-primary/30 text-[9px] sm:text-[11px] font-black italic uppercase tracking-widest mb-6 sm:mb-10 line-clamp-2 sm:line-clamp-3 leading-relaxed">{service.description || 'Manifesto de estilo não definido.'}</p>
             
-            <div className="mt-auto pt-10 border-t border-primary/5 grid grid-cols-2 gap-6">
+            <div className="mt-auto pt-6 sm:pt-10 border-t border-primary/5 grid grid-cols-2 gap-4 sm:gap-6">
               <div className="flex flex-col">
-                <span className="text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-3 font-title">Investment</span>
-                <span className="text-2xl font-black italic text-primary font-title">R$ {service.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className="text-[8px] sm:text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-2 sm:mb-3 font-title">Investment</span>
+                <span className="text-xl sm:text-2xl font-black italic text-primary font-title">R$ {service.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-3 font-title">Dedication</span>
-                <span className="text-primary font-black italic text-sm flex items-center gap-2 font-title">
-                   <Clock size={16} className="text-cta" strokeWidth={3} />
+                <span className="text-[8px] sm:text-[10px] font-black italic text-primary/20 uppercase tracking-widest mb-2 sm:mb-3 font-title">Dedication</span>
+                <span className="text-primary font-black italic text-[12px] sm:text-sm flex items-center gap-1.5 sm:gap-2 font-title">
+                   <Clock size={14} sm:size={16} className="text-cta" strokeWidth={3} />
                    {service.duration} MIN
                 </span>
               </div>
             </div>
             
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[48px] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[32px] sm:rounded-[48px] pointer-events-none" />
           </div>
         ))}
       </div>
@@ -235,7 +240,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
                    />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                    <div>
                       <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Valor do Investimento</label>
                       <div className="relative">
@@ -250,15 +255,23 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
                    </div>
                    <div>
                       <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Duração (Minutos)</label>
-                      <select 
+                      <input 
+                        type="number"
                         value={duration}
-                        onChange={e => setDuration(parseInt(e.target.value))}
-                        className="w-full bg-background border-2 border-transparent rounded-[28px] px-8 py-5 text-primary font-black italic text-sm focus:border-cta/20 focus:bg-white outline-none transition-all font-title shadow-sm appearance-none"
-                      >
-                        {[15, 30, 45, 60, 75, 90, 120].map(d => (
-                          <option key={d} value={d}>{d} MINUTOS</option>
-                        ))}
-                      </select>
+                        onChange={e => setDuration(parseInt(e.target.value) || 0)}
+                        className="w-full bg-background border-2 border-transparent rounded-[28px] px-8 py-5 text-primary font-black italic text-sm focus:border-cta/20 focus:bg-white outline-none transition-all font-title shadow-sm"
+                        min="0"
+                      />
+                   </div>
+                   <div>
+                      <label className="text-[10px] font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em] font-title">Buffer Após (Minutos)</label>
+                      <input 
+                        type="number"
+                        value={bufferTime}
+                        onChange={e => setBufferTime(parseInt(e.target.value) || 0)}
+                        className="w-full bg-background border-2 border-transparent rounded-[28px] px-8 py-5 text-primary font-black italic text-sm focus:border-cta/20 focus:bg-white outline-none transition-all font-title shadow-sm"
+                        min="0"
+                      />
                    </div>
                 </div>
 

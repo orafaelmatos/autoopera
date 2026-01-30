@@ -15,7 +15,7 @@ class BarbershopSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barbershop
-        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active', 'created_at', 'trial_days_left', 'plan']
+        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active', 'created_at', 'trial_days_left', 'plan', 'onboarding_completed']
 
     def get_trial_days_left(self, obj):
         from django.utils import timezone
@@ -41,7 +41,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ['id', 'name', 'price', 'duration', 'description', 'is_active', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'price', 'duration', 'buffer_time', 'description', 'is_active', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'barbershop']
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -93,45 +93,52 @@ class LoyaltyRewardSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     clientName = serializers.CharField(source='client_name')
-    serviceId = serializers.PrimaryKeyRelatedField(
-        source='service', 
-        queryset=Service.objects.all()
+    serviceIds = serializers.PrimaryKeyRelatedField(
+        source='services', 
+        queryset=Service.objects.all(),
+        many=True
     )
     barberId = serializers.PrimaryKeyRelatedField(
         source='barber',
         queryset=Barber.objects.all()
     )
-    service_name = serializers.ReadOnlyField(source='service.name')
+    service_names = serializers.SerializerMethodField()
     barber_name = serializers.ReadOnlyField(source='barber.name')
-    service_price = serializers.ReadOnlyField(source='service.price')
+    total_price = serializers.SerializerMethodField()
     slot = TimeSlotSerializer(read_only=True)
     
     class Meta:
         model = Appointment
         fields = [
-            'id', 'clientName', 'serviceId', 'barberId', 
-            'service_name', 'barber_name', 'service_price',
+            'id', 'clientName', 'serviceIds', 'barberId', 
+            'service_names', 'barber_name', 'total_price',
             'date', 'status', 'platform', 'customer', 'slot', 
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'status', 'created_at', 'updated_at', 'slot', 'barbershop']
 
+    def get_service_names(self, obj):
+        return ", ".join([s.name for s in obj.services.all()])
+
+    def get_total_price(self, obj):
+        return sum([float(s.price) for s in obj.services.all()])
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get('request')
         if request and hasattr(request, 'barbershop'):
-            self.fields['serviceId'].queryset = Service.objects.filter(barbershop=request.barbershop)
+            self.fields['serviceIds'].queryset = Service.objects.filter(barbershop=request.barbershop)
             self.fields['barberId'].queryset = Barber.objects.filter(barbershop=request.barbershop)
 
     def update(self, instance, validated_data):
-        if instance.status == 'confirmed' and ('date' in validated_data or 'service' in validated_data or 'barber' in validated_data):
-            raise serializers.ValidationError("Não é permitido alterar horário ou serviço de um agendamento confirmado. Cancele e crie um novo.")
+        if instance.status == 'confirmed' and ('date' in validated_data or 'services' in validated_data or 'barber' in validated_data):
+            raise serializers.ValidationError("Não é permitido alterar horário ou serviços de um agendamento confirmado.")
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        if 'serviceId' in ret and ret['serviceId'] is not None:
-            ret['serviceId'] = str(ret['serviceId'])
+        if 'serviceIds' in ret and ret['serviceIds'] is not None:
+            ret['serviceIds'] = [str(sid) for sid in ret['serviceIds']]
         if 'barberId' in ret and ret['barberId'] is not None:
             ret['barberId'] = str(ret['barberId'])
         if 'customer' in ret and ret['customer'] is not None:

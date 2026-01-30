@@ -10,6 +10,7 @@ export interface Barbershop {
   primary_color: string;
   trial_days_left?: number;
   plan?: 'trial' | 'basic' | 'pro' | 'elite';
+  onboarding_completed: boolean;
 }
 
 export interface Barber {
@@ -28,6 +29,7 @@ export interface Service {
   name: string;
   price: number;
   duration: number; // minutes
+  buffer_time: number; // minutes
   description?: string;
 }
 
@@ -53,12 +55,14 @@ export interface LoyaltyReward {
 export interface Appointment {
   id: string;
   clientName: string;
-  serviceId: string;
+  serviceIds: string[];
   barberId: string;
   date: string; // ISO format
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   platform?: 'manual' | 'whatsapp' | 'web';
   customer?: string;
+  service_names?: string;
+  total_price?: number;
 }
 
 export interface Availability {

@@ -40,69 +40,116 @@ const AppointmentCard: React.FC<{
   apt: Appointment, 
   services: Service[], 
   onComplete: (id: string) => void,
+  onCancel: (id: string) => void,
   getStatusLabel: (s: string) => string
-}> = ({ apt, services, onComplete, getStatusLabel }) => {
+}> = ({ apt, services, onComplete, onCancel, getStatusLabel }) => {
   const x = useMotionValue(0);
-  const background = useTransform(x, [0, 100], ["rgba(15, 76, 92, 0)", "#E67E22"]);
-  const opacity = useTransform(x, [0, 100], [0, 1]);
-  const scale = useTransform(x, [0, 100], [0.8, 1]);
+  
+  // Transformações para o fundo de Concluir (Swipe Direita)
+  const bgComplete = useTransform(x, [0, 100], ["rgba(15, 76, 92, 0)", "#27AE60"]); // Verde para concluir
+  const opacityComplete = useTransform(x, [0, 100], [0, 1]);
+  const scaleComplete = useTransform(x, [0, 100], [0.8, 1]);
+
+  // Transformações para o fundo de Cancelar (Swipe Esquerda)
+  const bgCancel = useTransform(x, [0, -100], ["rgba(231, 76, 60, 0)", "#E74C3C"]); // Vermelho para cancelar
+  const opacityCancel = useTransform(x, [0, -100], [0, 1]);
+  const scaleCancel = useTransform(x, [0, -100], [0.8, 1]);
 
   return (
-    <div className="relative group overflow-hidden rounded-[28px] bg-[#F5F5F5] shadow-sm">
-      {/* Background Action */}
+    <div className="relative group overflow-hidden rounded-3xl sm:rounded-[28px] bg-[#F5F5F5] shadow-sm">
+      {/* Background Action: FINALIZAR (Direita) */}
       <motion.div 
-        style={{ background, opacity }}
-        className="absolute inset-0 flex items-center pl-8 text-white font-black italic uppercase gap-3 z-0"
+        style={{ background: bgComplete, opacity: opacityComplete }}
+        className="absolute inset-0 flex items-center pl-6 sm:pl-8 text-white font-black italic uppercase gap-2 sm:gap-3 z-0"
       >
-        <motion.div style={{ scale }}>
-          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-cta shadow-xl">
-            <Check size={24} strokeWidth={3} />
+        <motion.div style={{ scale: scaleComplete }}>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-[#27AE60] shadow-xl">
+            <Check size={20} sm:size={24} strokeWidth={3} />
           </div>
         </motion.div>
-        <span className="text-xs tracking-widest font-title">Finalizar Elite</span>
+        <div className="flex flex-col">
+          <span className="text-[10px] sm:text-xs tracking-widest font-title">Finalizar</span>
+          <span className="text-[7px] sm:text-[8px] opacity-60 font-title">Lançar no Caixa</span>
+        </div>
+      </motion.div>
+
+      {/* Background Action: CANCELAR (Esquerda) */}
+      <motion.div 
+        style={{ background: bgCancel, opacity: opacityCancel }}
+        className="absolute inset-0 flex items-center justify-end pr-6 sm:pr-8 text-white font-black italic uppercase gap-2 sm:gap-3 z-0"
+      >
+        <div className="flex flex-col items-end">
+          <span className="text-[10px] sm:text-xs tracking-widest font-title">Desmarcar</span>
+          <span className="text-[7px] sm:text-[8px] opacity-60 font-title">Liberar Horário</span>
+        </div>
+        <motion.div style={{ scale: scaleCancel }}>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-[#E74C3C] shadow-xl">
+            <Trash2 size={20} sm:size={24} strokeWidth={3} />
+          </div>
+        </motion.div>
       </motion.div>
 
       <motion.div 
         drag="x"
-        dragConstraints={{ left: 0, right: 140 }}
+        dragConstraints={{ left: -140, right: 140 }}
         dragElastic={0.1}
         onDragEnd={(_, info) => {
           if (info.offset.x > 100) {
             onComplete(apt.id);
+          } else if (info.offset.x < -100) {
+            onCancel(apt.id);
           }
         }}
         style={{ x }}
-        className="relative z-10 bg-white border border-[#E5E5E5] p-5 sm:p-6 flex items-center justify-between hover:bg-white/80 transition-all cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,76,92,0.05)] rounded-[28px]"
+        className="relative z-10 bg-white border border-[#E5E5E5] p-4 sm:p-6 flex items-center justify-between hover:bg-white/80 transition-all cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,76,92,0.05)] rounded-3xl sm:rounded-[28px]"
       >
-        <div className="flex items-center gap-4 sm:gap-6">
-          <div className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-primary text-white shadow-lg shadow-primary/20">
-            <span className="text-[8px] sm:text-[9px] font-black uppercase mb-0.5 opacity-60 font-title tracking-wider">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-            <span className="text-base sm:text-lg font-black italic tracking-tight leading-none font-title">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex flex-col items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[20px] bg-primary text-white shadow-lg shadow-primary/20">
+            <span className="text-[7px] sm:text-[9px] font-black uppercase mb-0.5 opacity-60 font-title tracking-wider">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
+            <span className="text-sm sm:text-lg font-black italic tracking-tight leading-none font-title">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           <div>
-            <h4 className="text-lg sm:text-xl font-black italic uppercase text-primary tracking-tight font-title">{apt.clientName}</h4>
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-2 text-primary/40 font-black italic text-[9px] sm:text-[10px] uppercase tracking-wider font-title">
-              <span className="flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10 whitespace-nowrap">
-                <Scissors size={12} className="text-primary/60" /> 
-                {services.find(s => s.id === apt.serviceId)?.name || 'Serviço'}
-              </span>
-              <span className="flex items-center gap-2 whitespace-nowrap opacity-80">
-                <CalendarDays size={12} className="text-primary/60" /> 
-                {new Date(apt.date).toLocaleDateString('pt-BR')}
+            <h4 className="text-base sm:text-xl font-black italic uppercase text-primary tracking-tight font-title">{apt.clientName}</h4>
+            <div className="flex flex-wrap items-center gap-y-1 gap-x-2 sm:gap-x-3 mt-1 sm:mt-2 text-primary/40 font-black italic text-[8px] sm:text-[10px] uppercase tracking-wider font-title">
+              <span className="flex items-center gap-1.5 sm:gap-2 bg-primary/5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-primary/10 whitespace-nowrap">
+                <Scissors size={10} sm:size={12} className="text-primary/60" /> 
+                <span className="max-w-[100px] truncate">{apt.service_names || 'Serviços'}</span>
               </span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 sm:gap-5">
-          <span className={`px-4 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-black italic uppercase tracking-[0.15em] border font-title transition-all ${
+        <div className="flex items-center gap-2 sm:gap-5">
+          <div className="hidden sm:flex items-center gap-2 pr-2 border-r border-primary/5 mr-2">
+             <button 
+               onClick={() => onCancel(apt.id)}
+               className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+               title="Cancelar Horário"
+             >
+               <X size={18} strokeWidth={3} />
+             </button>
+             <button 
+               onClick={() => onComplete(apt.id)}
+               className="p-2 text-[#27AE60] hover:bg-green-50 rounded-xl transition-all"
+               title="Finalizar Atendimento"
+             >
+               <Check size={18} strokeWidth={3} />
+             </button>
+          </div>
+          
+          <span className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.1em] sm:tracking-[0.15em] border font-title transition-all ${
             apt.status === 'confirmed' 
               ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
               : 'bg-background text-text/30 border-border'
           }`}>
             {getStatusLabel(apt.status)}
           </span>
-          <div className="p-2.5 bg-background rounded-full text-primary/20 group-hover:text-cta group-hover:bg-cta/5 transition-all">
-            <ChevronRight size={22} className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+          
+          {/* Mobile indicator for swipe */}
+          <div className="sm:hidden p-2 bg-background rounded-full text-cta/40">
+            <div className="flex gap-0.5">
+               <ChevronRight size={12} strokeWidth={4} />
+               <ChevronRight size={12} strokeWidth={4} className="-ml-2" />
+            </div>
           </div>
         </div>
       </motion.div>
@@ -122,6 +169,7 @@ const CalendarView: React.FC<Props> = ({
 }) => {
   const [isAddingException, setIsAddingNew] = useState(false);
   const [isAddingAppointment, setIsAddingAppointment] = useState(false);
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [aptError, setAptError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -159,19 +207,19 @@ const CalendarView: React.FC<Props> = ({
   // Estados para novo agendamento
   const [aptName, setAptName] = useState('');
   const [aptPhone, setAptPhone] = useState('');
-  const [aptService, setAptService] = useState(services[0]?.id || '');
+  const [aptServices, setAptServices] = useState<string[]>([]);
   const [aptDate, setAptDate] = useState(new Date().toLocaleDateString('en-CA')); // Formato YYYY-MM-DD local
   const [aptTime, setAptTime] = useState('09:00');
   const [aptOverride, setAptOverride] = useState(false);
 
   const handleAddAppointment = async () => {
-    if (!aptName || !aptService || !aptDate || !aptTime) return;
+    if (!aptName || aptServices.length === 0 || !aptDate || !aptTime) return;
     setAptError(null);
     try {
       const entry = await appointmentsApi.create({
         clientName: aptName,
         clientPhone: aptPhone,
-        serviceId: aptService,
+        serviceIds: aptServices,
         barberId: barberId,
         date: `${aptDate}T${aptTime}:00`,
         status: 'confirmed',
@@ -186,6 +234,7 @@ const CalendarView: React.FC<Props> = ({
         setIsAddingAppointment(false);
         setAptName('');
         setAptPhone('');
+        setAptServices([]);
         setAptOverride(false);
       }, 2000);
 
@@ -214,6 +263,23 @@ const handleCompleteAppointment = async (id: string) => {
     }
   };
 
+  const handleCancelAppointment = (id: string) => {
+    setConfirmCancelId(id);
+  };
+
+  const confirmCancel = async () => {
+    if (!confirmCancelId) return;
+    try {
+      await appointmentsApi.delete(confirmCancelId);
+      setAppointments(appointments.filter(a => a.id !== confirmCancelId));
+      toast.success("Agendamento cancelado com sucesso.");
+      setConfirmCancelId(null);
+    } catch (error) {
+      console.error("Erro ao cancelar:", error);
+      toast.error("Erro ao cancelar agendamento.");
+    }
+  };
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending': return 'Pendente';
@@ -229,23 +295,23 @@ const handleCompleteAppointment = async (id: string) => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
+    <div className="space-y-6 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 sm:px-4">
         <div>
-          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-2">
+          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-1 sm:mb-2">
             Minha <span className="text-cta">Agenda</span>
           </h2>
-          <div className="flex items-center gap-3">
-            <div className="h-[2px] w-12 bg-cta/30 rounded-full" />
-            <p className="text-primary/60 font-black italic text-xs sm:text-sm uppercase tracking-widest font-title">Fluxo de Elite</p>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
+            <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Fluxo de Elite</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:flex gap-4">
           <button 
             onClick={() => setIsAddingAppointment(true)}
-            className="bg-cta text-white px-8 sm:px-10 py-5 sm:py-6 rounded-[24px] text-xs sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-[#D35400] transition-all shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 font-title group"
+            className="bg-cta text-white px-6 sm:px-10 py-4 sm:py-6 rounded-2xl sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-[#D35400] transition-all shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 font-title group"
           >
-            <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
+            <Plus size={18} sm:size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
             <span>Novo Agendamento</span>
           </button>
         </div>
@@ -271,6 +337,7 @@ const handleCompleteAppointment = async (id: string) => {
                 apt={apt}
                 services={services}
                 onComplete={handleCompleteAppointment}
+                onCancel={handleCancelAppointment}
                 getStatusLabel={getStatusLabel}
               />
             ))}
@@ -334,11 +401,33 @@ const handleCompleteAppointment = async (id: string) => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                       <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Serviço Selecionado</label>
-                       <select value={aptService} onChange={e => setAptService(e.target.value)} className="w-full bg-background border-2 border-transparent rounded-[24px] px-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all font-black italic uppercase text-sm font-title appearance-none cursor-pointer">
-                          {services.map(s => <option key={s.id} value={s.id}>{s.name} — R$ {s.price}</option>)}
-                       </select>
+                    <div className="space-y-3">
+                       <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Serviços Selecionados</label>
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                          {services.map(s => {
+                            const isSelected = aptServices.includes(s.id);
+                            return (
+                              <button
+                                key={s.id}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setAptServices(aptServices.filter(id => id !== s.id));
+                                  } else {
+                                    setAptServices([...aptServices, s.id]);
+                                  }
+                                }}
+                                className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all text-left ${
+                                  isSelected 
+                                    ? 'bg-primary border-primary text-white shadow-lg' 
+                                    : 'bg-background border-transparent text-primary hover:border-primary/10'
+                                }`}
+                              >
+                                <span className="text-[10px] font-black italic uppercase tracking-tight font-title truncate mr-2">{s.name}</span>
+                                <span className={`text-[10px] font-black italic font-title ${isSelected ? 'text-white' : 'text-cta'}`}>R$ {s.price}</span>
+                              </button>
+                            );
+                          })}
+                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -378,6 +467,54 @@ const handleCompleteAppointment = async (id: string) => {
                   </div>
                 </>
               )}
+            </motion.div>
+          </div>
+        )}
+
+        {/* Modal Profissional de Confirmação de Cancelamento */}
+        {confirmCancelId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmCancelId(null)}
+              className="absolute inset-0 bg-primary/40 backdrop-blur-md" 
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-[400px] bg-white rounded-[32px] p-8 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden border border-primary/5"
+            >
+              {/* Decorativo */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16" />
+              
+              <div className="relative z-10 text-center">
+                <div className="w-20 h-20 bg-red-50 rounded-[28px] flex items-center justify-center text-red-500 mx-auto mb-6">
+                  <AlertCircle size={40} strokeWidth={2.5} />
+                </div>
+                
+                <h3 className="text-2xl font-black italic uppercase text-primary font-title tracking-tighter mb-2">Cancelar Horário?</h3>
+                <p className="text-primary/40 text-xs font-black italic uppercase tracking-widest font-title mb-8 leading-relaxed">
+                  Esta ação irá liberar o slot na agenda e não pode ser desfeita.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={confirmCancel}
+                    className="w-full py-5 bg-red-500 text-white rounded-[20px] font-black italic uppercase tracking-[0.2em] text-xs hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-[0.98] font-title"
+                  >
+                    Confirmar Cancelamento
+                  </button>
+                  <button 
+                    onClick={() => setConfirmCancelId(null)}
+                    className="w-full py-4 text-primary/40 hover:text-primary font-black italic uppercase tracking-[0.2em] text-[10px] transition-all font-title"
+                  >
+                    Voltar / Manter Agenda
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
