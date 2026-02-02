@@ -12,6 +12,9 @@ RUN npm run build
 # Stage 2: Serve
 FROM nginx:stable-alpine as production-stage
 
+# Criar os diretórios para volumes montados
+RUN mkdir -p /app/backend_static /app/media
+
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
