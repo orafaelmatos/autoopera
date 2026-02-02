@@ -96,12 +96,26 @@ export const getMediaUrl = (path: string | null | undefined) => {
   // Se for uma URL completa (ex: de um storage externo ou se o DRF já retornou com host)
   if (path.startsWith('http')) {
     const currentHostname = window.location.hostname;
-    // Se acessando via IP (comum em mobile) e a URL retornada pelo backend for 'localhost'
-    // precisamos trocar para o IP para que o dispositivo móvel consiga alcançar o arquivo
+    const currentPort = window.location.port;
+
+    // Se a URL contém /media/ e aponta para a porta 8000, mas estamos acessando a app em outra porta (produção)
+    if ((path.includes(':8000/media/') || path.includes('/media/')) && 
+        (!currentPort || currentPort === '80' || currentPort === '443')) {
+      
+      // Extrai o caminho relativo da mídia
+      const mediaPartIndex = path.indexOf('/media/');
+      if (mediaPartIndex !== -1) {
+        const relativePath = path.substring(mediaPartIndex);
+        return `${window.location.origin}${relativePath}`;
+      }
+    }
+
+    // Caso especial para mobile acessando dev
     if (currentHostname !== 'localhost' && currentHostname !== '127.0.0.1' && 
         (path.includes('://localhost') || path.includes('://127.0.0.1'))) {
       return path.replace('://localhost', `://${currentHostname}`).replace('://127.0.0.1', `://${currentHostname}`);
     }
+
     return path;
   }
   
@@ -118,17 +132,18 @@ export const getMediaUrl = (path: string | null | undefined) => {
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
 
-  if (isLocalHost || (isIpAddress && isDevPort)) {
-    // Tenta usar a porta 8000 se estivermos em desenvolvimento (IP local ou localhost)
-    return `http://${hostname}:8000${normalizedPath}`;
+  // Se estivermos em uma porta de desenvolvimento ou acessando via localhost com porta 8000 fallback
+  if (isLocalHost && !port) {
+      // Caso raro onde localhost acessa sem porta, mas geralmente dev é com porta.
+      return `${origin}${normalizedPath}`;
   }
 
-  // Fallback para quando acessamos via IP mas sem as portas de dev conhecidas
-  if (isIpAddress) {
+  if (isLocalHost || (isIpAddress && isDevPort)) {
+    // Desenvolvimento: backend rodando na 8000
     return `http://${hostname}:8000${normalizedPath}`;
   }
   
-  // Caso contrário (Produção com Nginx ou acessando via domínio sem porta), usa a origem atual
+  // Produção/Docker: O Nginx serve as imagens em /media/ na mesma porta do frontend
   return `${origin}${normalizedPath}`;
 };
 
