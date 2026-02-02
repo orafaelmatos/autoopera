@@ -106,7 +106,10 @@ export const getMediaUrl = (path: string | null | undefined) => {
       const mediaPartIndex = path.indexOf('/media/');
       if (mediaPartIndex !== -1) {
         const relativePath = path.substring(mediaPartIndex);
-        return `${window.location.origin}${relativePath}`;
+        const baseUrl = window.location.origin.endsWith('/') 
+          ? window.location.origin.slice(0, -1) 
+          : window.location.origin;
+        return `${baseUrl}${relativePath}`;
       }
     }
 
