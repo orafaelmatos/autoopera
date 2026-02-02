@@ -212,7 +212,7 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
                 {/* Form Section */}
                 <div className="flex-[1.2] p-10 sm:p-16 border-r border-border overflow-y-auto">
                   <div className="mb-12">
-                    <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Campanha Elite</span>
+                    <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Campanha Profissional</span>
                     <h3 className="text-3xl sm:text-4xl font-black tracking-tighter text-text italic uppercase font-title mt-2">CONFIGURAR OFERTA</h3>
                   </div>
                   
@@ -302,7 +302,7 @@ const PromotionsView: React.FC<Props> = ({ services, customers }) => {
                             <h5 className="font-black text-primary text-lg font-title italic uppercase tracking-tight">{promoName || 'CAMPA EXCLUSIVA'}</h5>
                             <p className="text-xs font-medium text-text/60 leading-relaxed italic">Ative seu cupom de <span className="font-black text-cta">{discount}% OFF</span> para o serviço de {services.find(s => s.id === selectedService)?.name || 'Corte'}!</p>
                             <div className="bg-primary rounded-2xl py-3.5 text-center text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary/20 italic">
-                                Agendar Elite
+                                Agendar Agora
                             </div>
                           </div>
                        </div>

@@ -187,7 +187,7 @@ const DashboardView: React.FC<Props> = ({
 
   return (
     <div className="space-y-6 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
-      {/* Header Elite */}
+      {/* Header Dashboard */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-8 px-2 sm:px-0">
         <div>
           <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-4">
@@ -208,7 +208,7 @@ const DashboardView: React.FC<Props> = ({
         </div>
       </header>
 
-      {/* Grid de Stats Elite */}
+      {/* Grid de Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8 px-2 sm:px-0">
         <StatCard title="Ganhos Hoje" value={`R$ ${totalRevenue.toLocaleString()}`} icon={<Wallet className="text-white" size={24} />} trend="+12%" />
         <StatCard title="Finalizados" value={completedApts.length.toString()} icon={<CheckCircle2 className="text-white" size={24} />} trend="+3" />
@@ -309,7 +309,7 @@ const DashboardView: React.FC<Props> = ({
             </div>
           </div>
           
-          {/* Insights Elite */}
+          {/* Insights & Dicas */}
           <div className="bg-primary border border-primary/10 rounded-[32px] sm:rounded-[48px] p-6 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.3)]">
              <div className="absolute -top-10 -right-10 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
                  <Megaphone size={120} sm:size={160} />

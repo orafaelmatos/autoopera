@@ -1,4 +1,4 @@
-# Documentação de Testes - Barber Flow
+# Documentação de Testes - Autoopera Barber
 
 Este documento descreve a suíte de testes automatizados do backend, garantindo que as regras de negócio e integrações funcionem corretamente.
 

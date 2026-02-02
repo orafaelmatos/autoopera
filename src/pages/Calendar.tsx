@@ -303,7 +303,7 @@ const handleCompleteAppointment = async (id: string) => {
           </h2>
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
-            <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Fluxo de Elite</p>
+            <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Fluxo Profissional</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:flex gap-4">
@@ -381,7 +381,7 @@ const handleCompleteAppointment = async (id: string) => {
                 <>
                   <div className="mb-10 text-center sm:text-left">
                     <h3 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-primary mb-3 font-title">Novo <span className="text-cta">Horário</span></h3>
-                    <p className="text-primary/40 text-xs font-black italic uppercase tracking-widest font-title">Entrada manual no sistema de elite</p>
+                    <p className="text-primary/40 text-xs font-black italic uppercase tracking-widest font-title">Entrada manual no sistema profissional</p>
                   </div>
                   
                   <div className="space-y-6">
@@ -432,7 +432,7 @@ const handleCompleteAppointment = async (id: string) => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Data Elite</label>
+                        <label className="text-[10px] uppercase font-black italic text-primary/40 tracking-[0.2em] ml-4 font-title">Data Selecionada</label>
                         <input type="date" value={aptDate} onChange={e => setAptDate(e.target.value)} className="w-full bg-background border-2 border-transparent rounded-[24px] px-6 py-4 sm:py-5 text-primary focus:border-cta/20 focus:bg-white outline-none transition-all font-black italic uppercase text-xs font-title" />
                       </div>
                       <div className="space-y-2">

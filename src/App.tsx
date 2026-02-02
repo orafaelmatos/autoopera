@@ -310,8 +310,11 @@ const App: React.FC = () => {
   // Se o usuário é um barbeiro e está na raiz, a dashboard é mostrada
   // Se não está logado, mostra login
 
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register-barber' || location.pathname.includes('/login');
+  const isPublicPage = location.pathname === '/' || location.pathname.includes('/booking') || isAuthPage;
+
   return (
-    <div className={`min-h-screen bg-background text-primary ${user?.role === 'barber' ? 'flex flex-col md:flex-row' : ''}`}>
+    <div className={`min-h-screen bg-background text-primary ${user?.role === 'barber' && !isPublicPage ? 'flex flex-col md:flex-row' : ''}`}>
       <ScrollToTop />
       <Toaster 
         position="top-center" 
@@ -351,7 +354,7 @@ const App: React.FC = () => {
         />
       )}
       
-      {user?.role === 'barber' && (
+      {user?.role === 'barber' && !isPublicPage && (
         <nav className="hidden md:flex flex-col w-[300px] bg-primary h-screen sticky top-0 p-8 z-50">
           <div className="flex flex-col gap-8 mb-12 pb-8 border-b border-white/5 relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -436,8 +439,8 @@ const App: React.FC = () => {
         </nav>
       )}
 
-      <main className={`flex-1 ${user?.role === 'barber' ? 'pb-24 md:pb-8 overflow-y-auto w-full' : ''}`}>
-        {user?.role === 'barber' && location.pathname !== '/login' && (
+      <main className={`flex-1 ${user?.role === 'barber' && !isPublicPage ? 'pb-24 md:pb-8 overflow-y-auto w-full' : ''}`}>
+        {user?.role === 'barber' && !isPublicPage && (
           <div className="relative w-full h-[70px] md:h-[90px] overflow-hidden bg-primary flex items-center border-b border-white/5">
             {/* Texture Overlay */}
             <div className="absolute inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
@@ -489,7 +492,7 @@ const App: React.FC = () => {
           </div>
         )}
         
-        <div className={user?.role === 'barber' ? 'p-2 sm:p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-90px)]' : ''}>
+        <div className={user?.role === 'barber' && !isPublicPage ? 'p-2 sm:p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-90px)]' : ''}>
           <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register-barber" element={<BarberRegister />} />
@@ -608,8 +611,8 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      {user?.role === 'barber' && (
+      {/* Mobile Bottom Navigation - Oculto em páginas públicas ou auth */}
+      {user?.role === 'barber' && !isPublicPage && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary/5 px-4 h-24 flex items-center justify-around z-[60] shadow-[0_-24px_48px_rgba(15,76,92,0.1) ]">
           <MobileNavButton active={activeTab === 'calendar' || activeTab === ''} onClick={() => handleNavigation('/')} icon={<Calendar />} label="Agenda" />
           <MobileNavButton 

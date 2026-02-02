@@ -319,6 +319,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
     profile.role = "BARBER"
+    profile.cpf = cpf
     profile.save()
 
     # ===============================
@@ -968,7 +969,7 @@ def pwa_manifest(request, slug=None):
     manifest = {
         "name": "AutoOpera",
         "short_name": "AutoOpera",
-        "description": "AutoOpera | Gestão de Barbearia Elite",
+        "description": "Autoopera Barber | Gestão Profissional",
         "start_url": start_url,
         "display": "standalone",
         "background_color": "#F5F5F5",

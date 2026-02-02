@@ -9,7 +9,7 @@ export interface Barbershop {
   logo?: string;
   primary_color: string;
   trial_days_left?: number;
-  plan?: 'trial' | 'basic' | 'pro' | 'elite';
+  plan?: 'trial' | 'basic' | 'pro' | 'master';
   onboarding_completed: boolean;
 }
 

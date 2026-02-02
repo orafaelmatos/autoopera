@@ -196,7 +196,7 @@ const LandingPage: React.FC = () => {
             <section id="facilidades" className="py-24 px-6 md:px-12 bg-background relative overflow-hidden">
                 <div className="max-w-6xl mx-auto relative z-10">
                     <div className="text-center mb-20 space-y-4">
-                        <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Funcionalidades Elite</span>
+                        <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Poder de Gestão</span>
                         <h2 className="font-title text-4xl md:text-6xl font-black text-text italic uppercase tracking-tighter">O PODER DA TRADIÇÃO COM TECNOLOGIA</h2>
                     </div>
 
@@ -300,7 +300,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-6xl mx-auto text-center relative z-10">
                     <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Investimento Inteligente</span>
                     <h2 className="font-title text-4xl md:text-6xl font-black mb-6 italic uppercase tracking-tighter">PLANOS ESPECIAIS</h2>
-                    <p className="text-lg text-text/50 mb-20 italic">A tecnologia de elite acessível para todo o mestre barbeiro.</p>
+                    <p className="text-lg text-text/50 mb-20 italic">A tecnologia de mestre acessível para todo profissional da beleza.</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {plans.map((plan, i) => (

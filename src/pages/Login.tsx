@@ -27,7 +27,8 @@ const LoginPage: React.FC = () => {
     };
 
     const [phone, setPhone] = useState(formatPhone(localStorage.getItem('saved_phone') || ''));
-    const [mode, setMode] = useState<'client' | 'owner'>('client');
+    const { slug: urlSlug } = useParams<{ slug?: string }>();
+    const [mode, setMode] = useState<'client' | 'owner'>(urlSlug ? 'client' : 'owner');
     const [ownerCpf, setOwnerCpf] = useState('');
     const [password, setPassword] = useState('');
     const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
@@ -48,7 +49,6 @@ const LoginPage: React.FC = () => {
     
     const { login, refreshUser } = useAuth();
     const navigate = useNavigate();
-    const { slug: urlSlug } = useParams<{ slug?: string }>();
 
     useEffect(() => {
         const fetchShop = async () => {
@@ -245,27 +245,29 @@ const LoginPage: React.FC = () => {
                         <p className="text-text/40 text-xs sm:text-sm font-bold italic uppercase tracking-widest">
                             {step === 'phone' && (barbershop ? `Acesse o Fluxo de Excelência` : 'Gerencie seus atendimentos')}
                             {step === 'confirm' && 'Verificação de Identidade'}
-                            {step === 'register' && 'Crie seu Perfil Elite'}
+                            {step === 'register' && 'Crie seu Perfil Profissional'}
                             {step === 'password' && 'Acesso Restrito Professional'}
                         </p>
                     </div>
                 </div>
 
-                {/* Role Toggle */}
-                <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-5">
-                    <button 
-                        onClick={() => { setMode('client'); setStep('phone'); }} 
-                        className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='client' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
-                    >
-                        Sou Cliente
-                    </button>
-                    <button 
-                        onClick={() => { setMode('owner'); setStep('phone'); }} 
-                        className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='owner' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
-                    >
-                        Sou Barbeiro
-                    </button>
-                </div>
+                {/* Role Toggle - Oculto se não houver slug (Login Central) */}
+                {urlSlug && (
+                    <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-5">
+                        <button 
+                            onClick={() => { setMode('client'); setStep('phone'); }} 
+                            className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='client' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
+                        >
+                            Sou Cliente
+                        </button>
+                        <button 
+                            onClick={() => { setMode('owner'); setStep('phone'); }} 
+                            className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='owner' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
+                        >
+                            Sou Barbeiro
+                        </button>
+                    </div>
+                )}
 
                 <AnimatePresence mode="wait">
                     {step === 'phone' && (

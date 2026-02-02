@@ -140,7 +140,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
         <div>
           <div className="flex items-center gap-3 mb-2 sm:mb-4 text-cta">
             <Scissors size={16} className="sm:size-5" strokeWidth={2.5} />
-            <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.4em]">Service Menu Elite</span>
+            <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.4em]">Experiências Profissionais</span>
           </div>
           <h2 className="text-3xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
             Catálogo de <span className="text-primary/20">Experiências</span>

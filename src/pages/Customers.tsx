@@ -129,7 +129,7 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
         <div>
           <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4 text-cta">
               <UserPlus size={16} sm:size={20} strokeWidth={2.5} />
-              <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.2em] sm:tracking-[0.4em]">CRM & Loyalty Portal Elite</span>
+              <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.2em] sm:tracking-[0.4em]">CRM & Loyalty Portal Profissional</span>
           </div>
           <h2 className="text-2xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-tight">
             Gestão de <span className="text-primary/20">Membros</span>
@@ -392,7 +392,7 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
 
               <div className="mb-12">
                 <h3 className="text-4xl sm:text-5xl font-black italic uppercase text-primary font-title mb-3 leading-none">Novo Membro</h3>
-                <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em]">Protocolo de Admissão Elite</p>
+                <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em]">Protocolo de Admissão Profissional</p>
               </div>
 
               <div className="space-y-8 font-title">

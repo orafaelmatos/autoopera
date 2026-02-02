@@ -327,7 +327,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 px-1 sm:px-4">
         <div>
           <h2 className="text-2xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-1 sm:mb-2">
-            Configurações <span className="text-cta">Elite</span>
+            Configurações <span className="text-cta">Gerais</span>
           </h2>
           <div className="flex items-center gap-2 sm:gap-3">
              <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
@@ -386,8 +386,8 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             <Sparkles size={20} sm:size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-sm sm:text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade de Elite</h4>
-                            <p className="text-[10px] sm:text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest font-title italic">Marca impecável no fluxo Elite.</p>
+                            <h4 className="text-sm sm:text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade Visual</h4>
+                            <p className="text-[10px] sm:text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest font-title italic">Sua marca impecável no sistema.</p>
                         </div>
                     </div>
 
@@ -406,7 +406,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                   <button 
                                       onClick={() => {
                                           navigator.clipboard.writeText(`${window.location.origin}/b/${shopData.slug}/booking`);
-                                          toast.success("Link Elite Copiado!");
+                                          toast.success("Link Profissional Copiado!");
                                       }}
                                       className="bg-cta text-white font-black italic px-6 py-3 sm:py-5 rounded-xl sm:rounded-[24px] hover:bg-[#D35400] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest"
                                   >
@@ -427,13 +427,13 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     type="text"
                                     value={shopData.name}
                                     onChange={e => setShopData({...shopData, name: e.target.value})}
-                                    placeholder="Ex: AutoOpera Elite"
+                                    placeholder="Ex: Autoopera Barber"
                                     className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Telefone / WhatsApp Elite</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Telefone / WhatsApp Profissional</label>
                             <div className="relative group">
                                 <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
@@ -492,7 +492,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             <h3 className="text-2xl sm:text-5xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2 sm:mb-3">{user?.name || 'Mestre Barbeiro'}</h3>
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 mt-2 sm:mt-6">
                               <span className="px-4 sm:px-5 py-1.5 sm:py-2 bg-primary text-white rounded-full text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest shadow-lg shadow-primary/20 font-title">
-                                Barbeiro Elite
+                                Barbeiro Profissional
                               </span>
                               <div className="px-4 sm:px-5 py-1.5 sm:py-2 bg-background border border-primary/5 rounded-full inline-flex items-center gap-2">
                                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -506,7 +506,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 <div className="p-4 sm:p-16 space-y-6 sm:space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10">
                         <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu Nome de Elite</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu Nome Profissional</label>
                             <div className="relative group">
                                 <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
                                 <input 
@@ -553,7 +553,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                animate={{ opacity: 1, y: 0 }}
                className="space-y-4 sm:space-y-12"
             >
-              {/* Jornada Semanal Elite */}
+              {/* Jornada Semanal Profissional */}
               <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
                 <div className="p-4 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-4 sm:gap-6">
                     <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -644,7 +644,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </div>
               </section>
 
-              {/* Datas Especiais Elite - Redesenhado para Mobile */}
+              {/* Datas Especiais - Redesenhado para Mobile */}
               <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[64px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] p-4 sm:p-20">
                 <div className="flex flex-col items-center mb-6 sm:mb-16 text-center">
                     <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[28px] bg-cta/10 flex items-center justify-center text-cta mb-4 sm:mb-8 shadow-inner">
@@ -714,7 +714,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                   ))}
                 </div>
 
-                {/* Day Modal Elite */}
+                {/* Day Modal */}
                 <AnimatePresence>
                   {showDayModal && (
                     <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-12">
@@ -813,7 +813,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 </AnimatePresence>
               </section>
 
-              {/* Bloqueios & Exceções Elite - Otimizado para Mobile */}
+              {/* Bloqueios & Exceções - Otimizado para Mobile */}
               <section className="bg-white border border-primary/5 rounded-[48px] p-4 sm:p-16 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
                 <div className="flex items-center gap-4 sm:gap-8 mb-10 sm:mb-16 px-2">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-inner">
@@ -964,10 +964,10 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
 
         </div>
 
-        {/* Lado Direito Elite - Resumo e Performance */}
+        {/* Lado Direito - Resumo e Performance */}
         <div className="xl:col-span-4 space-y-8">
           
-          {/* Dica Profissional Elite */}
+          {/* Dica Profissional */}
           <div className="bg-primary border border-primary/5 rounded-[48px] p-10 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.25)]">
             <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
                 <Sparkles size={140} strokeWidth={1} />
@@ -982,11 +982,11 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 "Um <span className="text-cta">Logotipo</span> profissional e uma boa <span className="text-cta">Descrição</span> aumentam a conversão de novos clientes em até 40%."
             </p>
             <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
-                <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Elite #042</span>
+                <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Profissional #042</span>
             </div>
           </div>
 
-          {/* Status da Assinatura Elite */}
+          {/* Status da Assinatura */}
           <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
              <div className="flex items-center gap-4 mb-10">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -998,7 +998,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
              <div className="space-y-8">
                 <div className="flex items-center justify-between group">
                     <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic group-hover:text-primary transition-colors">Nível Atual</span>
-                    <span className="text-sm font-black italic text-primary uppercase font-title bg-primary/5 px-4 py-2 rounded-full border border-primary/10 shadow-sm">Barber Pro Elite</span>
+                    <span className="text-sm font-black italic text-primary uppercase font-title bg-primary/5 px-4 py-2 rounded-full border border-primary/10 shadow-sm">Barber Pro</span>
                 </div>
                 <div className="flex items-center justify-between group pt-4 border-t border-primary/5">
                     <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Performance Mensal</span>

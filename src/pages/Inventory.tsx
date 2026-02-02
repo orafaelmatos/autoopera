@@ -311,14 +311,14 @@ const InventoryView: React.FC<Props> = ({ products, setProducts }) => {
 
               <div className="mb-16">
                 <h3 className="text-4xl sm:text-5xl font-black italic uppercase text-primary mb-4 leading-none font-title">Novo Ativo</h3>
-                <p className="text-[10px] text-primary/30 font-black italic uppercase tracking-[0.4em] font-title italic">Incorporar novo item ao patrimônio Elite.</p>
+                <p className="text-[10px] text-primary/30 font-black italic uppercase tracking-[0.4em] font-title italic">Incorporar novo item ao patrimônio do sistema.</p>
               </div>
               
               <div className="grid md:grid-cols-2 gap-10 sm:gap-16">
                 <div className="space-y-10">
                   <div className="space-y-4">
                     <label className="text-[10px] uppercase font-black italic text-primary/30 tracking-[0.4em] ml-8 block">Nomenclatura</label>
-                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Cera Matte Elite" className="w-full bg-background border-2 border-transparent rounded-[28px] px-10 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 shadow-sm" />
+                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Cera Matte Profissional" className="w-full bg-background border-2 border-transparent rounded-[28px] px-10 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 shadow-sm" />
                   </div>
                   <div className="space-y-4">
                     <label className="text-[10px] uppercase font-black italic text-primary/30 tracking-[0.4em] ml-8 block">Segmento</label>
