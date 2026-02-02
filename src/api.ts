@@ -92,9 +92,44 @@ export const authApi = {
 
 export const getMediaUrl = (path: string | null | undefined) => {
   if (!path) return '';
-  if (path.startsWith('http')) return path;
+  
+  // Se for uma URL completa (ex: de um storage externo ou se o DRF já retornou com host)
+  if (path.startsWith('http')) {
+    const currentHostname = window.location.hostname;
+    // Se acessando via IP (comum em mobile) e a URL retornada pelo backend for 'localhost'
+    // precisamos trocar para o IP para que o dispositivo móvel consiga alcançar o arquivo
+    if (currentHostname !== 'localhost' && currentHostname !== '127.0.0.1' && 
+        (path.includes('://localhost') || path.includes('://127.0.0.1'))) {
+      return path.replace('://localhost', `://${currentHostname}`).replace('://127.0.0.1', `://${currentHostname}`);
+    }
+    return path;
+  }
+  
+  const origin = window.location.origin;
   const hostname = window.location.hostname;
-  return `http://${hostname}:8000${path}`;
+  const port = window.location.port;
+  
+  // Normaliza o path para garantir que comece com /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // Se for localhost (desenvolvimento) ou acessando via IP em portas comuns de dev (3000, 5173, etc)
+  // geralmente o Django roda na 8000 em ambiente de desenvolvimento
+  const isDevPort = port === '3000' || port === '5173' || port === '3001' || port === '3002';
+  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+
+  if (isLocalHost || (isIpAddress && isDevPort)) {
+    // Tenta usar a porta 8000 se estivermos em desenvolvimento (IP local ou localhost)
+    return `http://${hostname}:8000${normalizedPath}`;
+  }
+
+  // Fallback para quando acessamos via IP mas sem as portas de dev conhecidas
+  if (isIpAddress) {
+    return `http://${hostname}:8000${normalizedPath}`;
+  }
+  
+  // Caso contrário (Produção com Nginx ou acessando via domínio sem porta), usa a origem atual
+  return `${origin}${normalizedPath}`;
 };
 
 export const barbershopApi = {

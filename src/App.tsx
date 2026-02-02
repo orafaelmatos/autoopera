@@ -438,46 +438,58 @@ const App: React.FC = () => {
 
       <main className={`flex-1 ${user?.role === 'barber' ? 'pb-24 md:pb-8 overflow-y-auto w-full' : ''}`}>
         {user?.role === 'barber' && location.pathname !== '/login' && (
-          <div className="relative w-full h-[120px] md:h-[140px] overflow-hidden bg-primary flex items-end">
+          <div className="relative w-full h-[70px] md:h-[90px] overflow-hidden bg-primary flex items-center border-b border-white/5">
             {/* Texture Overlay */}
-            <div className="absolute inset-0 z-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-            <div className="absolute top-0 right-0 w-[50%] h-full bg-cta/10 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="absolute inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+            <div className="absolute top-0 right-0 w-[40%] h-full bg-cta/10 blur-[100px] rounded-full translate-x-1/4 -translate-y-1/2 pointer-events-none" />
             
-            <div className="relative z-10 px-8 md:px-12 pb-8 md:pb-10 flex items-center justify-between w-full">
-               <div>
-                  <div className="flex items-center gap-3 mb-1">
-                     {barbershop?.plan === 'trial' ? (
-                       <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 bg-cta/20 px-3 py-1.5 rounded-full border border-cta/30 animate-pulse">
-                             <div className="w-1.5 h-1.5 bg-cta rounded-full" />
-                             <span className="text-[9px] text-white font-black uppercase tracking-[0.2em] italic">
-                                {barbershop.trial_days_left} DIAS RESTANTES
-                             </span>
-                          </div>
-                          <button 
-                            onClick={() => window.location.href = '/#precos'} 
-                            className="group flex items-center gap-2 bg-white/10 hover:bg-white text-white hover:text-primary px-4 py-1.5 rounded-full border border-white/10 transition-all duration-300 shadow-xl"
-                          >
-                            <span className="text-[9px] font-black uppercase tracking-[0.1em] italic">Mudar Plano</span>
-                            <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                          </button>
-                       </div>
-                     ) : (
-                       <>
-                          <div className="w-2 h-2 bg-cta rounded-full" />
-                          <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic">Painel de Controle Elite</span>
-                       </>
-                     )}
+            <div className="relative z-10 px-6 md:px-10 flex items-center justify-between w-full">
+               <div className="flex items-center gap-4">
+                  {/* Logo da Barbearia Miniaturizada */}
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white shadow-lg p-0.5 flex-shrink-0">
+                    {barbershop?.logo ? (
+                      <img src={getMediaUrl(barbershop.logo)} className="w-full h-full rounded-[14px] object-cover" alt="Logo" />
+                    ) : (
+                      <div className="w-full h-full rounded-[14px] bg-cta flex items-center justify-center text-[10px] font-black italic text-white">BF</div>
+                    )}
                   </div>
-                  <h2 className="text-2xl md:text-4xl font-title font-black text-white tracking-tighter uppercase italic">
-                    {barbershop?.name || user?.barbershop_name || "PROCESANDO..."}
-                  </h2>
+
+                  <div>
+                    <h2 className="text-lg md:text-xl font-title font-black text-white tracking-tighter uppercase italic leading-none mb-1">
+                      {barbershop?.name || user?.barbershop_name || "PROCESANDO..."}
+                    </h2>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 bg-cta rounded-full" />
+                      <span className="text-[7px] md:text-[8px] text-white/30 font-black uppercase tracking-[0.3em] italic">Gestão Inteligente</span>
+                    </div>
+                  </div>
                </div>
+
+               {barbershop?.plan === 'trial' ? (
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex flex-col items-end">
+                       <span className="text-[7px] text-white/30 font-black uppercase tracking-[0.2em] italic mb-0.5">Período de Teste</span>
+                       <span className="text-[10px] text-cta font-black uppercase italic">{barbershop.trial_days_left} DIAS RESTANTES</span>
+                    </div>
+                    <button 
+                      onClick={() => window.location.href = '/#precos'} 
+                      className="group flex items-center gap-2 bg-cta hover:bg-white text-white hover:text-primary px-4 py-2 rounded-xl transition-all duration-300 shadow-lg shadow-cta/20 hover:scale-105 active:scale-95"
+                    >
+                      <span className="text-[9px] font-black uppercase tracking-[0.1em] italic">Assinar Agora</span>
+                      <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+               ) : (
+                 <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                   <div className="w-1.5 h-1.5 bg-cta rounded-full animate-pulse" />
+                   <span className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] italic">Sistema Online</span>
+                 </div>
+               )}
             </div>
           </div>
         )}
         
-        <div className={user?.role === 'barber' ? 'p-2 sm:p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-140px)]' : ''}>
+        <div className={user?.role === 'barber' ? 'p-2 sm:p-6 md:p-12 max-w-7xl mx-auto min-h-[calc(100vh-90px)]' : ''}>
           <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register-barber" element={<BarberRegister />} />

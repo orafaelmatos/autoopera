@@ -181,7 +181,7 @@ const BarberRegister: React.FC = () => {
                         <div className="flex flex-col items-center">
                             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 group-hover:rotate-0 ">
                                 
-                                <img src="src/assets/newlogo.png" alt="" />
+                                <img src="src/assets/logo-rebranding.png" alt="" />
                             </div>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl font-black text-text tracking-tighter uppercase font-title">Autoopera</span>
