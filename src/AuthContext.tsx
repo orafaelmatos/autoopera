@@ -68,12 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const { access, refresh } = response.data;
-      if (!access) return response.data; // Caso retorne algo inesperado mas sem erro 4xx
+      if (!access) return response.data;
 
-      const storage = remember ? localStorage : sessionStorage;
-      
-      storage.setItem('token', access);
-      storage.setItem('refresh_token', refresh);
+      // Forçamos o uso do localStorage para garantir que no App (PWA) o login dure "para sempre"
+      localStorage.setItem('token', access);
+      localStorage.setItem('refresh_token', refresh);
       
       if (response.data.barbershop) {
         localStorage.setItem('last_barbershop_slug', response.data.barbershop);

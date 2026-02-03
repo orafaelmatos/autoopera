@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Lock, User, ArrowRight, Scissors, Info, Mail, ShieldCheck } from 'lucide-react';
+import { Smartphone, Lock, User, ArrowRight, Scissors, Info, Mail, ShieldCheck, Download } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import brandLogo from '../assets/newlogo.png';
 import api from '../api';
@@ -283,6 +283,28 @@ const LoginPage: React.FC = () => {
                             {step === 'password' && 'Acesso Restrito Professional'}
                             {step === 'recovery' && 'Recuperação de Acesso'}
                         </p>
+                    </div>
+
+                    {/* Botão de Instalação Rápida para Clientes (Mobile Only) */}
+                    <div className="md:hidden w-full mt-4">
+                        <button 
+                            onClick={() => {
+                                const event = new CustomEvent('openInstallPrompt');
+                                window.dispatchEvent(event);
+                            }}
+                            className="w-full bg-primary/5 hover:bg-primary/10 border border-primary/10 rounded-2xl py-3 px-4 flex items-center justify-between transition-all group active:scale-95"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-primary">
+                                    <Smartphone size={20} />
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest italic leading-none mb-1">Instalar App</p>
+                                    <p className="text-[8px] text-text/40 font-bold uppercase italic">Agende em 2 cliques sem usar link</p>
+                                </div>
+                            </div>
+                            <Download size={14} className="text-primary/40 group-hover:text-primary transition-colors" />
+                        </button>
                     </div>
                 </div>
 

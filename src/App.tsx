@@ -22,7 +22,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Smartphone,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 
@@ -61,6 +62,7 @@ import CustomerBooking from './pages/CustomerBooking';
 import BarberRegister from './pages/BarberRegister';
 import LandingPage from './pages/LandingPage';
 import Onboarding from './components/Onboarding';
+import InstallPrompt from './components/InstallPrompt';
 
 const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, badge?: string, id?: string }> = ({ active, onClick, icon, label, badge, id }) => (
   <button 
@@ -189,6 +191,7 @@ const App: React.FC = () => {
   const { user, logout, isLoading: authLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -468,26 +471,36 @@ const App: React.FC = () => {
                   </div>
                </div>
 
-               {barbershop?.plan === 'trial' ? (
-                  <div className="flex items-center gap-3">
-                    <div className="hidden sm:flex flex-col items-end">
-                       <span className="text-[7px] text-white/30 font-black uppercase tracking-[0.2em] italic mb-0.5">Período de Teste</span>
-                       <span className="text-[10px] text-cta font-black uppercase italic">{barbershop.trial_days_left} DIAS RESTANTES</span>
+               <div className="flex items-center gap-2 md:gap-4">
+                  {/* Botão de Download Discreto (Apenas Mobile) */}
+                  <button 
+                    onClick={() => setShowInstallPrompt(true)}
+                    className="md:hidden flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-all group"
+                  >
+                    <Download size={14} className="group-hover:bounce" />
+                  </button>
+
+                  {barbershop?.plan === 'trial' ? (
+                     <div className="flex items-center gap-3">
+                       <div className="hidden sm:flex flex-col items-end">
+                          <span className="text-[7px] text-white/30 font-black uppercase tracking-[0.2em] italic mb-0.5">Período de Teste</span>
+                          <span className="text-[10px] text-cta font-black uppercase italic">{barbershop.trial_days_left} DIAS RESTANTES</span>
+                       </div>
+                       <button 
+                         onClick={() => window.location.href = '/#precos'} 
+                         className="group flex items-center gap-2 bg-cta hover:bg-white text-white hover:text-primary px-4 py-2 rounded-xl transition-all duration-300 shadow-lg shadow-cta/20 hover:scale-105 active:scale-95"
+                       >
+                         <span className="text-[9px] font-black uppercase tracking-[0.1em] italic">Assinar Agora</span>
+                         <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
+                       </button>
+                     </div>
+                  ) : (
+                    <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                      <div className="w-1.5 h-1.5 bg-cta rounded-full animate-pulse" />
+                      <span className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] italic">Sistema Online</span>
                     </div>
-                    <button 
-                      onClick={() => window.location.href = '/#precos'} 
-                      className="group flex items-center gap-2 bg-cta hover:bg-white text-white hover:text-primary px-4 py-2 rounded-xl transition-all duration-300 shadow-lg shadow-cta/20 hover:scale-105 active:scale-95"
-                    >
-                      <span className="text-[9px] font-black uppercase tracking-[0.1em] italic">Assinar Agora</span>
-                      <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-               ) : (
-                 <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                   <div className="w-1.5 h-1.5 bg-cta rounded-full animate-pulse" />
-                   <span className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] italic">Sistema Online</span>
-                 </div>
-               )}
+                  )}
+               </div>
             </div>
           </div>
         )}
@@ -611,6 +624,8 @@ const App: React.FC = () => {
         </div>
       </main>
 
+      <InstallPrompt forceShow={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
+
       {/* Mobile Bottom Navigation - Oculto em páginas públicas ou auth */}
       {user?.role === 'barber' && !isPublicPage && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-primary/5 px-4 h-24 flex items-center justify-around z-[60] shadow-[0_-24px_48px_rgba(15,76,92,0.1) ]">
@@ -700,6 +715,13 @@ const App: React.FC = () => {
                 <MobileMenuRow active={activeTab === 'inventory'} onClick={() => handleNavigation('/inventory')} icon={<Package />} label="Controle de Estoque" description="Produtos e vendas" />
                 <MobileMenuRow active={activeTab === 'reports'} onClick={() => handleNavigation('/reports')} icon={<BarChart3 />} label="Inteligência Analítica" description="Relatórios avançados" />
                 <MobileMenuRow active={activeTab === 'promotions'} onClick={() => handleNavigation('/promotions')} icon={<Megaphone />} label="Marketing & Growth" description="Campanhas WhatsApp" />
+                <MobileMenuRow 
+                  active={false} 
+                  onClick={() => { setIsMobileMenuOpen(false); setShowInstallPrompt(true); }} 
+                  icon={<Download />} 
+                  label="Instalar Aplicativo" 
+                  description="Acesso rápido na tela inicial" 
+                />
               </div>
 
               <div className="mt-10 pt-8 border-t border-border flex flex-col gap-4">
