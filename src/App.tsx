@@ -371,7 +371,7 @@ const App: React.FC = () => {
               <div className="flex items-center gap-4 px-2 hover:translate-x-1 transition-transform cursor-default">
                 <div className="w-10 h-10 rounded-2xl bg-white/10 p-1 border border-white/5 backdrop-blur-sm">
                    {barbershop?.logo ? (
-                     <img src={getMediaUrl(barbershop.logo)} className="w-full h-full rounded-xl object-cover" alt="Logo" />
+                     <img src={getMediaUrl(barbershop.logo)} className="w-full h-full rounded-xl object-cover" alt="Logo" loading="lazy" />
                    ) : (
                      <div className="w-full h-full rounded-xl bg-cta flex items-center justify-center text-[10px] font-black italic">BF</div>
                    )}
@@ -451,7 +451,7 @@ const App: React.FC = () => {
                   {/* Logo da Barbearia Miniaturizada */}
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white shadow-lg p-0.5 flex-shrink-0">
                     {barbershop?.logo ? (
-                      <img src={getMediaUrl(barbershop.logo)} className="w-full h-full rounded-[14px] object-cover" alt="Logo" />
+                      <img src={getMediaUrl(barbershop.logo)} className="w-full h-full rounded-[14px] object-cover" alt="Logo" loading="lazy" />
                     ) : (
                       <div className="w-full h-full rounded-[14px] bg-cta flex items-center justify-center text-[10px] font-black italic text-white">BF</div>
                     )}

@@ -6,12 +6,13 @@ import {
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
   Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
-  X, QrCode, Smartphone, MessageCircle
+  X, QrCode, Smartphone, MessageCircle, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
 import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi, dailyAvailabilityApi } from '../api';
 import { useAuth } from '../AuthContext';
+import { compressImage } from '../utils/image';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -45,6 +46,8 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
   const [dailyShifts, setDailyShifts] = useState<Array<{startTime:string,endTime:string,isActive:boolean,id?:string}>>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
   const logoInputRef = React.useRef<HTMLInputElement>(null);
   const profilePicInputRef = React.useRef<HTMLInputElement>(null);
   
@@ -280,23 +283,31 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (type === 'logo') setUploadingLogo(true);
+    else setUploadingProfile(true);
+
     try {
+      const compressedFile = await compressImage(file, 800, 0.7);
       const formData = new FormData();
       if (type === 'profile') {
         if (user?.profile_id) {
-          formData.append('profile_picture', file);
+          formData.append('profile_picture', compressedFile);
           await barbersApi.update(String(user.profile_id), formData as any);
           await refreshUser();
           toast.success("Sua foto de perfil foi atualizada!");
         }
       } else {
-        formData.append(type, file);
+        formData.append(type, compressedFile);
         const updatedShop = await barbershopApi.update(formData);
         setBarbershop(updatedShop);
         toast.success(`O Logo da Barbeira foi atualizado!`);
       }
     } catch (err) {
+      console.error("Erro ao enviar imagem:", err);
       toast.error("Erro ao enviar imagem.");
+    } finally {
+      setUploadingLogo(false);
+      setUploadingProfile(false);
     }
   };
 
@@ -342,7 +353,8 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         </div>
         <button 
           onClick={handleSaveAvailability}
-          className="bg-primary text-white px-6 sm:px-10 py-4 sm:py-6 rounded-[20px] sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title group"
+          disabled={uploadingLogo || uploadingProfile}
+          className="bg-primary text-white px-6 sm:px-10 py-4 sm:py-6 rounded-[20px] sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title group disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save size={18} sm:size={20} strokeWidth={3} />
           <span>Salvar Alterações</span>
@@ -367,19 +379,27 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     <div className="absolute -bottom-6 sm:-bottom-10 left-6 sm:left-10 flex items-end gap-4 sm:gap-8 h-fit">
                         <div 
                             className="w-20 h-20 sm:w-48 sm:h-48 rounded-2xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden shadow-xl group/logo cursor-pointer relative transition-transform duration-500"
-                            onClick={(e) => { e.stopPropagation(); logoInputRef.current?.click(); }}
+                            onClick={(e) => { e.stopPropagation(); !uploadingLogo && logoInputRef.current?.click(); }}
                         >
                             {barbershop?.logo ? (
-                                <img src={getMediaUrl(barbershop.logo)} className="w-full h-full object-contain p-2 sm:p-4 transition-transform duration-700 group-hover/logo:scale-110" />
+                                <img src={getMediaUrl(barbershop.logo)} className={`w-full h-full object-contain p-2 sm:p-4 transition-transform duration-700 group-hover/logo:scale-110 ${uploadingLogo ? 'opacity-20 blur-sm' : ''}`} />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-background">
+                                <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingLogo ? 'opacity-20' : ''}`}>
                                     <Building2 size={32} sm:size={64} className="text-primary/10" />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                <Camera size={24} sm:size={32} className="text-white mb-2" strokeWidth={3} />
-                                <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
-                            </div>
+
+                            {uploadingLogo ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                                    <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
+                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Processando...</span>
+                                </div>
+                            ) : (
+                                <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
+                                    <Camera size={24} sm:size={32} className="text-white mb-2" strokeWidth={3} />
+                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <input type="file" ref={logoInputRef} className="hidden" onChange={(e) => handleFileChange('logo', e)} accept="image/*" />
@@ -492,18 +512,28 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         {/* Foto de Perfil */}
                         <div 
                             className="relative group cursor-pointer" 
-                            onClick={() => profilePicInputRef.current?.click()}
+                            onClick={() => !uploadingProfile && profilePicInputRef.current?.click()}
                         >
                             <div className="w-24 h-24 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-xl transition-all duration-500 hover:scale-105">
                                 {user?.profile_picture ? (
-                                    <img src={getMediaUrl(user.profile_picture)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'opacity-20 blur-sm' : 'group-hover:scale-110'}`} />
                                 ) : (
-                                    <User size={32} className="sm:size-[80px] text-primary/10" />
+                                    <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
+                                        <User size={32} className="sm:size-[80px] text-primary/10" />
+                                    </div>
                                 )}
-                                <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <Camera size={20} className="sm:size-[28px] text-white mb-2" strokeWidth={3} />
-                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
-                                </div>
+
+                                {uploadingProfile ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                                        <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
+                                        <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Processando...</span>
+                                    </div>
+                                ) : (
+                                    <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <Camera size={20} className="sm:size-[28px] text-white mb-2" strokeWidth={3} />
+                                        <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
+                                    </div>
+                                )}
                             </div>
                             <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
                         </div>

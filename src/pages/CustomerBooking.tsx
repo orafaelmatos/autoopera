@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Scissors, Calendar, Clock, ChevronRight, 
   ChevronLeft, Check, Plus, Star, LogOut, Info, ArrowRight,
-  CreditCard, Wallet, Camera, CheckCircle2, Copy
+  CreditCard, Wallet, Camera, CheckCircle2, Copy, Loader2
 } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { servicesApi, barbersApi, appointmentsApi, customersApi, barbershopApi, getMediaUrl } from '../api';
 import { Service, Barber, Barbershop } from '../types';
+import { compressImage } from '../utils/image';
 import { format, addDays, startOfToday, isSameDay, isTomorrow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -35,6 +36,7 @@ const CustomerBooking: React.FC = () => {
     // History states
     const [history, setHistory] = useState<any[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [uploadingProfile, setUploadingProfile] = useState(false);
 
     // Profile states
     const [profileData, setProfileData] = useState({
@@ -186,10 +188,18 @@ const CustomerBooking: React.FC = () => {
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setProfileData({ ...profileData, profile_picture: file as any });
+            setUploadingProfile(true);
+            try {
+                const compressed = await compressImage(file, 400, 0.7);
+                setProfileData({ ...profileData, profile_picture: compressed as any });
+            } catch (err) {
+                toast.error("Erro ao processar imagem");
+            } finally {
+                setUploadingProfile(false);
+            }
         }
     };
 
@@ -733,7 +743,7 @@ const CustomerBooking: React.FC = () => {
                                             {profileData.profile_picture ? (
                                                 <img 
                                                     src={profileData.profile_picture instanceof File ? URL.createObjectURL(profileData.profile_picture) : getMediaUrl(profileData.profile_picture)} 
-                                                    className="w-full h-full object-cover transition-transform duration-700" 
+                                                    className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'scale-110 blur-sm opacity-50' : ''}`} 
                                                     alt="Profile" 
                                                 />
                                             ) : (
@@ -741,9 +751,15 @@ const CustomerBooking: React.FC = () => {
                                                     <User size={64} />
                                                 </div>
                                             )}
+                                            {uploadingProfile && (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                                    <Loader2 className="w-10 h-10 text-white animate-spin mb-2" />
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest animate-pulse font-title italic">Processando...</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center border-4 border-white shadow-xl active:scale-90 transition-all">
-                                            <Camera size={22} />
+                                            {uploadingProfile ? <Loader2 className="w-6 h-6 animate-spin" /> : <Camera size={22} />}
                                         </div>
                                     </div>
                                     <div className="text-center">
@@ -787,9 +803,17 @@ const CustomerBooking: React.FC = () => {
 
                                     <button 
                                         type="submit"
-                                        className="w-full bg-primary text-white font-black py-5 rounded-[24px] hover:bg-primary/95 transition-all uppercase tracking-[0.2em] text-[10px] mt-6 shadow-xl shadow-primary/20 active:scale-[0.98]"
+                                        disabled={uploadingProfile}
+                                        className={`w-full bg-primary text-white font-black py-5 rounded-[24px] hover:bg-primary/95 transition-all uppercase tracking-[0.2em] text-[10px] mt-6 shadow-xl shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-3 ${uploadingProfile ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     >
-                                        Salvar Perfil
+                                        {uploadingProfile ? (
+                                            <>
+                                                <Loader2 size={16} className="animate-spin" />
+                                                Processando Imagem...
+                                            </>
+                                        ) : (
+                                            "Salvar Perfil"
+                                        )}
                                     </button>
                                 </form>
 

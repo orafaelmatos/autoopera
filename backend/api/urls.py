@@ -6,7 +6,7 @@ from .views import (
     ScheduleExceptionViewSet, TransactionViewSet, PromotionViewSet,
     ProductViewSet, whatsapp_login, get_me, current_barbershop,
     n8n_today_summary, n8n_next_appointments, barber_register, owner_login, DailyAvailabilityViewSet,
-    check_cpf, pwa_manifest
+    check_cpf, pwa_manifest, forgot_password_request, reset_password_confirm
 )
 from .webhooks import cacto_webhook
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -29,6 +29,8 @@ urlpatterns = [
     path('auth/owner-login/', owner_login, name='owner-login'),
     path('auth/register-barber/', barber_register, name='barber-register'),
     path('auth/check-cpf/', check_cpf, name='check-cpf'),
+    path('auth/forgot-password/', forgot_password_request, name='forgot-password'),
+    path('auth/reset-password/', reset_password_confirm, name='reset-password'),
     path('pwa-manifest/', pwa_manifest, name='pwa-manifest-default'),
     path('pwa-manifest/<str:slug>/', pwa_manifest, name='pwa-manifest'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),

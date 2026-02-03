@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
+from .utils import compress_image
 
 
 class Barbershop(models.Model):
@@ -29,6 +30,19 @@ class Barbershop(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Comprimir logo se houver uma nova
+        if self.logo and hasattr(self.logo, 'file') and not isinstance(self.logo.file, bytes):
+            if not self.id or (self.id and Barbershop.objects.get(id=self.id).logo != self.logo):
+                self.logo = compress_image(self.logo)
+        
+        # Comprimir banner se houver um novo
+        if self.banner and hasattr(self.banner, 'file') and not isinstance(self.banner.file, bytes):
+            if not self.id or (self.id and Barbershop.objects.get(id=self.id).banner != self.banner):
+                self.banner = compress_image(self.banner, max_width=1200)
+
+        super().save(*args, **kwargs)
 
 
 class UserProfile(models.Model):
@@ -81,6 +95,12 @@ class Barber(models.Model):
     def __str__(self):
         return f"{self.name} @ {self.barbershop.name if self.barbershop else 'N/A'}"
 
+    def save(self, *args, **kwargs):
+        if self.profile_picture and hasattr(self.profile_picture, 'file') and not isinstance(self.profile_picture.file, bytes):
+            if not self.id or (self.id and Barber.objects.get(id=self.id).profile_picture != self.profile_picture):
+                self.profile_picture = compress_image(self.profile_picture)
+        super().save(*args, **kwargs)
+
 
 class Customer(models.Model):
     """Clientes da barbearia (Perfil Global)"""
@@ -94,6 +114,12 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.profile_picture and hasattr(self.profile_picture, 'file') and not isinstance(self.profile_picture.file, bytes):
+            if not self.id or (self.id and Customer.objects.get(id=self.id).profile_picture != self.profile_picture):
+                self.profile_picture = compress_image(self.profile_picture)
+        super().save(*args, **kwargs)
 
 
 class CustomerBarbershop(models.Model):

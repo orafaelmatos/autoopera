@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Smartphone, Lock, User, ArrowRight, Scissors, Store, Globe, CheckCircle2, MapPin, Instagram, AlignLeft, Camera, Image as ImageIcon, Mail } from 'lucide-react';
+import { Smartphone, Lock, User, ArrowRight, Scissors, Store, Globe, CheckCircle2, MapPin, Instagram, AlignLeft, Camera, Image as ImageIcon, Mail, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import brandLogo from '../assets/newlogo.png';
 import api from '../api';
 import { useAuth } from '../AuthContext';
+import { compressImage } from '../utils/image';
 import toast from 'react-hot-toast';
 
 const BarberRegister: React.FC = () => {
@@ -29,15 +30,24 @@ const BarberRegister: React.FC = () => {
     const navigate = useNavigate();
     const { login, refreshUser } = useAuth();
     const [existingUser, setExistingUser] = useState(false);
+    const [compressing, setCompressing] = useState(false);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setFormData({
-                ...formData,
-                logo: file,
-                logoPreview: URL.createObjectURL(file)
-            });
+            setCompressing(true);
+            try {
+                const compressed = await compressImage(file, 800, 0.7);
+                setFormData({
+                    ...formData,
+                    logo: compressed,
+                    logoPreview: URL.createObjectURL(compressed)
+                });
+            } catch (err) {
+                toast.error("Erro ao processar imagem");
+            } finally {
+                setCompressing(false);
+            }
         }
     };
 
@@ -317,10 +327,15 @@ const BarberRegister: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Logo da Barbearia</label>
                                     <div 
-                                        onClick={() => document.getElementById('logo-upload')?.click()}
+                                        onClick={() => !compressing && document.getElementById('logo-upload')?.click()}
                                         className="relative h-28 w-28 mx-auto bg-background border-2 border-dashed border-border rounded-[32px] overflow-hidden cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all flex items-center justify-center group shadow-inner"
                                     >
-                                        {formData.logoPreview ? (
+                                        {compressing ? (
+                                            <div className="flex flex-col items-center">
+                                                <Loader2 className="text-primary animate-spin mb-2" size={24} strokeWidth={3} />
+                                                <span className="text-[8px] font-black uppercase text-primary">Processando</span>
+                                            </div>
+                                        ) : formData.logoPreview ? (
                                             <>
                                                 <img src={formData.logoPreview} alt="Logo Preview" className="w-full h-full object-contain p-4 transition-transform group-hover:scale-110" />
                                                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
@@ -442,10 +457,10 @@ const BarberRegister: React.FC = () => {
                                 </button>
                                 <button 
                                     type="submit" 
-                                    disabled={loading}
-                                    className="flex-1 bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)]"
+                                    disabled={loading || compressing}
+                                    className="flex-1 bg-cta text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-cta/20 hover:bg-cta/90 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] disabled:opacity-50"
                                 >
-                                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Finalizar Cadastro </>}
+                                    {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : compressing ? "Processando Imagem..." : <>Finalizar Cadastro </>}
                                 </button>
                             </div>
                         </motion.div>

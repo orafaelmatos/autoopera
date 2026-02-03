@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Lock, User, ArrowRight, Scissors, Info } from 'lucide-react';
+import { Smartphone, Lock, User, ArrowRight, Scissors, Info, Mail, ShieldCheck } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import brandLogo from '../assets/newlogo.png';
 import api from '../api';
 import { Barbershop } from '../types';
+import toast from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
     const formatPhone = (value: string) => {
@@ -29,8 +30,8 @@ const LoginPage: React.FC = () => {
     const [phone, setPhone] = useState(formatPhone(localStorage.getItem('saved_phone') || ''));
     const { slug: urlSlug } = useParams<{ slug?: string }>();
     const [mode, setMode] = useState<'client' | 'owner'>(urlSlug ? 'client' : 'owner');
-    const [ownerCpf, setOwnerCpf] = useState('');
-    const [password, setPassword] = useState('');
+    const [ownerCpf, setOwnerCpf] = useState(localStorage.getItem('saved_owner_cpf') || '');
+    const [password, setPassword] = useState(localStorage.getItem('saved_owner_password') || '');
     const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,8 +41,10 @@ const LoginPage: React.FC = () => {
     
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [step, setStep] = useState<'phone' | 'confirm' | 'register' | 'password'>('phone');
+    const [step, setStep] = useState<'phone' | 'confirm' | 'register' | 'password' | 'recovery'>('phone');
     const [foundName, setFoundName] = useState('');
+    const [recoveryEmail, setRecoveryEmail] = useState('');
+    const [newPassword, setNewPassword] = useState('');
     
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -97,23 +100,13 @@ const LoginPage: React.FC = () => {
                     navigate(getRedirectPath(res.role, res.barbershop));
                 }
             } else {
-                // owner mode: verify CPF exists then go to password
-                const cpfDigits = ownerCpf.replace(/\D/g, '');
-                if (!cpfDigits) {
-                    setError('Informe o CPF do proprietário');
-                    return;
-                }
-                try {
-                    await api.get('auth/check-cpf/', { params: { cpf: cpfDigits } });
-                    setStep('password');
-                } catch (err: any) {
-                    setError('CPF não encontrado');
-                }
+                // owner mode: Login direto com CPF e Senha
+                handleOwnerSubmit(e);
             }
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || 'Erro ao verificar credenciais.');
         } finally {
-            setLoading(false);
+            if (mode === 'client') setLoading(false);
         }
     };
 
@@ -128,6 +121,14 @@ const LoginPage: React.FC = () => {
             const access = res.data?.access;
             const refresh = res.data?.refresh;
             if (access && refresh) {
+                if (rememberMe) {
+                    localStorage.setItem('saved_owner_cpf', ownerCpf);
+                    localStorage.setItem('saved_owner_password', password);
+                } else {
+                    localStorage.removeItem('saved_owner_cpf');
+                    localStorage.removeItem('saved_owner_password');
+                }
+
                 localStorage.setItem('token', access);
                 localStorage.setItem('refresh_token', refresh);
                 if (res.data.barbershop) localStorage.setItem('last_barbershop_slug', res.data.barbershop);
@@ -196,6 +197,39 @@ const LoginPage: React.FC = () => {
         }
     };
 
+    const [recoveryStage, setRecoveryStage] = useState<'verify' | 'reset'>('verify');
+
+    const handleRecoveryRequest = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            await api.post('auth/forgot-password/', { cpf: ownerCpf, email: recoveryEmail });
+            setRecoveryStage('reset');
+            toast.success("E-mail validado! Defina sua nova senha.");
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Dados inválidos");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRecoveryReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            await api.post('auth/reset-password/', { cpf: ownerCpf, email: recoveryEmail, new_password: newPassword });
+            toast.success("Senha alterada com sucesso! Faça login.");
+            setStep('phone');
+            setRecoveryStage('verify');
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Erro ao resetar senha");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden font-sans">
             {/* Background Branding Decorativo */}
@@ -247,6 +281,7 @@ const LoginPage: React.FC = () => {
                             {step === 'confirm' && 'Verificação de Identidade'}
                             {step === 'register' && 'Crie seu Perfil Profissional'}
                             {step === 'password' && 'Acesso Restrito Professional'}
+                            {step === 'recovery' && 'Recuperação de Acesso'}
                         </p>
                     </div>
                 </div>
@@ -255,13 +290,13 @@ const LoginPage: React.FC = () => {
                 {urlSlug && (
                     <div className="flex p-1.5 bg-background rounded-2xl border border-border mb-5">
                         <button 
-                            onClick={() => { setMode('client'); setStep('phone'); }} 
+                            onClick={() => { setMode('client'); setStep('phone'); setError(null); }} 
                             className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='client' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
                         >
                             Sou Cliente
                         </button>
                         <button 
-                            onClick={() => { setMode('owner'); setStep('phone'); }} 
+                            onClick={() => { setMode('owner'); setStep('phone'); setError(null); }} 
                             className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${mode==='owner' ? 'bg-white text-primary shadow-md' : 'text-text/40 hover:text-primary'}`}
                         >
                             Sou Barbeiro
@@ -269,7 +304,7 @@ const LoginPage: React.FC = () => {
                     </div>
                 )}
 
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                     {step === 'phone' && (
                         <motion.form 
                             key="phone" 
@@ -298,22 +333,40 @@ const LoginPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Seu CPF</label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
-                                                <User size={20} />
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Seu CPF</label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                                    <User size={20} />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={ownerCpf}
+                                                    onChange={(e) => setOwnerCpf(e.target.value)}
+                                                    placeholder="000.000.000-00"
+                                                    className="w-full bg-background border border-border rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
+                                                    required
+                                                />
                                             </div>
-                                            <input
-                                                type="text"
-                                                value={ownerCpf}
-                                                onChange={(e) => setOwnerCpf(e.target.value)}
-                                                placeholder="000.000.000-00"
-                                                className="w-full bg-background border border-border rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
-                                                required
-                                            />
                                         </div>
-                                    </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-[0.2em]">Sua Senha</label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors">
+                                                    <Lock size={20} />
+                                                </div>
+                                                <input
+                                                    type="password"
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    placeholder="••••••••"
+                                                    className="w-full bg-background border border-border rounded-2xl py-5 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
 
@@ -327,6 +380,20 @@ const LoginPage: React.FC = () => {
                                     />
                                     <span className="text-[11px] font-bold text-text/40 group-hover:text-text transition-colors">Lembrar de mim</span>
                                 </label>
+                                {mode === 'owner' && (
+                                    <button 
+                                        type="button" 
+                                        onClick={(e) => { 
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setError(null);
+                                            setStep('recovery'); 
+                                        }} 
+                                        className="text-[11px] font-bold text-primary/60 hover:text-primary transition-colors italic hover:scale-105 active:scale-95 py-1 px-2"
+                                    >
+                                        Esqueci minha senha
+                                    </button>
+                                )}
                             </div>
 
                             <button 
@@ -462,6 +529,96 @@ const LoginPage: React.FC = () => {
                                 className="w-full py-3 text-text/30 hover:text-text/60 font-bold transition-colors text-[10px] uppercase tracking-widest italic"
                             >
                                 Não sou barbeiro / Voltar
+                            </button>
+                        </motion.form>
+                    )}
+
+                    {step === 'recovery' && (
+                        <motion.form 
+                            key="recovery" 
+                            initial={{ opacity: 0, x: 20 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            exit={{ opacity: 0, x: -20 }} 
+                            onSubmit={recoveryStage === 'verify' ? handleRecoveryRequest : handleRecoveryReset} 
+                            className="space-y-8"
+                        >
+                            <div className="text-center mb-4">
+                                <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/10">
+                                    <ShieldCheck className="text-primary" size={32} />
+                                </div>
+                                <h3 className="text-xl font-black text-text italic font-title uppercase tracking-tighter">Recuperar Conta</h3>
+                            </div>
+
+                            {recoveryStage === 'verify' ? (
+                                <div className="space-y-5">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest italic">CPF para Validação</label>
+                                        <div className="relative group">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors" size={18} />
+                                            <input 
+                                                type="text"
+                                                value={ownerCpf}
+                                                onChange={(e) => setOwnerCpf(e.target.value)}
+                                                placeholder="000.000.000-00"
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest italic">E-mail Cadastrado</label>
+                                        <div className="relative group">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-all" size={18} />
+                                            <input 
+                                                type="email"
+                                                value={recoveryEmail}
+                                                onChange={(e) => setRecoveryEmail(e.target.value)}
+                                                placeholder="seu@email.com"
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-5">
+                                    <div className="bg-primary/5 border border-primary/10 p-5 rounded-2xl flex gap-3 mb-6">
+                                        <Info className="text-primary shrink-0" size={18} />
+                                        <p className="text-[11px] text-primary/60 font-bold leading-relaxed italic uppercase tracking-wider">Identidade confirmada! Digite sua nova senha de acesso.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest italic">Nova Senha</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-all" size={18} />
+                                            <input 
+                                                type="password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                                className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text focus:border-primary/50 outline-none transition-all font-bold text-base shadow-sm"
+                                                required
+                                                autoFocus
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <button 
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-primary text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 uppercase tracking-widest text-xs font-title"
+                            >
+                                {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 
+                                 (recoveryStage === 'verify' ? "Verificar Dados" : "Redefinir Senha")}
+                            </button>
+                            
+                            <button 
+                                type="button"
+                                onClick={() => { setStep('phone'); setRecoveryStage('verify'); }}
+                                className="w-full py-3 text-text/30 hover:text-text/60 font-bold transition-colors text-[10px] uppercase tracking-widest italic"
+                            >
+                                Cancelar e Voltar
                             </button>
                         </motion.form>
                     )}
