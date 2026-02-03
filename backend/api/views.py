@@ -28,6 +28,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 import re
 from django.conf import settings
+import uuid
+from .pix import generate_pix_qr_code
 
 class TenantModelViewSet(viewsets.ModelViewSet):
     """Mixin para filtrar automaticamente por barbearia (tenant)"""
@@ -78,6 +80,14 @@ def current_barbershop(request, barbershop_slug=None):
         barbershop = Barbershop.objects.filter(slug=barbershop_slug, is_active=True).first()
         if barbershop:
             request.barbershop = barbershop
+    
+    # Suporte para slug via Query Parameter (usado no PWA/index.html)
+    if not barbershop:
+        query_slug = request.GET.get('barbershop_slug')
+        if query_slug:
+            barbershop = Barbershop.objects.filter(slug=query_slug, is_active=True).first()
+            if barbershop:
+                request.barbershop = barbershop
 
     # Fallback: Se ainda não resolvido, tenta pelo perfil do usuário
     if not barbershop and request.user.is_authenticated:
@@ -314,7 +324,7 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         barbershop=barbershop,
         name=user.get_full_name() or "Barbeiro",
         email=barber_email or user.email,
-        phone=phone
+        whatsapp=phone
     )
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -486,6 +496,7 @@ def get_me(request, **kwargs):
             'full_name': barber.name,
             'email': barber.email,
             'description': barber.description,
+            'whatsapp': barber.whatsapp,
             'barbershop_slug': barber.barbershop.slug if barber.barbershop else None,
             'barbershop_name': barber.barbershop.name if barber.barbershop else None,
             'barbershop_onboarding_completed': barber.barbershop.onboarding_completed if barber.barbershop else True,
@@ -737,6 +748,76 @@ class AppointmentViewSet(TenantModelViewSet):
             return Response({"error": "INTERNAL_ERROR", "message": str(e), "trace": tb}, status=500)
 
 
+    def get_permissions(self):
+        if self.action in ['pix_payment']:
+            return [AllowAny()]
+        return super().get_permissions()
+
+    @action(detail=True, methods=['get'], url_path='pix')
+    def pix_payment(self, request, pk=None, barbershop_slug=None):
+        """Gera o payload e QR Code Pix para o agendamento"""
+        import uuid
+        appointment = self.get_object()
+        barbershop = appointment.barbershop
+        
+        if not barbershop.pix_key:
+            return Response({"error": "PIX_KEY_NOT_CONFIGURED", "message": "Barbearia não configurou chave Pix."}, status=400)
+
+        # Atualiza status para aguardando pagamento se for o primeiro acesso
+        if appointment.payment_status == 'PENDING':
+            appointment.payment_status = 'WAITING_PAYMENT'
+            if not appointment.payment_id:
+                appointment.payment_id = f"AGEND-{uuid.uuid4().hex[:8].upper()}"
+            appointment.save()
+
+        total_price = sum([float(s.price) for s in appointment.services.all()])
+        
+        try:
+            from .pix import generate_pix_qr_code
+            pix_code, qr_code_base64 = generate_pix_qr_code(
+                key=barbershop.pix_key,
+                name=barbershop.name,
+                city=barbershop.address[:15] if barbershop.address else "SAO PAULO",
+                amount=total_price,
+                reference_label=appointment.payment_id
+            )
+            
+            return Response({
+                "brcode": pix_code,
+                "qr_code_base64": qr_code_base64,
+                "amount": total_price,
+                "payment_id": appointment.payment_id,
+                "status": appointment.payment_status
+            })
+        except Exception as e:
+            return Response({"error": "PIX_GENERATION_FAILED", "message": str(e)}, status=500)
+
+    @action(detail=True, methods=['post'], url_path='confirm-payment')
+    def confirm_payment(self, request, pk=None, barbershop_slug=None):
+        """Confirma manualmente o pagamento de um agendamento"""
+        appointment = self.get_object()
+        
+        # Apenas o dono ou barbeiro da casa pode confirmar
+        if not hasattr(request.user, 'barber_profile') or request.user.barber_profile.barbershop != appointment.barbershop:
+             return Response({"detail": "Sem permissão"}, status=403)
+
+        appointment.payment_status = 'PAID'
+        appointment.status = 'confirmed' # Confirma agendamento automaticamente ao pagar
+        appointment.save()
+        
+        # Opcional: Criar transação financeira
+        from .models import Transaction
+        Transaction.objects.create(
+            barbershop=appointment.barbershop,
+            category='service',
+            amount=sum([s.price for s in appointment.services.all()]),
+            type='income',
+            description=f"Pagamento Pix - {appointment.client_name}",
+            date=timezone.now()
+        )
+
+        return Response({"status": "PAID", "message": "Pagamento confirmado com sucesso!"})
+
 class AvailabilityViewSet(TenantModelViewSet):
     """ViewSet para disponibilidade semanal per-barbershop"""
     queryset = Availability.objects.all()
@@ -964,26 +1045,46 @@ def pwa_manifest(request, slug=None):
     """
     Retorna o manifest.json dinâmico baseado no slug da barbearia.
     """
-    start_url = f"/b/{slug}/" if slug else "/"
+    from .models import Barbershop
     
+    # Valores padrão
+    name = "AutoOpera"
+    short_name = "AutoOpera"
+    start_url = "/"
+    theme_color = "#0F4C5C"
+    icon_src = "/icon.png" # Ícone padrão do app
+    
+    if slug:
+        try:
+            barbershop = Barbershop.objects.get(slug=slug)
+            name = barbershop.name
+            short_name = barbershop.name[:12]
+            start_url = f"/b/{slug}/"
+            if barbershop.logo:
+                # Forçamos o caminho relativo para evitar localhost:8000 no manifest
+                from urllib.parse import urlparse
+                icon_src = urlparse(barbershop.logo.url).path
+        except Barbershop.DoesNotExist:
+            pass
+            
     manifest = {
-        "name": "AutoOpera",
-        "short_name": "AutoOpera",
-        "description": "Autoopera Barber | Gestão Profissional",
+        "name": name,
+        "short_name": short_name,
+        "description": f"{name} | Agendamento Online",
         "start_url": start_url,
         "display": "standalone",
         "background_color": "#F5F5F5",
-        "theme_color": "#0F4C5C",
+        "theme_color": theme_color,
         "orientation": "portrait",
         "icons": [
             {
-                "src": "/icon.png",
+                "src": icon_src,
                 "sizes": "192x192",
                 "type": "image/png",
                 "purpose": "any maskable"
             },
             {
-                "src": "/icon.png",
+                "src": icon_src,
                 "sizes": "512x512",
                 "type": "image/png",
                 "purpose": "any maskable"

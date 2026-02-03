@@ -17,7 +17,8 @@ import {
   ChevronRight,
   User,
   Scissors,
-  Check
+  Check,
+  QrCode
 } from 'lucide-react';
 import { appointmentsApi, scheduleExceptionsApi, transactionsApi, dailyAvailabilityApi } from '../api';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
@@ -39,54 +40,46 @@ const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 const AppointmentCard: React.FC<{ 
   apt: Appointment, 
   services: Service[], 
-  onComplete: (id: string) => void,
+  onComplete: (id: string) => void, 
   onCancel: (id: string) => void,
+  onConfirmPayment: (id: string) => void,
   getStatusLabel: (s: string) => string
-}> = ({ apt, services, onComplete, onCancel, getStatusLabel }) => {
+}> = ({ apt, services, onComplete, onCancel, onConfirmPayment, getStatusLabel }) => {
   const x = useMotionValue(0);
-  
-  // Transformações para o fundo de Concluir (Swipe Direita)
-  const bgComplete = useTransform(x, [0, 100], ["rgba(15, 76, 92, 0)", "#27AE60"]); // Verde para concluir
-  const opacityComplete = useTransform(x, [0, 100], [0, 1]);
-  const scaleComplete = useTransform(x, [0, 100], [0.8, 1]);
 
-  // Transformações para o fundo de Cancelar (Swipe Esquerda)
-  const bgCancel = useTransform(x, [0, -100], ["rgba(231, 76, 60, 0)", "#E74C3C"]); // Vermelho para cancelar
-  const opacityCancel = useTransform(x, [0, -100], [0, 1]);
-  const scaleCancel = useTransform(x, [0, -100], [0.8, 1]);
+  const handleWhatsAppReminder = () => {
+    const dateObj = new Date(apt.date);
+    const dateStr = dateObj.toLocaleDateString('pt-BR');
+    const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    
+    const message = `Olá ${apt.clientName}!\n\nEste é um lembrete do seu horário na barbearia.\n\nData: ${dateStr}\nHorário: ${timeStr}\n\nQualquer imprevisto é só avisar.\nTe esperamos!`;
+    
+    const rawPhone = apt.clientPhone || '';
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    
+    if (!cleanPhone) {
+      toast.error("Este agendamento não possui telefone do cliente.");
+      return;
+    }
+
+    const finalPhone = cleanPhone.length === 11 ? `55${cleanPhone}` : cleanPhone;
+    const url = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`;
+    
+    toast.success("Abrindo WhatsApp...");
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+  
+  const bgComplete = useTransform(x, [0, 100], ["rgba(39, 174, 96, 0)", "#27AE60"]);
+  const bgCancel = useTransform(x, [0, -100], ["rgba(231, 76, 60, 0)", "#E74C3C"]);
 
   return (
-    <div className="relative group overflow-hidden rounded-3xl sm:rounded-[28px] bg-[#F5F5F5] shadow-sm">
-      {/* Background Action: FINALIZAR (Direita) */}
-      <motion.div 
-        style={{ background: bgComplete, opacity: opacityComplete }}
-        className="absolute inset-0 flex items-center pl-6 sm:pl-8 text-white font-black italic uppercase gap-2 sm:gap-3 z-0"
-      >
-        <motion.div style={{ scale: scaleComplete }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-[#27AE60] shadow-xl">
-            <Check size={20} sm:size={24} strokeWidth={3} />
-          </div>
-        </motion.div>
-        <div className="flex flex-col">
-          <span className="text-[10px] sm:text-xs tracking-widest font-title">Finalizar</span>
-          <span className="text-[7px] sm:text-[8px] opacity-60 font-title">Lançar no Caixa</span>
-        </div>
+    <div className="relative overflow-hidden rounded-[32px] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/5">
+      {/* Ações de Swipe de fundo */}
+      <motion.div style={{ backgroundColor: bgComplete }} className="absolute inset-x-0 inset-y-0 flex items-center pl-8 text-white z-0">
+        <Check size={28} strokeWidth={3} />
       </motion.div>
-
-      {/* Background Action: CANCELAR (Esquerda) */}
-      <motion.div 
-        style={{ background: bgCancel, opacity: opacityCancel }}
-        className="absolute inset-0 flex items-center justify-end pr-6 sm:pr-8 text-white font-black italic uppercase gap-2 sm:gap-3 z-0"
-      >
-        <div className="flex flex-col items-end">
-          <span className="text-[10px] sm:text-xs tracking-widest font-title">Desmarcar</span>
-          <span className="text-[7px] sm:text-[8px] opacity-60 font-title">Liberar Horário</span>
-        </div>
-        <motion.div style={{ scale: scaleCancel }}>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-[#E74C3C] shadow-xl">
-            <Trash2 size={20} sm:size={24} strokeWidth={3} />
-          </div>
-        </motion.div>
+      <motion.div style={{ backgroundColor: bgCancel }} className="absolute inset-x-0 inset-y-0 flex items-center justify-end pr-8 text-white z-0">
+        <Trash2 size={28} strokeWidth={3} />
       </motion.div>
 
       <motion.div 
@@ -94,62 +87,72 @@ const AppointmentCard: React.FC<{
         dragConstraints={{ left: -140, right: 140 }}
         dragElastic={0.1}
         onDragEnd={(_, info) => {
-          if (info.offset.x > 100) {
-            onComplete(apt.id);
-          } else if (info.offset.x < -100) {
-            onCancel(apt.id);
-          }
+          if (info.offset.x > 100) onComplete(apt.id);
+          else if (info.offset.x < -100) onCancel(apt.id);
         }}
         style={{ x }}
-        className="relative z-10 bg-white border border-[#E5E5E5] p-4 sm:p-6 flex items-center justify-between hover:bg-white/80 transition-all cursor-grab active:cursor-grabbing shadow-[0_4px_20px_-4px_rgba(15,76,92,0.05)] rounded-3xl sm:rounded-[28px]"
+        className="relative z-10 bg-white p-5 sm:p-7 flex items-center gap-4 sm:gap-6 cursor-grab active:cursor-grabbing"
       >
-        <div className="flex items-center gap-3 sm:gap-6">
-          <div className="flex flex-col items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[20px] bg-primary text-white shadow-lg shadow-primary/20">
-            <span className="text-[7px] sm:text-[9px] font-black uppercase mb-0.5 opacity-60 font-title tracking-wider">{new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' })}</span>
-            <span className="text-sm sm:text-lg font-black italic tracking-tight leading-none font-title">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+        {/* Horário e Dia */}
+        <div className="flex flex-col items-center justify-center min-w-[70px] sm:min-w-[90px] h-[70px] sm:h-[90px] rounded-3xl bg-primary/5 border border-primary/5">
+          <span className="text-[10px] font-black uppercase text-primary/40 font-title tracking-wider mb-1">
+            {new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
+          </span>
+          <span className="text-xl sm:text-2xl font-black italic text-primary leading-none font-title">
+            {new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+
+        {/* Informações Centrais */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <h4 className="text-base sm:text-xl font-black italic uppercase text-primary truncate font-title tracking-tight">
+              {apt.clientName}
+            </h4>
+            {apt.payment_status === 'PAID' && (
+               <div className="w-2 h-2 rounded-full bg-green-500" title="Pago" />
+            )}
           </div>
-          <div>
-            <h4 className="text-base sm:text-xl font-black italic uppercase text-primary tracking-tight font-title">{apt.clientName}</h4>
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-2 sm:gap-x-3 mt-1 sm:mt-2 text-primary/40 font-black italic text-[8px] sm:text-[10px] uppercase tracking-wider font-title">
-              <span className="flex items-center gap-1.5 sm:gap-2 bg-primary/5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-primary/10 whitespace-nowrap">
-                <Scissors size={10} sm:size={12} className="text-primary/60" /> 
-                <span className="max-w-[100px] truncate">{apt.service_names || 'Serviços'}</span>
+          
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary/60 text-[9px] font-black italic uppercase font-title border border-primary/5">
+              <Scissors size={10} />
+              {apt.service_names || 'Serviço'}
+            </span>
+            
+            {apt.payment_status === 'WAITING_PAYMENT' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cta/10 text-cta text-[9px] font-black italic uppercase font-title border border-cta/10">
+                <QrCode size={10} />
+                Pendente Pix
               </span>
-            </div>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-5">
-          <div className="hidden sm:flex items-center gap-2 pr-2 border-r border-primary/5 mr-2">
-             <button 
-               onClick={() => onCancel(apt.id)}
-               className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"
-               title="Cancelar Horário"
-             >
-               <X size={18} strokeWidth={3} />
-             </button>
-             <button 
-               onClick={() => onComplete(apt.id)}
-               className="p-2 text-[#27AE60] hover:bg-green-50 rounded-xl transition-all"
-               title="Finalizar Atendimento"
-             >
-               <Check size={18} strokeWidth={3} />
-             </button>
+
+        {/* Ações Visíveis */}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleWhatsAppReminder}
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-95"
+            title="Lembrete WhatsApp"
+          >
+            <MessageCircle size={20} strokeWidth={2.5} />
+          </button>
+          
+          <div className="hidden sm:flex items-center gap-2 border-l border-primary/5 pl-2 ml-2">
+            {apt.payment_status === 'WAITING_PAYMENT' && (
+               <button onClick={() => onConfirmPayment(apt.id)} className="p-3 text-cta hover:bg-cta/5 rounded-xl transition-all" title="Confirmar Pix">
+                 <CheckCircle2 size={20} />
+               </button>
+            )}
+            <button onClick={() => onComplete(apt.id)} className="p-3 text-[#27AE60] hover:bg-green-50 rounded-xl transition-all" title="Concluir">
+              <Check size={22} strokeWidth={3} />
+            </button>
           </div>
-          
-          <span className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.1em] sm:tracking-[0.15em] border font-title transition-all ${
-            apt.status === 'confirmed' 
-              ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' 
-              : 'bg-background text-text/30 border-border'
-          }`}>
-            {getStatusLabel(apt.status)}
-          </span>
-          
-          {/* Mobile indicator for swipe */}
-          <div className="sm:hidden p-2 bg-background rounded-full text-cta/40">
-            <div className="flex gap-0.5">
-               <ChevronRight size={12} strokeWidth={4} />
-               <ChevronRight size={12} strokeWidth={4} className="-ml-2" />
-            </div>
+
+          {/* Indicador de Swipe (Mobile Only) */}
+          <div className="sm:hidden flex flex-col gap-1 items-center opacity-20">
+             <ChevronRight size={14} strokeWidth={4} className="animate-pulse" />
           </div>
         </div>
       </motion.div>
@@ -256,10 +259,21 @@ const handleCompleteAppointment = async (id: string) => {
     try {
       const updated = await appointmentsApi.complete(id);
       setAppointments(appointments.map(a => a.id === id ? updated : a));
-      toast.success("Atendimento concluído e saldo registrado!");
+      toast.success("Atendimento concluído!");
     } catch (error) {
       console.error("Erro ao concluir:", error);
-      toast.error("Erro ao concluir atendimento.");
+      toast.error("Erro ao concluir.");
+    }
+  };
+
+  const handleConfirmPayment = async (id: string) => {
+    try {
+      const updated = await appointmentsApi.confirmPayment(id);
+      setAppointments(appointments.map(a => a.id === id ? updated : a));
+      toast.success("Pagamento confirmado!");
+    } catch (error) {
+      console.error("Erro ao confirmar pagamento:", error);
+      toast.error("Erro ao confirmar.");
     }
   };
 
@@ -272,11 +286,11 @@ const handleCompleteAppointment = async (id: string) => {
     try {
       await appointmentsApi.delete(confirmCancelId);
       setAppointments(appointments.filter(a => a.id !== confirmCancelId));
-      toast.success("Agendamento cancelado com sucesso.");
+      toast.success("Cancelado.");
       setConfirmCancelId(null);
     } catch (error) {
       console.error("Erro ao cancelar:", error);
-      toast.error("Erro ao cancelar agendamento.");
+      toast.error("Erro ao cancelar.");
     }
   };
 
@@ -295,62 +309,61 @@ const handleCompleteAppointment = async (id: string) => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
-    <div className="space-y-6 sm:space-y-12 animate-fadeIn max-w-[1200px] mx-auto pb-32">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 sm:px-4">
-        <div>
-          <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-1 sm:mb-2">
-            Minha <span className="text-cta">Agenda</span>
-          </h2>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
-            <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Fluxo Profissional</p>
+    <div className="space-y-10 sm:space-y-16 animate-fadeIn max-w-[1200px] mx-auto pb-32 pt-4 px-4">
+      <header className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-primary font-title leading-none">
+              Minha <span className="text-cta">Agenda</span>
+            </h2>
+            <p className="text-primary/30 font-black italic text-[9px] sm:text-xs uppercase tracking-widest font-title mt-2 flex items-center gap-2">
+              <span className="w-6 h-[1px] bg-primary/20" /> Gestão de Fluxo
+            </p>
           </div>
-        </div>
-        <div className="grid grid-cols-1 sm:flex gap-4">
+          
           <button 
             onClick={() => setIsAddingAppointment(true)}
-            className="bg-cta text-white px-6 sm:px-10 py-4 sm:py-6 rounded-2xl sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-[#D35400] transition-all shadow-[0_20px_40px_-10px_rgba(230,126,34,0.3)] active:scale-95 font-title group"
+            className="w-14 h-14 sm:w-auto sm:px-8 sm:h-16 rounded-[22px] bg-cta text-white flex items-center justify-center gap-3 hover:bg-cta/90 transition-all shadow-xl shadow-cta/20 active:scale-95 group"
           >
-            <Plus size={18} sm:size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
-            <span>Novo Agendamento</span>
+            <Plus size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
+            <span className="hidden sm:inline text-sm font-black italic uppercase tracking-wider font-title">Novo Horário</span>
           </button>
+        </div>
+
+        <div className="flex items-center justify-between bg-white/50 backdrop-blur-sm p-2 rounded-[28px] border border-primary/5">
+           <div className="flex items-center gap-4 pl-4">
+              <div className="w-1.5 h-6 bg-cta rounded-full" />
+              <h3 className="text-lg sm:text-xl font-black italic uppercase tracking-tight text-primary font-title">
+                Próximos Clientes
+              </h3>
+           </div>
+           <div className="bg-primary text-white px-5 py-2.5 rounded-2xl text-[10px] font-black italic uppercase font-title tracking-widest shadow-lg shadow-primary/10">
+              {activeAppointments.length} Ativos
+           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-12 px-4">
-        {/* Main Column: Appointments */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-xl sm:text-2xl font-black italic uppercase tracking-tight text-primary font-title flex items-center gap-3">
-              <div className="w-2 h-8 bg-cta rounded-full" />
-              Próximos Horários
-            </h3>
-            <span className="text-[10px] font-black italic uppercase tracking-[0.2em] text-white bg-primary px-5 py-2.5 rounded-full border border-primary shadow-lg shadow-primary/20 font-title">
-              {activeAppointments.length} Ativos
-            </span>
+      <div className="space-y-4 sm:space-y-6">
+        {activeAppointments.map(apt => (
+          <AppointmentCard 
+            key={apt.id}
+            apt={apt}
+            services={services}
+            onComplete={handleCompleteAppointment}
+            onCancel={handleCancelAppointment}
+            onConfirmPayment={handleConfirmPayment}
+            getStatusLabel={getStatusLabel}
+          />
+        ))}
+        
+        {activeAppointments.length === 0 && (
+          <div className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-[40px] border-2 border-dashed border-primary/5">
+            <div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary/10 mb-4">
+              <CalendarDays size={40} />
+            </div>
+            <p className="text-primary/30 text-xs font-black italic uppercase tracking-widest font-title">Agenda Vazia hoje</p>
           </div>
-
-          <div className="space-y-4 sm:space-y-5">
-            {activeAppointments.map(apt => (
-              <AppointmentCard 
-                key={apt.id}
-                apt={apt}
-                services={services}
-                onComplete={handleCompleteAppointment}
-                onCancel={handleCancelAppointment}
-                getStatusLabel={getStatusLabel}
-              />
-            ))}
-            {activeAppointments.length === 0 && (
-              <div className="text-center py-28 bg-white border-2 border-dashed border-primary/10 rounded-[40px] text-primary/30 text-sm font-black italic uppercase tracking-widest font-title flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
-                  <CalendarDays size={40} className="text-primary/10" />
-                </div>
-                Nenhum agendamento ativo
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       <AnimatePresence>

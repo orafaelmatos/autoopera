@@ -23,6 +23,7 @@ class Barbershop(models.Model):
     instagram = models.CharField(max_length=100, blank=True, null=True)
     primary_color = models.CharField(max_length=7, default='#007AFF')
     onboarding_completed = models.BooleanField(default=False)
+    pix_key = models.CharField(max_length=100, blank=True, null=True, help_text="Chave Pix para recebimento")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -75,7 +76,7 @@ class Barber(models.Model):
     is_active = models.BooleanField(default=True)
     buffer_minutes = models.IntegerField(default=5)
     booking_horizon_days = models.IntegerField(default=30)
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    whatsapp = models.CharField(max_length=20, blank=True, null=True, help_text="Telefone com DDD (apenas números)")
 
     def __str__(self):
         return f"{self.name} @ {self.barbershop.name if self.barbershop else 'N/A'}"
@@ -142,13 +143,22 @@ class Appointment(models.Model):
         ('whatsapp', 'WhatsApp'),
         ('web', 'Web'),
     ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ('PENDING', 'Pendente'),
+        ('WAITING_PAYMENT', 'Aguardando Pagamento'),
+        ('PAID', 'Pago'),
+    ]
     
     barbershop = models.ForeignKey(Barbershop, on_delete=models.CASCADE, related_name='appointments', null=True)
     client_name = models.CharField(max_length=200)
+    client_phone = models.CharField(max_length=20, blank=True, null=True, help_text="Telefone do cliente (opcional)")
     services = models.ManyToManyField(Service, related_name='appointments')
     barber = models.ForeignKey(Barber, on_delete=models.CASCADE, related_name='appointments')
     date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
+    payment_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='manual')
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='appointments')
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,8 +1,15 @@
 # Branding — SaaS de Barbearia
 
-Este documento define **todas as diretrizes de branding** do produto. Ele deve ser usado como **fonte única de verdade** para refatoração da landing page, aplicação web e materiais futuros.
+Este documento define **todas as diretrizes oficiais de branding** do produto.
+Ele deve ser usado como **fonte única de verdade** para:
 
-O objetivo da marca é ser **simples, acessível e confiável**, voltada para **barbeiros tradicionais e donos de barbearia**, sem linguagem técnica excessiva ou visual premium distante.
+* Landing page
+* Aplicação web (dashboard)
+* Componentes de UI
+* Materiais futuros
+* Orientação para IA (Copilot, agentes, automações)
+
+O objetivo da marca é ser **simples, acessível e confiável**, pensada para **barbeiros tradicionais e donos de barbearia**, priorizando clareza, facilidade de uso e ações óbvias.
 
 ---
 
@@ -10,83 +17,139 @@ O objetivo da marca é ser **simples, acessível e confiável**, voltada para **
 
 ### Proposta de Valor
 
-Um sistema simples e barato para organizar a rotina da barbearia e economizar tempo no dia a dia.
+Um sistema simples e barato para organizar a rotina da barbearia, evitar confusão e economizar tempo no dia a dia.
+
+Sem complicação. Sem linguagem técnica. Funciona no celular e no computador.
+
+---
 
 ### Público-alvo
 
 * Barbeiros tradicionais
 * Donos de barbearia
-* Pequenos negócios
+* Pequenos negócios locais
+* Profissionais com pouca familiaridade com tecnologia
 
-### Personalidade
+---
+
+### Personalidade da Marca
 
 * Simples
 * Direta
 * Prática
 * Confiável
+* Pé no chão
+
+---
 
 ### O que a marca NÃO é
 
 * Corporativa
+* Técnica
 * Complexa
-* Excessivamente técnica
-* Premium/high-end
+* Premium / sofisticada demais
+* Cheia de termos em inglês ou jargões de tecnologia
 
 ---
 
 ## 2. Tom de Voz
 
-### Diretrizes
+### Diretrizes Gerais
 
-* Frases curtas e objetivas
+* Frases curtas
 * Linguagem cotidiana
-* Foco no benefício prático
+* Benefício claro
 * Clareza acima de sofisticação
+* Texto fácil de entender em poucos segundos
 
-### Exemplos
+Sempre escrever como se estivesse explicando para alguém ocupado.
 
-Correto:
+---
+
+### Exemplos de Tom Correto
 
 * "Organize sua barbearia sem complicação"
 * "Menos papel, mais tempo cortando"
 * "Tudo no controle em poucos cliques"
+* "Veja sua agenda do dia em segundos"
 
-Evitar:
+---
+
+### Evitar Sempre
 
 * "Soluções integradas"
 * "Plataforma robusta"
 * "Ecossistema completo"
+* "Gestão inteligente"
+* "Alta performance"
 
 ---
 
-## 3. Paleta de Cores
+## 3. Paleta de Cores (Tema Claro — Único)
 
-### Cores Principais
+A interface deve ser **predominantemente clara**, com cores usadas de forma funcional e previsível.
 
-* **Azul petróleo (primária)**: `#0F4C5C`
+---
 
-  * Uso: header, menu, destaques estruturais
+### Cores de Marca
 
-* **Branco off-white (fundo)**: `#F5F5F5`
+```txt
+brand.primary        #0F4C5C   // Azul petróleo — menus, header, navegação
+brand.primary.hover  #14697D   // Hover, item ativo
+brand.primary.soft   #E6F2F5   // Fundos leves, destaques suaves
+```
 
-  * Uso: fundo principal de páginas e seções
-
-### Cores Neutras
-
-* **Cinza escuro (texto)**: `#2E2E2E`
-* **Cinza claro (bordas/divisórias)**: `#E5E5E5`
+---
 
 ### Cor de Ação (CTA)
 
-* **Laranja queimado**: `#E67E22`
+```txt
+brand.cta            #E67E22   // Botões principais e ações importantes
+brand.cta.hover      #D35400
+brand.cta.soft       #FFF1E6   // Fundos de alertas positivos ou destaque leve
+```
 
-  * Uso exclusivo para ações principais (botões, chamadas importantes)
+> Regra absoluta: **CTA sempre em laranja**.
 
-### Regras de Uso
+---
 
-* Interface predominantemente clara
-* CTA sempre em laranja
-* Não introduzir novas cores sem necessidade
+### Fundos
+
+```txt
+bg.page              #F5F5F5   // Fundo geral
+bg.card              #FFFFFF   // Cards, formulários, blocos principais
+bg.section           #FAFAFA   // Seções internas
+```
+
+---
+
+### Texto
+
+```txt
+text.primary         #2E2E2E   // Texto principal
+text.secondary       #6B6B6B   // Texto auxiliar
+text.muted           #9E9E9E   // Labels, dicas, textos de apoio
+```
+
+---
+
+### Bordas e Divisórias
+
+```txt
+border.default       #E5E5E5
+border.strong        #D1D1D1
+```
+
+---
+
+### Estados Visuais (Bem Óbvios)
+
+```txt
+state.success        #2ECC71   // Pago, confirmado
+state.warning        #F1C40F   // Atenção
+state.error          #E74C3C   // Cancelado, erro
+state.info           #3498DB   // Informação
+```
 
 ---
 
@@ -97,39 +160,49 @@ Evitar:
 **Títulos**
 
 * Fonte: Poppins
-* Pesos recomendados: 600 ou 700
+* Peso: 600 ou 700
 
 **Textos e Interface**
 
 * Fonte: Inter
-* Pesos recomendados: 400 ou 500
-
-### Regras
-
-* Não usar fontes decorativas
-* Priorizar legibilidade
-* Manter hierarquia clara entre títulos e textos
+* Peso: 400 ou 500
 
 ---
 
-## 5. Estilo Visual (UI/UX)
+### Regras Tipográficas
+
+* Nunca usar fontes decorativas
+* Priorizar legibilidade
+* Hierarquia clara entre títulos, subtítulos e texto
+* Evitar textos longos
+
+---
+
+## 5. Estilo Visual (UI / UX)
 
 ### Princípios
 
-* Simplicidade acima de estética complexa
+* Simplicidade acima de estética
 * Poucos elementos por tela
-* Interface fácil de entender no primeiro uso
+* Interface compreensível no primeiro uso
+* Ação principal sempre evidente
+
+---
 
 ### Componentes
 
 * Cards com bordas levemente arredondadas
-* Ícones lineares e consistentes
-* Sombras sutis (ou nenhuma)
+* Ícones simples e lineares
+* Poucas sombras (ou nenhuma)
+* Nada de gradientes
+
+---
 
 ### Botões
 
-* Primário: laranja (`#E67E22`)
-* Secundário: azul (`#0F4C5C`) com contorno
+* **Primário**: laranja (`brand.cta`)
+* **Secundário**: azul (`brand.primary`) com contorno
+* Botões sempre com texto claro (ex: "Salvar", "Confirmar", "Enviar lembrete")
 
 ---
 
@@ -137,20 +210,29 @@ Evitar:
 
 ### Estrutura
 
-* Fundo branco
+* Fundo claro
 * Header azul
 * CTA visível acima da dobra
-* Textos curtos e objetivos
+* Textos curtos
+
+---
 
 ### Conteúdo
 
-* Benefícios claros
+* Benefício direto
 * Linguagem simples
-* Foco em economia de tempo e organização
+* Foco em:
+
+  * Organização
+  * Economia de tempo
+  * Menos confusão no dia a dia
+
+---
 
 ### Imagens
 
 * Fotos reais de barbearias tradicionais
+* Ambiente simples
 * Evitar imagens genéricas de SaaS corporativo
 
 ---
@@ -163,23 +245,42 @@ Evitar:
 * Conteúdo principal em fundo branco
 * Destaques importantes em laranja
 
+---
+
 ### Experiência
 
 * Evitar excesso de gráficos
-* Priorizar ações do dia a dia
-* Interface funcional mesmo para usuários com pouca familiaridade com tecnologia
+* Priorizar tarefas do dia a dia
+* Interface funcional para usuários com pouca familiaridade com tecnologia
 
 ---
 
-## 8. Resumo Rápido (para agentes e automações)
+## 8. Regras de Clareza (Essencial)
 
-* Posicionamento: simples e barato
-* Público: barbeiros tradicionais
-* Cor principal: `#0F4C5C`
-* CTA: `#E67E22`
-* Fundo: `#F5F5F5`
-* Fonte títulos: Poppins
-* Fonte textos: Inter
-* Tom: direto, simples, confiável
+```txt
+• Azul = navegação e estrutura
+• Laranja = ação
+• Verde = deu certo
+• Vermelho = problema
+• Nunca usar cor como único indicativo (sempre texto ou ícone)
+• Telas limpas, sem poluição visual
+```
 
-Este documento deve guiar toda refatoração visual e textual do produto.
+---
+
+## 9. Resumo Rápido (para Copilot e Agentes)
+
+```txt
+Posicionamento: simples e acessível
+Público: barbeiros tradicionais
+Tema: claro
+Cor principal: #0F4C5C
+CTA: #E67E22
+Fundo: #F5F5F5
+Fonte títulos: Poppins
+Fonte textos: Inter
+Tom: direto, simples, confiável
+```
+
+Este documento deve orientar toda decisão visual e textual do produto.
+Se houver dúvida, a escolha correta é sempre a **mais simples e óbvia para o barbeiro**.

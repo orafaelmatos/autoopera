@@ -9,6 +9,7 @@ interface User {
   birth_date?: string;
   profile_picture?: string;
   phone?: string;
+  whatsapp?: string;
   role: 'barber' | 'customer';
   profile_id?: number;
   barbershop_slug?: string;

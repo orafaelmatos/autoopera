@@ -12,17 +12,39 @@
     <title>AutoOpera | Gestão de Barbearia</title>
     
     <link rel="icon" type="image/png" href="/src/assets/logo-rebranding.png" />
-    <link rel="apple-touch-icon" href="/newlogo.png">
+    <link rel="apple-touch-icon" id="apple-touch-icon" href="/newlogo.png">
     <script>
       (function() {
         const path = window.location.pathname;
         const match = path.match(/^\/b\/([^/]+)/);
         const slug = match ? match[1] : null;
+        
+        // Manifest dinâmico para PWA (Android/Chrome)
         const manifestUrl = slug ? `/api/pwa-manifest/${slug}/` : '/manifest.json';
         const link = document.createElement('link');
         link.rel = 'manifest';
         link.href = manifestUrl;
         document.head.appendChild(link);
+
+        // Se for uma barbearia específica, tentamos atualizar o ícone do iPhone (Apple Touch Icon)
+        // Buscamos a info da barbearia para pegar o logo
+        if (slug) {
+          fetch(`/api/config/?barbershop_slug=${slug}`)
+            .then(r => r.json())
+            .then(data => {
+              if (data.logo) {
+                const appleIcon = document.getElementById('apple-touch-icon');
+                if (appleIcon) appleIcon.href = data.logo;
+                
+                // Também atualiza o favicon para a logo da barbearia
+                const favicon = document.querySelector('link[rel="icon"]');
+                if (favicon) favicon.href = data.logo;
+
+                // Atualiza o título da página
+                document.title = data.name + " | Agendamento Online";
+              }
+            }).catch(e => console.error("Error loading barbershop config for PWA", e));
+        }
       })();
     </script>
 

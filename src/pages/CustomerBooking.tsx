@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Scissors, Calendar, Clock, ChevronRight, 
   ChevronLeft, Check, Plus, Star, LogOut, Info, ArrowRight,
-  CreditCard, Wallet, Camera, CheckCircle2
+  CreditCard, Wallet, Camera, CheckCircle2, Copy
 } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { servicesApi, barbersApi, appointmentsApi, customersApi, barbershopApi, getMediaUrl } from '../api';
@@ -67,6 +67,7 @@ const CustomerBooking: React.FC = () => {
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingComplete, setBookingComplete] = useState(false);
+    const [pixInfo, setPixInfo] = useState<{qr_code_base64: string; brcode: string; amount: number} | null>(null);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -139,7 +140,7 @@ const CustomerBooking: React.FC = () => {
         appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
         try {
-            await appointmentsApi.create({
+            const appointment = await appointmentsApi.create({
                 barberId: selectedBarber.id,
                 serviceIds: selectedServices.map(s => s.id),
                 clientName: profileData.name || 'Cliente',
@@ -147,6 +148,17 @@ const CustomerBooking: React.FC = () => {
                 customer: user?.profile_id ? String(user.profile_id) : undefined,
                 platform: 'web'
             });
+
+            // Se o estabelecimento tiver Pix configurado, busca as info de pagamento
+            if (barbershop?.pix_key) {
+                try {
+                    const pixData = await appointmentsApi.getPixPayment(appointment.id);
+                    setPixInfo(pixData);
+                } catch (pixErr) {
+                    console.error("Erro ao gerar Pix:", pixErr);
+                }
+            }
+
             setBookingComplete(true);
         } catch (error) {
             console.error("Erro ao agendar:", error);
@@ -278,6 +290,33 @@ const CustomerBooking: React.FC = () => {
                             <span className="text-cta font-black font-title italic text-xl">R$ {totalPrice.toFixed(2)}</span>
                         </div>
                     </div>
+
+                    {pixInfo && (
+                        <div className="mb-10 bg-primary/5 border-2 border-dashed border-primary/20 rounded-[40px] p-8 max-w-sm mx-auto">
+                            <h3 className="text-xl font-black text-primary mb-4 tracking-tighter uppercase font-title italic">Pagamento Antecipado</h3>
+                            <p className="text-primary/60 text-[10px] uppercase font-black tracking-widest leading-relaxed mb-6">
+                                Utilize o QR Code abaixo ou a chave copia e cola para confirmar seu agendamento via Pix.
+                            </p>
+                            
+                            <div className="bg-white p-4 rounded-3xl shadow-xl mb-6 flex justify-center overflow-hidden">
+                                <img src={pixInfo.qr_code_base64} alt="QR Code Pix" className="w-full aspect-square max-w-[200px]" />
+                            </div>
+
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(pixInfo.brcode);
+                                    toast.success("Código Pix copiado!");
+                                }}
+                                className="w-full bg-white border-2 border-primary/10 text-primary font-black py-4 rounded-2xl mb-4 hover:bg-primary/5 transition-colors flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest"
+                            >
+                                <Copy size={16} /> Copiar Código Pix
+                            </button>
+                            
+                            <p className="text-[10px] text-primary/40 text-center font-bold italic uppercase">
+                                Valor: R$ {pixInfo.amount.toFixed(2)}
+                            </p>
+                        </div>
+                    )}
 
                     <button 
                         onClick={() => window.location.reload()}

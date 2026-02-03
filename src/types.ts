@@ -22,6 +22,7 @@ export interface Barber {
   is_active: boolean;
   buffer_minutes: number;
   booking_horizon_days: number;
+  whatsapp?: string;
 }
 
 export interface Service {
@@ -55,10 +56,14 @@ export interface LoyaltyReward {
 export interface Appointment {
   id: string;
   clientName: string;
+  clientPhone?: string;
   serviceIds: string[];
   barberId: string;
+  barber_whatsapp?: string;
   date: string; // ISO format
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  payment_status?: 'PENDING' | 'WAITING_PAYMENT' | 'PAID';
+  payment_id?: string;
   platform?: 'manual' | 'whatsapp' | 'web';
   customer?: string;
   service_names?: string;

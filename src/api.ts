@@ -7,6 +7,7 @@ import {
 
 const getBaseURL = () => {
   const origin = window.location.origin;
+  // Se estivermos acessando por IP (mobile), o origin já será o IP da máquina
   const apiRoot = `${origin}/api`;
   
   const pathParts = window.location.pathname.split('/');
@@ -23,6 +24,15 @@ const getBaseURL = () => {
 
   return `${apiRoot}/`;
 };
+
+// Interceptor para logs de debug em desenvolvimento (ajuda a ver as URLs falhando)
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', error.config?.url, error.response?.status);
+    return Promise.reject(error);
+  }
+);
 
 const api = axios.create({
   baseURL: getBaseURL(),
@@ -93,61 +103,19 @@ export const authApi = {
 export const getMediaUrl = (path: string | null | undefined) => {
   if (!path) return '';
   
-  // Se for uma URL completa (ex: de um storage externo ou se o DRF já retornou com host)
+  // Se for uma URL completa, extraímos apenas o caminho (/media/...)
+  // Isso garante que o navegador peça a imagem para a mesma origem do site (Vite Proxy)
   if (path.startsWith('http')) {
-    const currentHostname = window.location.hostname;
-    const currentPort = window.location.port;
-
-    // Se a URL contém /media/ e aponta para a porta 8000, mas estamos acessando a app em outra porta (produção)
-    if ((path.includes(':8000/media/') || path.includes('/media/')) && 
-        (!currentPort || currentPort === '80' || currentPort === '443')) {
-      
-      // Extrai o caminho relativo da mídia
-      const mediaPartIndex = path.indexOf('/media/');
-      if (mediaPartIndex !== -1) {
-        const relativePath = path.substring(mediaPartIndex);
-        const baseUrl = window.location.origin.endsWith('/') 
-          ? window.location.origin.slice(0, -1) 
-          : window.location.origin;
-        return `${baseUrl}${relativePath}`;
-      }
+    try {
+      const url = new URL(path);
+      return url.pathname;
+    } catch (e) {
+      return path;
     }
-
-    // Caso especial para mobile acessando dev
-    if (currentHostname !== 'localhost' && currentHostname !== '127.0.0.1' && 
-        (path.includes('://localhost') || path.includes('://127.0.0.1'))) {
-      return path.replace('://localhost', `://${currentHostname}`).replace('://127.0.0.1', `://${currentHostname}`);
-    }
-
-    return path;
-  }
-  
-  const origin = window.location.origin;
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-  
-  // Normaliza o path para garantir que comece com /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  
-  // Se for localhost (desenvolvimento) ou acessando via IP em portas comuns de dev (3000, 5173, etc)
-  // geralmente o Django roda na 8000 em ambiente de desenvolvimento
-  const isDevPort = port === '3000' || port === '5173' || port === '3001' || port === '3002';
-  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
-  const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
-
-  // Se estivermos em uma porta de desenvolvimento ou acessando via localhost com porta 8000 fallback
-  if (isLocalHost && !port) {
-      // Caso raro onde localhost acessa sem porta, mas geralmente dev é com porta.
-      return `${origin}${normalizedPath}`;
   }
 
-  if (isLocalHost || (isIpAddress && isDevPort)) {
-    // Desenvolvimento: backend rodando na 8000
-    return `http://${hostname}:8000${normalizedPath}`;
-  }
-  
-  // Produção/Docker: O Nginx serve as imagens em /media/ na mesma porta do frontend
-  return `${origin}${normalizedPath}`;
+  // Garante que o caminho comece com /para ser relativo à raiz do domínio atual
+  return path.startsWith('/') ? path : `/${path}`;
 };
 
 export const barbershopApi = {
@@ -186,6 +154,8 @@ export const appointmentsApi = {
   update: (id: string, data: Partial<Appointment>) => api.patch<Appointment>(`appointments/${id}/`, data).then(r => r.data),
   delete: (id: string) => api.delete(`appointments/${id}/`),
   complete: (id: string) => api.post<Appointment>(`appointments/${id}/complete/`).then(r => r.data),
+  getPixPayment: (id: string) => api.get<{qr_code_base64: string; brcode: string; amount: number}>(`appointments/${id}/pix/`).then(r => r.data),
+  confirmPayment: (id: string) => api.post<Appointment>(`appointments/${id}/confirm-payment/`).then(r => r.data),
 };
 
 export const transactionsApi = {

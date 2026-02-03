@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
   Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
-  X
+  X, QrCode, Smartphone, MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
@@ -53,6 +53,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     description: '',
     address: '',
     phone: '',
+    pix_key: '',
     primary_color: 'var(--primary-color, #007AFF)',
     slug: ''
   });
@@ -61,6 +62,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     name: '',
     email: '',
     description: '',
+    whatsapp: '',
   });
 
   useEffect(() => {
@@ -70,6 +72,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         description: barbershop.description || '',
         address: barbershop.address || '',
         phone: barbershop.phone || '',
+        pix_key: barbershop.pix_key || '',
         primary_color: barbershop.primary_color || 'var(--primary-color, #007AFF)',
         slug: barbershop.slug || ''
       });
@@ -81,7 +84,8 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
       setProfileData({
         name: user.name || '',
         email: user.email || '',
-        description: (user as any).description || ''
+        description: (user as any).description || '',
+        whatsapp: (user as any).whatsapp || ''
       });
     }
   }, [user]);
@@ -239,6 +243,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         if (shopData.description) formData.append('description', shopData.description);
         if (shopData.address) formData.append('address', shopData.address);
         if (shopData.phone) formData.append('phone', shopData.phone);
+        if (shopData.pix_key) formData.append('pix_key', shopData.pix_key);
         if (shopData.primary_color) formData.append('primary_color', shopData.primary_color);
         
         const updatedShop = await barbershopApi.update(formData);
@@ -252,6 +257,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
           formData.append('name', profileData.name);
           formData.append('email', profileData.email);
           formData.append('description', profileData.description);
+          formData.append('whatsapp', profileData.whatsapp);
           await barbersApi.update(String(user.profile_id), formData as any);
           await refreshUser();
         }
@@ -445,6 +451,20 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
+
+                        <div>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Chave Pix (Para receber pagamentos)</label>
+                            <div className="relative group">
+                                <QrCode className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                                <input 
+                                    type="text"
+                                    value={shopData.pix_key || ''}
+                                    onChange={e => setShopData({...shopData, pix_key: e.target.value})}
+                                    placeholder="CPF, E-mail, Telefone ou Chave Aleatória"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -525,6 +545,19 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     type="email"
                                     value={profileData.email}
                                     onChange={e => setProfileData({...profileData, email: e.target.value})}
+                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu WhatsApp (Somente Números)</label>
+                            <div className="relative group">
+                                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
+                                <input 
+                                    type="text"
+                                    value={profileData.whatsapp}
+                                    onChange={e => setProfileData({...profileData, whatsapp: e.target.value})}
+                                    placeholder="5511999999999"
                                     className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>

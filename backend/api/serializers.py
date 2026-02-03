@@ -10,12 +10,29 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
+def fix_relative_url(url):
+    if not url:
+        return url
+    
+    # Se a URL contiver o host (localhost, 127.0.0.1 ou o IP do servidor),
+    # nós a transformamos em uma URL relativa para que o frontend/Vite resolva.
+    if '://' in url:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        return parsed.path
+        
+    return url
+
 class BarbershopSerializer(serializers.ModelSerializer):
     trial_days_left = serializers.SerializerMethodField()
 
     class Meta:
         model = Barbershop
-        fields = ['id', 'name', 'slug', 'description', 'address', 'phone', 'logo', 'banner', 'primary_color', 'is_active', 'created_at', 'trial_days_left', 'plan', 'onboarding_completed']
+        fields = [
+            'id', 'name', 'slug', 'description', 'address', 'phone', 
+            'logo', 'banner', 'primary_color', 'is_active', 'created_at', 
+            'trial_days_left', 'plan', 'onboarding_completed', 'pix_key'
+        ]
 
     def get_trial_days_left(self, obj):
         from django.utils import timezone
@@ -23,12 +40,23 @@ class BarbershopSerializer(serializers.ModelSerializer):
         days_left = 15 - delta.days
         return max(0, days_left)
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['logo'] = fix_relative_url(ret.get('logo'))
+        ret['banner'] = fix_relative_url(ret.get('banner'))
+        return ret
+
 class BarberSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Barber
         fields = '__all__'
         read_only_fields = ['barbershop']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['profile_picture'] = fix_relative_url(ret.get('profile_picture'))
+        return ret
 
 class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,6 +84,11 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['id', 'name', 'phone', 'birth_date', 'profile_picture', 'lastVisit', 'totalSpent', 'notes', 'points', 'created_at', 'updated_at', 'user']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['profile_picture'] = fix_relative_url(ret.get('profile_picture'))
+        return ret
 
     def get_lastVisit(self, obj):
         barbershop = self.context.get('request').barbershop if self.context.get('request') else None
@@ -93,6 +126,7 @@ class LoyaltyRewardSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     clientName = serializers.CharField(source='client_name')
+    clientPhone = serializers.CharField(source='client_phone', required=False, allow_null=True, allow_blank=True)
     serviceIds = serializers.PrimaryKeyRelatedField(
         source='services', 
         queryset=Service.objects.all(),
@@ -104,18 +138,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
     )
     service_names = serializers.SerializerMethodField()
     barber_name = serializers.ReadOnlyField(source='barber.name')
+    barber_whatsapp = serializers.ReadOnlyField(source='barber.whatsapp')
     total_price = serializers.SerializerMethodField()
     slot = TimeSlotSerializer(read_only=True)
     
     class Meta:
         model = Appointment
         fields = [
-            'id', 'clientName', 'serviceIds', 'barberId', 
-            'service_names', 'barber_name', 'total_price',
-            'date', 'status', 'platform', 'customer', 'slot', 
+            'id', 'clientName', 'clientPhone', 'serviceIds', 'barberId', 
+            'service_names', 'barber_name', 'barber_whatsapp', 'total_price',
+            'date', 'status', 'payment_status', 'payment_id', 
+            'platform', 'customer', 'slot', 
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'status', 'created_at', 'updated_at', 'slot', 'barbershop']
+        read_only_fields = ['id', 'status', 'payment_status', 'payment_id', 'created_at', 'updated_at', 'slot', 'barbershop']
 
     def get_service_names(self, obj):
         return ", ".join([s.name for s in obj.services.all()])
@@ -137,6 +173,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        
+        # Fallback para o telefone do cliente
+        if not ret.get('clientPhone'):
+            if instance.customer and instance.customer.phone:
+                ret['clientPhone'] = instance.customer.phone
+
         if 'serviceIds' in ret and ret['serviceIds'] is not None:
             ret['serviceIds'] = [str(sid) for sid in ret['serviceIds']]
         if 'barberId' in ret and ret['barberId'] is not None:

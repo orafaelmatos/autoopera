@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Appointment, Service, Customer, Transaction, Barbershop } from '../types';
-import { Clock, User, CheckCircle2, TrendingUp, Wallet, Megaphone, ArrowRight, ListOrdered, Trophy, ChevronRight, Check } from 'lucide-react';
+import { Clock, User, CheckCircle2, TrendingUp, Wallet, Megaphone, ArrowRight, ListOrdered, Trophy, ChevronRight, Check, QrCode } from 'lucide-react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { appointmentsApi, transactionsApi } from '../api';
 import toast from 'react-hot-toast';
@@ -53,6 +53,12 @@ const SwipeableAppointment: React.FC<{ apt: Appointment, index: number, serviceN
             <h4 className="font-black italic text-primary text-lg sm:text-xl font-title tracking-tight leading-none mb-2 sm:mb-3 uppercase">{apt.clientName}</h4>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 font-title">
                <span className="text-[9px] sm:text-[10px] text-cta font-black italic uppercase tracking-widest bg-cta/5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border border-cta/10 shadow-sm">{serviceName}</span>
+               {apt.payment_status === 'PAID' && (
+                 <span className="text-[9px] sm:text-[10px] text-green-600 font-black italic uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full border border-green-200">Pago</span>
+               )}
+               {apt.payment_status === 'WAITING_PAYMENT' && (
+                 <span className="text-[9px] sm:text-[10px] text-cta font-black italic uppercase tracking-widest bg-cta/10 px-3 py-1 rounded-full border border-cta/20 animate-pulse">Aguardando Pix</span>
+               )}
                <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-primary/10"></div>
                <span className="text-[9px] sm:text-[10px] text-primary/40 font-black italic uppercase tracking-[0.2em]">{new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>

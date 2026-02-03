@@ -33,11 +33,11 @@ class WebhookService:
                     "appointment_id": str(appointment.id),
                     "barbershop": {
                         "name": appointment.barbershop.name,
-                        "phone": appointment.barbershop.phone or appointment.barber.phone or ""
+                        "phone": appointment.barbershop.phone or appointment.barber.whatsapp or ""
                     },
                     "client": {
                         "name": appointment.client_name,
-                        "phone": getattr(appointment.customer, 'phone', None) or ""
+                        "phone": appointment.client_phone or getattr(appointment.customer, 'phone', None) or ""
                     },
                     "service": {
                         "name": ", ".join([s.name for s in appointment.services.all()])
