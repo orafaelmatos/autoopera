@@ -3,7 +3,6 @@ import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Lock, User, ArrowRight, Scissors, Info, Mail, ShieldCheck, Download } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import brandLogo from '../assets/newlogo.png';
 import api from '../api';
 import { Barbershop } from '../types';
 import toast from 'react-hot-toast';

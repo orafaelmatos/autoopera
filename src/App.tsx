@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import brandLogo from './assets/newlogo.png';
+import brandLogo from './assets/autoopera-logo.png';
 import { 
   LayoutDashboard, 
   Calendar, 

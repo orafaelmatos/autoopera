@@ -26,4 +26,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Start command
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "barberflow.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "autoopera.wsgi:application"]

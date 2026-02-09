@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Smartphone, Lock, User, ArrowRight, Scissors, Store, Globe, CheckCircle2, MapPin, Instagram, AlignLeft, Camera, Image as ImageIcon, Mail, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import brandLogo from '../assets/newlogo.png';
+import brandLogo from '../assets/autoopera-logo.png';
 import api from '../api';
 import { useAuth } from '../AuthContext';
 import { compressImage } from '../utils/image';

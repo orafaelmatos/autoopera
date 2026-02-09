@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/newlogo.png",
+      "src": "/autoopera-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/newlogo.png",
+      "src": "/autoopera-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

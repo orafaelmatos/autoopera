@@ -11,7 +11,7 @@ services:
 
   backend:
     build: ./backend
-    command: gunicorn --bind 0.0.0.0:8000 barberflow.wsgi:application
+    command: gunicorn --bind 0.0.0.0:8000 autoopera.wsgi:application
     volumes:
       - ./backend:/app
       - backend_static:/app/backend_static

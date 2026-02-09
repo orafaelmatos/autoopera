@@ -1136,7 +1136,7 @@ def pwa_manifest(request, slug=None):
     short_name = "AutoOpera"
     start_url = "/"
     theme_color = "#0F4C5C"
-    icon_src = "/icon.png" # Ícone padrão do app
+    icon_src = "/src/assets/autoopera-logo.png" # Ícone padrão do app
     
     if slug:
         try:

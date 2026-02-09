@@ -1,436 +1,695 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { 
-  Scissors, 
   Calendar, 
   Check, 
   LayoutDashboard,
-  Bot,
   CreditCard,
   Menu,
   X,
-  Instagram,
   ChevronRight,
-  Star,
   Clock,
   Smartphone,
-  ShieldCheck,
-  Users
+  Users,
+  TrendingUp,
+  Package,
+  AlertCircle,
+  MessageCircle,
+  Bell,
+  Send,
+  Calculator,
+  PieChart,
+  Gift,
+  Truck,
+  ClipboardList,
+  Cake,
+  ListOrdered,
+  Handshake
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import brandLogo from '../assets/logo-rebranding.png';
+import brandLogo from '../assets/autoopera-logo.png';
 import heroBarber from '../assets/barber.jpg';
-import agendamentoImg from '../assets/agendamento.jpg';
-import atendimentoImg from '../assets/atendimento.jpg';
-import financeiroImg from '../assets/financeiro.jpg';
+import mockupsImg from '../assets/atendimento.jpg'; // Using existing asset as placeholder for the mockup visual
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const plans = [
-        {
-            name: "Básico",
-            price: "39,90",
-            checkoutUrl: "https://pay.cakto.com.br/e7rcvpm_734162",
-            features: [
-                "Agenda para 1 barbeiro",
-                "Página de agendamento online",
-                "Controle de clientes",
-                "Relatórios simples"
-            ],
-            popular: false
-        },
-        {
-            name: "Equipe",
-            price: "49,90",
-            checkoutUrl: "https://pay.cakto.com.br/eusjvvu",
-            features: [
-                "Múltiplos barbeiros",
-                "Controle de estoque",
-                "Comissões automáticas",
-                "Financeiro completo"
-            ],
-            popular: false
-        },
-        {
-            name: "IA Pro",
-            price: "79,90",
-            checkoutUrl: "https://pay.cakto.com.br/5s2vk4i",
-            features: [
-                "Atendente IA no WhatsApp",
-                "Agendamento 24h",
-                "Responde dúvidas",
-                "Recupera clientes"
-            ],
-            popular: true
-        }
-    ];
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'semestral' | 'annual'>('monthly');
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+    // Hardcoded pricing table for the "perfect" psychological numbers
+    const pricingData = {
+        monthly: {
+            tier1: 59.90,
+            tier2: 74.90,
+            tier3: 89.90,
+            tier4: 104.90
+        },
+        semestral: {
+            tier1: 49.99,
+            tier2: 59.99,
+            tier3: 75.99,
+            tier4: 89.99
+        },
+        annual: {
+            tier1: 39.99,
+            tier2: 49.99,
+            tier3: 59.99,
+            tier4: 69.99
+        }
+    };
+
+    const getPriceDetails = (tierKey: keyof typeof pricingData.monthly) => {
+        const months = billingCycle === 'monthly' ? 1 : billingCycle === 'semestral' ? 6 : 12;
+        const monthlyPrice = pricingData[billingCycle][tierKey];
+        const originalPrice = pricingData.monthly[tierKey];
+        const totalValue = monthlyPrice * months;
+
+        return {
+            monthly: monthlyPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            original: originalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            total: totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            showOriginal: billingCycle !== 'monthly'
+        };
+    };
+
+    const pricingTiers = [
+        { title: "1 Profissional", tierKey: 'tier1' as const, discountLabel: billingCycle === 'annual' ? "30% OFF" : billingCycle === 'semestral' ? "15% OFF" : null },
+        { title: "2 a 5 Profissionais", tierKey: 'tier2' as const, discountLabel: billingCycle === 'annual' ? "30% OFF" : billingCycle === 'semestral' ? "15% OFF" : null },
+        { title: "6 a 15 Profissionais", tierKey: 'tier3' as const, discountLabel: billingCycle === 'annual' ? "30% OFF" : billingCycle === 'semestral' ? "15% OFF" : null },
+        { title: "+15 Profissionais", tierKey: 'tier4' as const, discountLabel: billingCycle === 'annual' ? "30% OFF" : billingCycle === 'semestral' ? "15% OFF" : null },
+    ];
+
+    const features = [
+        {
+            icon: <Bell size={40} strokeWidth={1.5} />,
+            title: "AGENDAMENTO ONLINE 24H",
+            description: "Seu cliente agenda o horário sozinho através de um link exclusivo, sem depender de atendimento manual."
+        },
+        {
+            icon: <Handshake size={40} strokeWidth={1.5} />,
+            title: "PROGRAMA DE FIDELIDADE",
+            description: "Sistema de pontos e recompensas integrado para manter seus clientes voltando sempre à sua barbearia."
+        },
+        {
+            icon: <Calculator size={40} strokeWidth={1.5} />,
+            title: "GESTÃO FINANCEIRA",
+            description: "Controle total de entradas, despesas e fluxo de caixa com relatórios simples e objetivos."
+        },
+        {
+            icon: <CreditCard size={40} strokeWidth={1.5} />,
+            title: "PAGAMENTO VIA PIX",
+            description: "Integração para recebimentos via PIX de forma rápida e segura diretamente no sistema."
+        },
+        {
+            icon: <Truck size={40} strokeWidth={1.5} />,
+            title: "GESTÃO DE ESTOQUE",
+            description: "Controle produtos para venda e consumo interno com avisos de estoque baixo."
+        },
+        {
+            icon: <PieChart size={40} strokeWidth={1.5} />,
+            title: "RELATÓRIOS GERENCIAIS",
+            description: "Acompanhe o desempenho da sua barbearia com dados sobre faturamento e produtividade."
+        },
+        {
+            icon: <Send size={40} strokeWidth={1.5} />,
+            title: "CAMPANHAS DE PROMOÇÃO",
+            description: "Crie promoções específicas para dias de pouco movimento e atraia mais clientes."
+        },
+        {
+            icon: <MessageCircle size={40} strokeWidth={1.5} />,
+            title: "CONTATO VIA WHATSAPP",
+            description: "Facilite a comunicação e o login dos seus clientes utilizando o número do WhatsApp."
+        }
+    ];
+
     return (
-        <div className="min-h-screen bg-background font-sans text-text selection:bg-cta selection:text-white">
+        <div id="home" className="min-h-screen bg-background font-sans text-text">
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-primary backdrop-blur-md py-5 px-6 md:px-12 flex justify-between items-center shadow-2xl shadow-primary/20 border-b border-white/5">
-                <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
-                    <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <img src={brandLogo} alt="AutoOpera Logo" />
+            <header className="fixed top-0 left-0 right-0 z-50 bg-primary/95 backdrop-blur-md py-4 px-6 md:px-12 border-b border-white/5 shadow-2xl">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    {/* Logo Left */}
+                    <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => { navigate('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                        <div className="w-12 h-12 rounded flex items-center justify-center">
+                            <img src={brandLogo} alt="AutoOpera Logo" className="w-full h-auto" />
+                        </div>
+                        <span className="font-title font-bold text-lg text-white tracking-tight">AutoOpera</span>
                     </div>
-                    <div className="flex flex-col">
-                        <span className="font-title font-black text-xl tracking-tighter text-white italic uppercase leading-none">Auto Opera</span>
-                        <span className="text-[10px] font-black text-cta uppercase tracking-[0.3em] mt-0.5 ml-0.5">Barber</span>
+
+                    {/* Centered Desktop Nav */}
+                    <nav className="hidden md:flex flex-1 justify-center items-center gap-10">
+                        <a href="#home" className="text-white/80 text-[11px] uppercase tracking-widest font-bold hover:text-cta transition-colors">Home</a>
+                        <a href="#sobre" className="text-white/80 text-[11px] uppercase tracking-widest font-bold hover:text-cta transition-colors">Sobre</a>
+                        <a href="#funcionalidades" className="text-white/80 text-[11px] uppercase tracking-widest font-bold hover:text-cta transition-colors">Funções</a>
+                        <a href="#precos" className="text-white/80 text-[11px] uppercase tracking-widest font-bold hover:text-cta transition-colors">Preços</a>
+                    </nav>
+
+                    {/* Right Action */}
+                    <div className="hidden md:flex items-center gap-6 shrink-0">
+                        <button 
+                            onClick={() => navigate('/login')}
+                            className="text-white/80 text-[11px] uppercase tracking-widest font-bold hover:text-cta transition-colors"
+                        >
+                            Acessar
+                        </button>
+                        <button 
+                            onClick={() => navigate('/register-barber')}
+                            className="bg-cta text-white px-5 py-2.5 rounded font-bold text-[11px] uppercase tracking-widest hover:bg-cta-hover transition-all shadow-lg shadow-cta/20"
+                        >
+                            Teste Grátis
+                        </button>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button className="md:hidden text-white" onClick={toggleMenu}>
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
-
-                {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center gap-10 text-white/70 text-[11px] font-black uppercase tracking-[0.2em]">
-                    <a href="#facilidades" className="hover:text-cta transition-colors italic">Facilidades</a>
-                    <a href="#precos" className="hover:text-cta transition-colors italic">Preços</a>
-                    <button 
-                        onClick={() => navigate('/login')}
-                        className="hover:text-white transition-colors border-l border-white/10 pl-10"
-                    >
-                        Entrar
-                    </button>
-                    <button 
-                        onClick={() => navigate('/register-barber')}
-                        className="bg-cta text-white px-8 py-3.5 rounded-[18px] font-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-cta/20 italic"
-                    >
-                        COMEÇAR AGORA
-                    </button>
-                </nav>
-
-                {/* Mobile Menu Button */}
-                <button className="md:hidden text-white bg-white/5 p-2 rounded-xl" onClick={toggleMenu}>
-                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
             </header>
 
             {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div 
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="fixed inset-0 z-40 bg-primary pt-28 px-8 md:hidden"
+                        exit={{ opacity: 0, y: -10 }}
+                        className="fixed inset-0 z-40 bg-primary pt-24 px-8 md:hidden flex flex-col gap-6"
                     >
-                        <nav className="flex flex-col gap-8 text-white text-2xl font-black italic uppercase font-title tracking-tighter">
-                            <a href="#facilidades" onClick={toggleMenu} className="border-b border-white/5 pb-6 flex justify-between items-center">Facilidades <ChevronRight className="text-cta" /></a>
-                            <a href="#precos" onClick={toggleMenu} className="border-b border-white/5 pb-6 flex justify-between items-center">Preços <ChevronRight className="text-cta" /></a>
-                            <button onClick={() => navigate('/login')} className="text-left border-b border-white/5 pb-6 flex justify-between items-center">Entrar <ChevronRight className="text-cta" /></button>
-                            <button 
-                                onClick={() => navigate('/register-barber')}
-                                className="bg-cta text-white py-6 rounded-[24px] font-black shadow-2xl shadow-cta/30 text-center mt-4 text-sm tracking-widest"
-                            >
-                                EXPERIMENTAR GRÁTIS
-                            </button>
-                        </nav>
+                        <a href="#home" onClick={toggleMenu} className="text-white text-xl font-medium text-left border-b border-white/10 pb-4">Home</a>
+                        <a href="#sobre" onClick={toggleMenu} className="text-white text-xl font-medium text-left border-b border-white/10 pb-4">Sobre</a>
+                        <a href="#funcionalidades" onClick={toggleMenu} className="text-white text-xl font-medium text-left border-b border-white/10 pb-4">Funções</a>
+                        <a href="#precos" onClick={toggleMenu} className="text-white text-xl font-medium text-left border-b border-white/10 pb-4">Preços</a>
+                        <button onClick={() => { navigate('/login'); toggleMenu(); }} className="text-white text-xl font-medium text-left border-b border-white/10 pb-4">Acessar</button>
+                        <button 
+                            onClick={() => { navigate('/register-barber'); toggleMenu(); }}
+                            className="bg-cta text-white py-4 rounded font-bold text-center shadow-lg"
+                        >
+                            Teste Grátis
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             {/* Hero Section */}
-            <section className="relative pt-44 pb-32 px-6 md:px-12 overflow-hidden bg-white">
-                {/* Background Branding Decorativo */}
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-[0.03]">
-                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary blur-[160px] rounded-full" />
-                    <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '48px 48px' }} />
+            <section className="relative pt-44 pb-24 px-6 md:px-12 bg-primary overflow-hidden border-b border-white/5">
+                {/* Visual texture */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none">
+                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]" />
                 </div>
+                
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <div className="text-left">
+                            <motion.h1 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="font-title text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1]"
+                            >
+                                Tenha uma barbearia que <span className="text-cta italic">funciona sozinha</span>
+                            </motion.h1>
+                            <motion.p 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="text-lg md:text-xl text-white/70 mb-10 max-w-xl font-medium leading-relaxed"
+                            >
+                                Organize sua agenda, receba por PIX e mande lembretes automáticos sem complicação. O AutoOpera é feito para quem entende de tesoura, não de computador.
+                            </motion.p>
+                            
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="flex flex-col sm:flex-row gap-4"
+                            >
+                                <button 
+                                    onClick={() => navigate('/register-barber')}
+                                    className="bg-cta text-white text-base font-bold py-5 px-10 rounded shadow-2xl hover:bg-cta-hover hover:scale-105 transition-all uppercase tracking-[0.2em]"
+                                >
+                                    Começar agora
+                                </button>
+                            </motion.div>
 
-                <div className="max-w-6xl mx-auto relative z-10">
-                    <div className="flex flex-col items-center text-center">
-                        <motion.div 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="inline-flex items-center gap-2 px-6 py-2 bg-primary/5 border border-primary/10 rounded-full mb-8"
-                        >
-                            <span className="w-2 h-2 bg-cta rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] italic">Lançamento AutoOpera 2.0</span>
-                        </motion.div>
+                            <div className="mt-12 text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">
+                                <p className="mb-6">Funciona no seu celular</p>
+                                <div className="flex gap-4 flex-wrap">
+                                    <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3">
+                                        <Smartphone size={18} className="text-white/80" />
+                                        <div className="text-left leading-tight">
+                                            <p className="text-[12px] font-bold text-white">iPhone & Android</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <motion.h1 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="font-title text-5xl md:text-8xl font-black leading-[0.9] mb-8 text-text tracking-tighter uppercase italic"
-                        >
-                            ELEVE O NÍVEL DA SUA <br /> 
-                            <span className="text-primary">BARBEARIA</span>
-                        </motion.h1>
-                        
-                        <motion.p 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-lg md:text-xl mb-12 text-text/60 max-w-2xl mx-auto font-medium leading-relaxed italic"
-                        >
-                            O sistema definitivo para barbearias premium. Automatize sua agenda, encante seus clientes com IA e tome o controle total do seu faturamento.
-                        </motion.p>
-                        
                         <motion.div 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="flex flex-col md:flex-row justify-center gap-6 w-full max-w-lg"
+                            className="relative hidden lg:block"
                         >
-                            <button 
-                                onClick={() => navigate('/register-barber')}
-                                className="flex-1 bg-cta text-white text-[11px] tracking-[0.2em] font-black py-6 rounded-[24px] shadow-2xl shadow-cta/30 hover:scale-105 active:scale-95 transition-all uppercase italic"
-                            >
-                                TESTE GRÁTIS POR 15 DIAS
-                            </button>
-                            <button 
-                                onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="flex-1 border-2 border-primary/10 text-primary text-[11px] tracking-[0.2em] font-black py-6 rounded-[24px] hover:bg-primary hover:text-white transition-all uppercase italic"
-                            >
-                                CONHECER PLANOS
-                            </button>
+                            <div className="absolute inset-0 bg-cta/20 blur-[100px] rounded-full" />
+                            <div className="relative border-4 border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
+                                <img 
+                                    src={heroBarber} 
+                                    alt="Barbeiro trabalhando" 
+                                    className="w-full h-auto rounded-[28px] object-cover hover:scale-105 transition-transform duration-700" 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
-            {/* Practical Benefits - Cards */}
-            <section id="facilidades" className="py-24 px-6 md:px-12 bg-background relative overflow-hidden">
-                <div className="max-w-6xl mx-auto relative z-10">
-                    <div className="text-center mb-20 space-y-4">
-                        <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Poder de Gestão</span>
-                        <h2 className="font-title text-4xl md:text-6xl font-black text-text italic uppercase tracking-tighter">O PODER DA TRADIÇÃO COM TECNOLOGIA</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-white p-10 rounded-[48px] border border-border shadow-[0_24px_48px_-12px_rgba(15,76,92,0.08)] group hover:-translate-y-2 transition-all duration-500">
-                            <div className="w-16 h-16 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
-                                <Calendar size={32} />
+            {/* Problem Section */}
+            <section className="py-24 px-6 md:px-12 bg-background">
+                <div className="max-w-5xl mx-auto">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-16 text-text">Sua barbearia ainda é assim?</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-text-secondary">
+                        <div className="p-8">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Smartphone size={32} />
                             </div>
-                            <h3 className="font-title text-2xl font-black mb-4 uppercase italic tracking-tight">Agenda Online 24h</h3>
-                            <p className="text-text/50 leading-relaxed font-medium italic">
-                                Link premium para sua Bio. Seus clientes agendam em segundos, sem você precisar tocar no celular.
-                            </p>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Agendamento manual</h3>
+                            <p>Você para o que está fazendo toda hora para responder WhatsApp ou atender chamadas.</p>
                         </div>
-
-                        <div className="bg-white p-10 rounded-[48px] border border-border shadow-[0_24px_48px_-12px_rgba(15,76,92,0.08)] group hover:-translate-y-2 transition-all duration-500">
-                            <div className="w-16 h-16 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
+                        <div className="p-8">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <AlertCircle size={32} />
+                            </div>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Cliente esquece e falta</h3>
+                            <p>Cadeira vazia é prejuízo. Sem lembretes, o cliente esquece e você perde dinheiro.</p>
+                        </div>
+                        <div className="p-8">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <LayoutDashboard size={32} />
                             </div>
-                            <h3 className="font-title text-2xl font-black mb-4 uppercase italic tracking-tight">Gestão de Mestres</h3>
-                            <p className="text-text/50 leading-relaxed font-medium italic">
-                                Controle comissões, folgas e performance de cada barbeiro da sua equipe em tempo real.
-                            </p>
-                        </div>
-
-                        <div className="bg-white p-10 rounded-[48px] border border-border shadow-[0_24px_48px_-12px_rgba(15,76,92,0.08)] group hover:-translate-y-2 transition-all duration-500">
-                            <div className="w-16 h-16 bg-primary/5 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors shadow-inner">
-                                <Bot size={32} />
-                            </div>
-                            <h3 className="font-title text-2xl font-black mb-4 uppercase italic tracking-tight">Secretária IA</h3>
-                            <p className="text-text/50 leading-relaxed font-medium italic">
-                                Uma assistente treinada que atende seus clientes no WhatsApp, tira dúvidas e converte novos agendamentos.
-                            </p>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Finanças bagunçadas</h3>
+                            <p>Difícil saber quanto realmente entrou no dia ou quanto você tem para receber.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Feature Image Sections - Simplified */}
-            <section className="py-24 px-6 md:px-12 bg-white">
+            {/* Solution Section */}
+            <section className="py-24 px-6 md:px-12 bg-section border-y border-border">
+                <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-16">
+                    <div className="flex-1">
+                        <h2 className="font-title text-3xl md:text-4xl font-bold mb-6 text-text">AutoOpera: Sua barbearia no automático</h2>
+                        <p className="text-lg text-text-secondary leading-relaxed mb-6">
+                            O AutoOpera foi feito para quem entende de cabelo, não de computador. É tudo simples, prático e funciona direto no seu celular.
+                        </p>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-3 text-text-secondary">
+                                <div className="w-6 h-6 bg-primary-soft text-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Check size={16} />
+                                </div>
+                                <span>Sem confusão</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-text-secondary">
+                                <div className="w-6 h-6 bg-primary-soft text-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Check size={16} />
+                                </div>
+                                <span>Em poucos cliques</span>
+                            </li>
+                            <li className="flex items-center gap-3 text-text-secondary">
+                                <div className="w-6 h-6 bg-primary-soft text-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Check size={16} />
+                                </div>
+                                <span>Tudo em um só lugar</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div className="flex-1 w-full bg-white p-4 rounded-3xl shadow-sm border border-border">
+                        <div className="bg-background rounded-2xl p-8 text-center text-text-muted italic">
+                            "AutoOpera tira o peso das minhas costas. Eu só me preocupo em atender bem o cliente."
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {/* About Section */}
+            <section id="sobre" className="py-24 px-6 md:px-12 bg-white">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold mb-8 text-text">Sobre o AutoOpera</h2>
+                    <p className="text-lg text-text-secondary leading-relaxed mb-10">
+                        O AutoOpera não é apenas um sistema de computador. É o braço direito do barbeiro moderno. 
+                        Nascemos para devolver o tempo de quem vive com a tesoura na mão, organizando toda a 
+                        confusão de mensagens e papéis em um só lugar.
+                    </p>
+                    
+                    <div className="text-left space-y-8 bg-section p-8 md:p-12 rounded-[32px] border border-border">
+                        <p className="font-bold text-text mb-4">Como funciona no seu dia a dia:</p>
+                        
+                        <div className="flex gap-6">
+                            <div className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <LayoutDashboard size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-title text-xl font-bold mb-2 text-text">Gestão completa para o dono</h3>
+                                <p className="text-text-secondary">
+                                    Pelo seu celular ou computador, você controla cada profissional, vê quanto ganhou no dia, 
+                                    gerencia o estoque e tem relatórios financeiros que qualquer um entende. Tudo salvo na 
+                                    nuvem, com segurança total.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-6">
+                            <div className="w-12 h-12 bg-cta text-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-cta/20">
+                                <Smartphone size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-title text-xl font-bold mb-2 text-text">Facilidade para o barbeiro e para o cliente</h3>
+                                <p className="text-text-secondary">
+                                    O seu funcionário acompanha a própria agenda e comissões. O seu cliente recebe um link 
+                                    profissional para marcar o horário em segundos, sem precisar te chamar. Ele ainda recebe 
+                                    lembretes automáticos e pode pagar por PIX direto pelo app.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Objectives Section */}
+            <section className="py-24 px-6 md:px-12 bg-section border-y border-border">
                 <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center mb-32">
-                        <div className="space-y-8">
-                            <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Controle Absoluto</span>
-                            <h2 className="font-title text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">SEU FINANCEIRO NA PONTA DA TESOURA</h2>
-                            <p className="text-lg text-text/50 leading-relaxed font-medium italic">
-                                Chega de planilhas. Saiba exatamente seu lucro líquido, controle seu estoque de produtos e pague comissões com um clique.
-                            </p>
-                            <div className="space-y-4 pt-4">
-                                <div className="flex items-center gap-4 bg-background p-4 rounded-2xl border border-border/50">
-                                    <div className="w-10 h-10 bg-cta/10 rounded-xl flex items-center justify-center text-cta">
-                                        <Check size={20} />
-                                    </div>
-                                    <span className="font-black text-xs uppercase tracking-widest italic">Fluxo de Caixa Automatizado</span>
-                                </div>
-                                <div className="flex items-center gap-4 bg-background p-4 rounded-2xl border border-border/50">
-                                    <div className="w-10 h-10 bg-cta/10 rounded-xl flex items-center justify-center text-cta">
-                                        <Check size={20} />
-                                    </div>
-                                    <span className="font-black text-xs uppercase tracking-widest italic">Relatórios de Faturamento por Barbeiro</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full" />
-                            <div className="relative bg-white p-4 rounded-[48px] shadow-2xl border border-border overflow-hidden">
-                                <img src={financeiroImg} alt="Financeiro" className="w-full h-auto rounded-[32px] grayscale hover:grayscale-0 transition-all duration-700" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
-                        <div className="order-2 md:order-1 relative">
-                             <div className="absolute inset-0 bg-cta/10 blur-[120px] rounded-full" />
-                            <div className="relative bg-white p-4 rounded-[48px] shadow-2xl border border-border overflow-hidden">
-                                <img src={atendimentoImg} alt="Atendimento IA" className="w-full h-auto rounded-[32px] grayscale hover:grayscale-0 transition-all duration-700" />
-                            </div>
-                        </div>
-                        <div className="order-1 md:order-2 space-y-8">
-                            <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Inovação Disruptiva</span>
-                            <h2 className="font-title text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">ATENDIMENTO QUE NUNCA DORME</h2>
-                            <p className="text-lg text-text/50 leading-relaxed font-medium italic">
-                                Nossa IA conversa como um mestre barbeiro no WhatsApp. Ela entende gírias, tira dúvidas sobre serviços e marca horários sozinha.
-                            </p>
-                            <div className="p-8 bg-primary text-white rounded-[40px] italic shadow-2xl shadow-primary/20 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <Bot size={80} />
-                                </div>
-                                <p className="relative z-10 text-xl font-medium mb-4">"Reduzi as faltas em 40% com os alertas automáticos da IA. É como ter um gerente 24h."</p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-cta shadow-lg" />
-                                    <span className="font-black text-[10px] tracking-widest uppercase">Mestre Ricco, Dono de Unidade</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Pricing Section */}
-            <section id="precos" className="py-24 px-6 md:px-12 bg-background relative overflow-hidden">
-                <div className="max-w-6xl mx-auto text-center relative z-10">
-                    <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Investimento Inteligente</span>
-                    <h2 className="font-title text-4xl md:text-6xl font-black mb-6 italic uppercase tracking-tighter">PLANOS ESPECIAIS</h2>
-                    <p className="text-lg text-text/50 mb-20 italic">A tecnologia de mestre acessível para todo profissional da beleza.</p>
+                    <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-16 text-text">Nosso Objetivo</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {plans.map((plan, i) => (
-                            <div 
-                                key={i} 
-                                className={`bg-white p-12 rounded-[48px] border-2 flex flex-col transition-all duration-500 hover:shadow-2xl ${
-                                    plan.popular 
-                                    ? 'border-cta shadow-2xl scale-105 relative z-10' 
-                                    : 'border-border shadow-sm hover:border-primary/20'
-                                }`}
-                            >
-                                {plan.popular && (
-                                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-cta text-white text-[9px] font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg italic">
-                                        O Mais Desejado
-                                    </span>
-                                )}
-                                <h3 className="font-title text-3xl font-black mb-2 italic uppercase tracking-tight">{plan.name}</h3>
-                                <div className="mb-10 pt-4 border-b border-border pb-8">
-                                    <span className="text-[10px] font-black text-text/30 items-start mr-1 tracking-widest">R$</span>
-                                    <span className="text-7xl font-black text-primary font-title italic tracking-tighter">{plan.price}</span>
-                                    <span className="text-[10px] font-black text-text/30 ml-1 tracking-widest uppercase">/mês</span>
+                        <div className="bg-white p-10 rounded-[32px] border border-border flex flex-col items-center text-center group hover:border-cta transition-colors shadow-sm">
+                            <div className="w-16 h-16 bg-primary-soft text-primary rounded-2xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <Clock size={32} />
+                            </div>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Otimizar seu Tempo</h3>
+                            <p className="text-text-secondary leading-relaxed">
+                                Deixe a agenda rodar no automático. Enquanto você foca no corte, o sistema organiza os horários e envia lembretes por você.
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-10 rounded-[32px] border border-border flex flex-col items-center text-center group hover:border-cta transition-colors shadow-sm">
+                            <div className="w-16 h-16 bg-primary-soft text-primary rounded-2xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <Users size={32} />
+                            </div>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Fidelizar seu Cliente</h3>
+                            <p className="text-text-secondary leading-relaxed">
+                                Ofereça agendamento 24h e um atendimento moderno. Cliente satisfeito com a facilidade sempre volta para a sua cadeira.
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-10 rounded-[32px] border border-border flex flex-col items-center text-center group hover:border-cta transition-colors shadow-sm">
+                            <div className="w-16 h-16 bg-primary-soft text-primary rounded-2xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <TrendingUp size={32} />
+                            </div>
+                            <h3 className="font-title text-xl font-bold mb-4 text-text">Aumentar seu Faturamento</h3>
+                            <p className="text-text-secondary leading-relaxed">
+                                Com menos faltas e mais agendamentos online, você garante que sua barbearia nunca fique com a cadeira vazia.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* How to Start Section */}
+            <section className="py-24 px-6 md:px-12 bg-white">
+                <div className="max-w-6xl mx-auto">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-20 text-text">Como começar</h2>
+                    
+                    <div className="grid md:grid-cols-2 gap-16 items-center">
+                        <div className="space-y-8">
+                            {/* Step 1 */}
+                            <div className="flex gap-8 items-start">
+                                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400">
+                                    1
                                 </div>
-                                <ul className="text-left space-y-5 mb-12 flex-1 pt-4">
-                                    {plan.features.map((f, j) => (
-                                        <li key={j} className="flex items-center gap-4 text-xs font-black text-text/60 italic uppercase tracking-tighter">
-                                            <div className="w-5 h-5 bg-cta/10 rounded-full flex items-center justify-center text-cta shadow-sm">
-                                                <Check size={12} strokeWidth={4} />
-                                            </div>
-                                            <span>{f}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button 
-                                    onClick={() => window.location.href = plan.checkoutUrl}
-                                    className={`w-full py-6 rounded-[24px] font-black transition-all text-[11px] tracking-[0.2em] uppercase italic shadow-lg ${
-                                        plan.popular 
-                                        ? 'bg-cta text-white shadow-cta/20 hover:scale-105' 
-                                        : 'border-2 border-primary text-primary hover:bg-primary hover:text-white'
-                                    }`}
-                                >
-                                    ASSINAR AGORA
-                                </button>
+                                <div className="pt-2 border-b border-gray-100 pb-8 w-full">
+                                    <h3 className="font-title text-2xl font-bold text-text mb-3">Faça o Cadastro</h3>
+                                    <p className="text-text-secondary text-lg leading-relaxed">
+                                        Faça o cadastro no AutoOpera, informando os dados básicos do seu estabelecimento de forma rápida.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="flex gap-8 items-start">
+                                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400">
+                                    2
+                                </div>
+                                <div className="pt-2 border-b border-gray-100 pb-8 w-full">
+                                    <h3 className="font-title text-2xl font-bold text-text mb-3">Preencha o Passo a Passo inicial</h3>
+                                    <p className="text-text-secondary text-lg leading-relaxed">
+                                        Informe os cadastros básicos do estabelecimento, como serviços, profissionais e jornada de trabalho.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="flex gap-8 items-start">
+                                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl font-bold text-slate-400">
+                                    3
+                                </div>
+                                <div className="pt-2 w-full">
+                                    <h3 className="font-title text-2xl font-bold text-text mb-3">Teste grátis por 15 dias</h3>
+                                    <p className="text-text-secondary text-lg leading-relaxed">
+                                        Usufrua de todas as funcionalidades do sistema por 15 dias gratuitamente e sem compromisso.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Image side - Simulated Mockup visual */}
+                        <div className="relative">
+                            <div className="bg-[#f0f4f5] rounded-3xl p-8 relative">
+                                <img 
+                                    src={mockupsImg} 
+                                    alt="Visão do Sistema" 
+                                    className="rounded-xl shadow-2xl w-full"
+                                />
+                                {/* Circular badges/decorations similar to reference */}
+                                <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary-soft rounded-full blur-2xl opacity-50"></div>
+                                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-cta-soft rounded-full blur-3xl opacity-30"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-20 text-center">
+                        <button 
+                            onClick={() => navigate('/register-barber')}
+                            className="bg-cta text-white px-10 py-5 rounded-xl font-bold text-lg hover:shadow-xl hover:-translate-y-1 transition-all shadow-lg shadow-cta/20 uppercase tracking-wider"
+                        >
+                            CLIQUE AQUI E CADASTRE-SE AGORA
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* Features Section */}
+            <section id="funcionalidades" className="py-24 px-6 md:px-12 bg-white">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-16 text-text">Tudo o que você precisa</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {features.map((feature, idx) => (
+                            <div 
+                                key={idx} 
+                                className="group p-10 rounded-[32px] border transition-all duration-300 flex flex-col items-center text-center shadow-sm hover:shadow-xl hover:-translate-y-1 bg-section border-border hover:border-cta"
+                            >
+                                <div className="mb-8 transition-colors text-primary group-hover:text-cta">
+                                    {feature.icon}
+                                </div>
+                                
+                                <div className="flex flex-col items-center gap-4 flex-grow">
+                                    <h3 className="font-title text-lg font-bold leading-tight text-text">
+                                        {feature.title}
+                                    </h3>
+                                    <div className="w-12 h-[3px] rounded-full bg-primary-soft group-hover:bg-cta"></div>
+                                    <p className="text-sm leading-relaxed mt-2 text-text-secondary">
+                                        {feature.description}
+                                    </p>
+                                </div>
+
+                                <div className="mt-8">
+                                    <span className="text-[11px] font-black tracking-widest uppercase transition-all text-primary group-hover:text-cta border-b border-transparent hover:border-cta">
+                                       Saiba Mais
+                                    </span>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Testimonials */}
-            <section className="py-24 px-6 md:px-12 bg-white text-center">
-                <div className="max-w-4xl mx-auto">
-                    <span className="text-cta font-black text-[10px] tracking-[0.4em] uppercase italic">Comunidade Flow</span>
-                    <h2 className="font-title text-4xl font-black mb-16 italic uppercase tracking-tighter">QUEM USA, RECOMENDA</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div className="bg-background p-10 rounded-[40px] text-left border border-border group hover:border-primary/20 transition-all duration-500 shadow-sm">
-                            <div className="flex gap-1 text-cta mb-6">
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                            </div>
-                            <p className="italic text-xl font-medium mb-8 text-text/70 leading-relaxed">"O sistema de IA mudou o jogo. Meus clientes agendam de madrugada e eu só vejo o faturamento crescendo."</p>
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-primary/10 rounded-2xl" />
-                                <div>
-                                    <p className="font-black text-sm uppercase tracking-tight italic">Ricardo Silva</p>
-                                    <p className="text-xs text-text/30 uppercase tracking-widest font-black">Legacy Barbershop</p>
-                                </div>
-                            </div>
+            {/* Benefits Section */}
+            <section className="py-24 px-6 md:px-12 bg-section border-t border-border">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold mb-16 text-text">Os benefícios do AutoOpera</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        <div>
+                            <h3 className="text-5xl font-bold text-primary mb-4 font-title">15h</h3>
+                            <p className="text-text-secondary font-medium">Economizadas por mês em agendamentos</p>
                         </div>
-                        <div className="bg-background p-10 rounded-[40px] text-left border border-border group hover:border-primary/20 transition-all duration-500 shadow-sm">
-                            <div className="flex gap-1 text-cta mb-6">
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                                <Star fill="currentColor" size={18} />
-                            </div>
-                            <p className="italic text-xl font-medium mb-8 text-text/70 leading-relaxed">"Muito fácil de usar. Meus barbeiros amaram a facilidade do link de agendamento."</p>
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-primary/10 rounded-2xl" />
-                                <div>
-                                    <p className="font-black text-sm uppercase tracking-tight italic">Carlos Magno</p>
-                                    <p className="text-xs text-text/30 uppercase tracking-widest font-black">Urban Style</p>
-                                </div>
-                            </div>
+                        <div>
+                            <h3 className="text-5xl font-bold text-primary mb-4 font-title">40%</h3>
+                            <p className="text-text-secondary font-medium">Menos faltas com lembretes automáticos</p>
+                        </div>
+                        <div>
+                            <h3 className="text-5xl font-bold text-primary mb-4 font-title">100%</h3>
+                            <p className="text-text-secondary font-medium">De controle sobre o seu dinheiro</p>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            {/* Pricing Section */}
+            <section id="precos" className="py-24 px-6 md:px-12 bg-background">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-8 text-text">Preços simples e sem sustos</h2>
+                    
+                    {/* Billing Cycle Toggle */}
+                    <div className="flex flex-wrap justify-center mb-16">
+                        <div className="bg-white p-1 rounded-xl shadow-sm border border-border flex">
+                            <button 
+                                onClick={() => setBillingCycle('annual')}
+                                className={`px-6 py-3 rounded-lg text-sm font-bold transition-all ${billingCycle === 'annual' ? 'bg-primary text-white shadow-md' : 'text-text-secondary hover:bg-gray-50'}`}
+                            >
+                                ANUAL <br />
+                                <span className="text-[10px] font-medium opacity-80">30% DE DESCONTO</span>
+                            </button>
+                            <button 
+                                onClick={() => setBillingCycle('semestral')}
+                                className={`px-6 py-3 rounded-lg text-sm font-bold transition-all ${billingCycle === 'semestral' ? 'bg-primary text-white shadow-md' : 'text-text-secondary hover:bg-gray-50'}`}
+                            >
+                                SEMESTRAL <br />
+                                <span className="text-[10px] font-medium opacity-80">15% DE DESCONTO</span>
+                            </button>
+                            <button 
+                                onClick={() => setBillingCycle('monthly')}
+                                className={`px-6 py-3 rounded-lg text-sm font-bold transition-all ${billingCycle === 'monthly' ? 'bg-primary text-white shadow-md' : 'text-text-secondary hover:bg-gray-50'}`}
+                            >
+                                MENSAL <br />
+                                <span className="text-[10px] font-medium opacity-80 invisibility"> SEM DESCONTO </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {pricingTiers.map((tier, idx) => {
+                            const details = getPriceDetails(tier.tierKey);
+                            const isMostUsed = idx === 1; // 2 a 5 Profissionais
+
+                            return (
+                                <div key={idx} className={`bg-white p-8 rounded-2xl border flex flex-col items-center text-center shadow-sm relative overflow-hidden transition-all hover:shadow-md ${isMostUsed ? 'border-cta' : 'border-border'}`}>
+                                    {tier.discountLabel && (
+                                        <div className="absolute top-4 right-[-35px] bg-[#FFD700] text-text font-bold text-[10px] py-1 px-10 rotate-45 shadow-sm">
+                                            {tier.discountLabel}
+                                        </div>
+                                    )}
+                                    
+                                    <h3 className="font-title text-lg font-bold mb-8 text-text-secondary">{tier.title}</h3>
+                                    
+                                    <div className="mb-2">
+                                        <span className="text-text-secondary text-sm font-medium mr-1">R$</span>
+                                        <span className="text-4xl font-bold text-primary">{details.monthly.split(',')[0]}</span>
+                                        <span className="text-text-secondary text-sm font-medium">,{details.monthly.split(',')[1]}/mês</span>
+                                    </div>
+
+                                    {details.showOriginal && (
+                                        <div className="text-text-muted text-sm line-through mb-4">
+                                            R$ {details.original}/mês
+                                        </div>
+                                    )}
+
+                                    <div className="text-text-muted text-xs font-medium mb-10">
+                                        Valor Total: R$ {details.total}
+                                    </div>
+
+                                    <div className="space-y-3 mb-10 flex-1 text-sm text-text-secondary w-full text-left">
+                                        <div className="flex items-center gap-2">
+                                            <Check size={14} className="text-primary" />
+                                            <span>Agenda inteligente</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Check size={14} className="text-primary" />
+                                            <span>Link de agendamento</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Check size={14} className="text-primary" />
+                                            <span>Controle de estoque</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Check size={14} className="text-primary" />
+                                            <span>Financeiro completo</span>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => navigate('/register-barber')}
+                                        className="w-full bg-cta text-white py-4 rounded-xl font-bold hover:bg-cta-hover transition-colors shadow-lg shadow-cta/10"
+                                    >
+                                        Começar agora
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <p className="text-center mt-12 text-text-muted font-medium italic">Simples e sem letras miúdas. Cancele quando quiser.</p>
                 </div>
             </section>
 
             {/* Final CTA */}
-            <section className="py-20 px-4 md:px-8 bg-primary text-white text-center">
-                <div className="max-w-4xl mx-auto">
-                    <h2 className="font-title text-3xl md:text-5xl font-bold mb-6 italic uppercase tracking-tighter">PRONTO PARA TRANSFORMAR SEU NEGÓCIO?</h2>
-                    <p className="text-xl md:text-2xl opacity-90 mb-10 italic">Experimente o poder do AutoOpera por 15 dias sem custo.</p>
+            <section className="py-24 px-6 md:px-12 bg-white text-center">
+                <div className="max-w-3xl mx-auto">
+                    <h2 className="font-title text-3xl md:text-5xl font-bold mb-8 text-text">Pronto para organizar sua barbearia?</h2>
+                    <p className="text-xl text-text-secondary mb-12">Comece agora e veja como o AutoOpera facilita o seu dia a dia.</p>
                     <button 
                         onClick={() => navigate('/register-barber')}
-                        className="bg-cta text-white text-[12px] font-black tracking-[0.2em] py-6 px-16 rounded-[24px] shadow-2xl hover:scale-105 transition-transform uppercase italic"
+                        className="bg-cta text-white text-xl font-bold py-5 px-12 rounded-xl shadow-lg hover:bg-cta-hover transition-all w-full md:w-auto"
                     >
-                        COMEÇAR MEU TESTE GRÁTIS
+                        Criar minha conta grátis
                     </button>
-                    <div className="mt-8 flex items-center justify-center gap-6 opacity-60 text-[10px] font-black uppercase tracking-widest italic">
-                        <span>Cartão de Crédito</span>
-                        <div className="w-1 h-1 bg-white/20 rounded-full" />
-                        <span>Pix</span>
-                        <div className="w-1 h-1 bg-white/20 rounded-full" />
-                        <span>Sem Compromisso</span>
-                    </div>
+                    <p className="mt-6 text-text-muted font-medium italic">"Funciona no celular e é fácil de usar."</p>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="py-12 px-4 md:px-8 bg-white border-t border-border">
+            <footer className="py-12 px-6 md:px-12 bg-primary text-white border-t border-white/10">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-primary p-2 rounded">
-                            <img src={brandLogo} alt="AutoOpera" className="h-6 w-auto" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md flex items-center justify-center">
+                            <img src={brandLogo} alt="AutoOpera" className="w-full h-auto" />
                         </div>
-                        <span className="font-title font-bold text-lg">AutoOpera | Barber</span>
+                        <span className="font-title font-bold text-lg">AutoOpera</span>
                     </div>
-                    <div className="flex gap-8 text-sm font-medium text-text/60">
-                        <a href="#" className="hover:text-primary transition-colors">Instagram</a>
-                        <a href="#" className="hover:text-primary transition-colors">Termos</a>
-                        <a href="#" className="hover:text-primary transition-colors">Suporte</a>
+                    <p className="text-sm text-white/60">© 2026 AutoOpera. Tudo em um só lugar.</p>
+                    <div className="flex gap-8 text-sm font-medium">
+                        <a href="#" className="hover:text-cta transition-colors">Instagram</a>
+                        <a href="#" className="hover:text-cta transition-colors">Termos</a>
+                        <a href="#" className="hover:text-cta transition-colors">Suporte</a>
                     </div>
-                    <p className="text-xs text-text/40">© 2024 AutoOpera Barber. Todos os direitos reservados.</p>
                 </div>
             </footer>
+
+            {/* WhatsApp Floating Button */}
+            <a 
+                href="https://wa.me/5519995828704" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center group"
+                aria-label="Contato via WhatsApp"
+            >
+                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-current">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                <span className="absolute right-full mr-4 bg-white text-slate-800 px-4 py-2 rounded-lg shadow-lg font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-100">
+                    Fale conosco
+                </span>
+            </a>
         </div>
     );
 };

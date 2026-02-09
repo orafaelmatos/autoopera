@@ -115,7 +115,7 @@ const InstallPrompt: React.FC<{ forceShow?: boolean, onOpenChange?: (open: boole
               </div>
               
               <h4 className="text-2xl font-black text-text italic uppercase tracking-tighter leading-tight mb-2">
-                App BarberFlow
+                App Autoopera
               </h4>
               <p className="text-xs text-text/40 font-bold uppercase tracking-widest italic leading-relaxed mb-8 max-w-[200px]">
                 Instale para ter acesso rápido e notificações exclusivas.
