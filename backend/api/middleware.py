@@ -8,6 +8,9 @@ class BarbershopMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # LOG DE DEBUG: Ver todos os requests que chegam no Python/Django
+        print(f"[BACKEND DEBUG] Request: {request.method} {request.get_full_path()}")
+        
         if request.path.startswith('/api/webhooks/'):
             return self.get_response(request)
         
