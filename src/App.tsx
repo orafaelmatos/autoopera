@@ -464,10 +464,6 @@ const App: React.FC = () => {
                     <h2 className="text-lg md:text-xl font-title font-black text-white tracking-tighter uppercase italic leading-none mb-1">
                       {barbershop?.name || user?.barbershop_name || "PROCESANDO..."}
                     </h2>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1 h-1 bg-cta rounded-full" />
-                      <span className="text-[7px] md:text-[8px] text-white/30 font-black uppercase tracking-[0.3em] italic">Gestão Inteligente</span>
-                    </div>
                   </div>
                </div>
 
