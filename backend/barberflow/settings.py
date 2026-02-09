@@ -28,6 +28,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ["*"] # Em produção, substitua pelo seu domínio 
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://autoopera.com.br",
+    "http://autoopera.com.br",
+    "http://localhost",
+    "http://127.0.0.1",
+]
+
 
 # Application definition
 
