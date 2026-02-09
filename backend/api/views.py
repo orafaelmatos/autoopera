@@ -72,7 +72,9 @@ def current_barbershop(request, barbershop_slug=None):
     """Retorna ou atualiza os dados da barbearia atual"""
     barbershop = getattr(request, 'barbershop', None)
     
-    print(f"[DEBUG] current_barbershop: slug_in_url={barbershop_slug}, found_in_req={barbershop.slug if barbershop else 'None'}")
+    print(f"[DEBUG] current_barbershop: {barbershop.slug if barbershop else 'None'}")
+    if barbershop:
+        print(f"[DEBUG MEDIA] Logo URL: {barbershop.logo.url if barbershop.logo else 'None'}")
     
     # Se o slug veio na URL mas o middleware não resolveu
     if not barbershop and barbershop_slug:
