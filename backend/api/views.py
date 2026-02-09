@@ -73,8 +73,6 @@ def current_barbershop(request, barbershop_slug=None):
     barbershop = getattr(request, 'barbershop', None)
     
     print(f"[DEBUG] current_barbershop: slug_in_url={barbershop_slug}, found_in_req={barbershop.slug if barbershop else 'None'}")
-
-    if request.method == 'PATCH' and not request.user.is_authenticated:
     
     # Se o slug veio na URL mas o middleware não resolveu
     if not barbershop and barbershop_slug:
