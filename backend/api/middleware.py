@@ -8,19 +8,8 @@ class BarbershopMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # LOG DE DEBUG: Ver todos os requests que chegam no Python/Django
-        print(f"[BACKEND DEBUG] Request: {request.method} {request.get_full_path()}")
-        
-        # MONITORAMENTO DE ARQUIVOS ESTÁTICOS
-        import os
-        if "/admin/" in request.path:
-            static_check = "/app/backend_static/admin"
-            exists = os.path.exists(static_check)
-            print(f"[DEBUG FILE SYSTEM] Path {static_check} exists in Backend: {exists}")
-            if exists:
-                print(f"[DEBUG FILE SYSTEM] Files in {static_check}: {os.listdir(static_check)[:5]}")
-
         if request.path.startswith('/api/webhooks/'):
+            return self.get_response(request)
             return self.get_response(request)
         
         host = request.get_host().split(':')[0]
