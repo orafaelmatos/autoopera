@@ -10,6 +10,7 @@ class BarbershopMiddleware:
     def __call__(self, request):
         if request.path.startswith('/api/webhooks/'):
             return self.get_response(request)
+            return self.get_response(request)
         
         host = request.get_host().split(':')[0]
         slug = None
