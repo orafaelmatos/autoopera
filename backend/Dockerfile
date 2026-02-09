@@ -22,6 +22,9 @@ RUN pip install gunicorn
 # Copy project
 COPY . /app/
 
+# Create media and static directories and set permissions
+RUN mkdir -p /app/media /app/backend_static && chmod -R 777 /app/media /app/backend_static
+
 # Expose port
 EXPOSE 8000
 
