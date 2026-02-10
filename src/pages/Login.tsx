@@ -3,7 +3,7 @@ import { useAuth } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, Lock, User, ArrowRight, Scissors, Info, Mail, ShieldCheck, Download } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api';
+import api, { getMediaUrl } from '../api';
 import { Barbershop } from '../types';
 import toast from 'react-hot-toast';
 
@@ -17,13 +17,6 @@ const LoginPage: React.FC = () => {
                 .substring(0, 15);
         }
         return value.substring(0, 15);
-    };
-
-    const getMediaUrl = (path: string) => {
-        if (!path) return '';
-        if (path.startsWith('http')) return path;
-        const hostname = window.location.hostname;
-        return `http://${hostname}:8000${path}`;
     };
 
     const [phone, setPhone] = useState(formatPhone(localStorage.getItem('saved_phone') || ''));
