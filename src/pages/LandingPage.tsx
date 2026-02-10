@@ -34,7 +34,7 @@ import mockupsImg from '../assets/atendimento.jpg'; // Using existing asset as p
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [billingCycle, setBillingCycle] = useState<'monthly' | 'semestral' | 'annual'>('monthly');
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'semestral' | 'annual'>('annual');
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
