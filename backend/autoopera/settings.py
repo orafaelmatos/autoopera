@@ -200,7 +200,7 @@ WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = "/app/media"
 
 # Garantir que o Django não anexe o host local nas URLs das imagens
 # Isso força o DRF a usar caminhos relativos na rede local
