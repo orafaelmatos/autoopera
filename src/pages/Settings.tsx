@@ -558,7 +558,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         <div>
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu Nome Profissional</label>
                             <div className="relative group">
-                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={profileData.name}
@@ -570,7 +570,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         <div>
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
                             <div className="relative group">
-                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
                                 <input 
                                     type="email"
                                     value={profileData.email}
@@ -582,7 +582,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         <div>
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu WhatsApp (Somente Números)</label>
                             <div className="relative group">
-                                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
+                                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={profileData.whatsapp}
@@ -597,7 +597,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     <div>
                         <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
                         <div className="relative group">
-                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors" size={18} className="sm:size-[20px]" strokeWidth={2.5} />
+                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
                             <textarea 
                                 value={profileData.description || ''}
                                 onChange={e => setProfileData({...profileData, description: e.target.value})}

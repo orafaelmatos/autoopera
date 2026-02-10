@@ -5,7 +5,11 @@ import {
   Barbershop
 } from './types';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 const getBaseURL = () => {
+  if (API_BASE_URL) return `${API_BASE_URL.replace(/\/$/, '')}/api`;
+  
   const origin = window.location.origin;
   // Se estivermos acessando por IP (mobile), o origin já será o IP da máquina
   const apiRoot = `${origin}/api`;
@@ -100,22 +104,19 @@ export const authApi = {
   me: () => api.get('/auth/me/'),
 };
 
-export const getMediaUrl = (path: string | null | undefined) => {
+export const getMediaUrl = (path: string | null | undefined): string => {
   if (!path) return '';
   
-  // Se for uma URL completa, extraímos apenas o caminho (/media/...)
-  // Isso garante que o navegador peça a imagem para a mesma origem do site (Vite Proxy)
-  if (path.startsWith('http')) {
-    try {
-      const url = new URL(path);
-      return url.pathname;
-    } catch (e) {
-      return path;
-    }
+  // 1. Se já for uma URL completa, retornamos sem alterar (essencial para S3/R2)
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
   }
 
-  // Garante que o caminho comece com /para ser relativo à raiz do domínio atual
-  return path.startsWith('/') ? path : `/${path}`;
+  // 2. Se for um caminho relativo (/media/...), prefixamos com a URL do backend
+  const baseUrl = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  return `${baseUrl}${normalizedPath}`;
 };
 
 export const barbershopApi = {
