@@ -10,7 +10,8 @@ urlpatterns = [
     path('api/b/<slug:barbershop_slug>/', include('api.urls')),
 ]
 
-# Configuração para servir mídia e estáticos no Django
-# Em produção, o Nginx deve servir isso, mas deixamos aqui como fallback
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# Configuração para servir mídia e estáticos no Django (funciona em produção)
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+]
