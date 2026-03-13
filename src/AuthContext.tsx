@@ -49,10 +49,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setUser(response.data);
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refresh_token');
+      console.error("Auth check failed:", error);
+      // Only clear tokens if it was a 401/403 (unauthorized)
+      // If it's a network error, we might want to keep the tokens to try again
+      if ((error as any).response?.status === 401 || (error as any).response?.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refresh_token');
+      }
     } finally {
       setIsLoading(false);
     }

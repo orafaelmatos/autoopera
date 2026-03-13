@@ -29,7 +29,7 @@ class BarbershopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Barbershop
         fields = [
-            'id', 'name', 'slug', 'description', 'address', 'phone', 
+            'id', 'name', 'slug', 'address', 'phone', 
             'logo', 'banner', 'primary_color', 'is_active', 'created_at', 
             'trial_days_left', 'plan', 'onboarding_completed', 'pix_key'
         ]

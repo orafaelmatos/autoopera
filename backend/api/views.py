@@ -241,10 +241,10 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
     shop_name = data.get("shop_name")
     shop_slug = data.get("shop_slug")
     shop_address = data.get("address", "")
-    shop_instagram = data.get("instagram", "")
-    shop_description = data.get("description", "")
+    shop_pix_key = data.get("pix_key", "")
     barber_email = data.get("email") or data.get("barber_email")
     logo = request.FILES.get("logo")
+    profile_picture = request.FILES.get("profile_picture")
 
     # Validações básicas
     if not all([cpf, password, shop_name, shop_slug, barber_email]):
@@ -321,8 +321,6 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         slug=shop_slug,
         owner=user,
         address=shop_address,
-        instagram=shop_instagram,
-        description=shop_description,
         logo=logo
     )
 
@@ -579,7 +577,6 @@ def get_me(request, **kwargs):
             'profile_picture': barber.profile_picture.url if barber.profile_picture else None,
             'full_name': barber.name,
             'email': barber.email,
-            'description': barber.description,
             'whatsapp': barber.whatsapp,
             'barbershop_slug': barber.barbershop.slug if barber.barbershop else None,
             'barbershop_name': barber.barbershop.name if barber.barbershop else None,

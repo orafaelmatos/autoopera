@@ -161,6 +161,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 
   // Se não estiver logado, manda pro login preservando o slug se existir
   if (!user) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (token) {
+       // Possível delay no checkAuth, esperamos mais um pouco
+       return (
+        <div key="protected-waiting-auth" className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/20 border-t-cta rounded-full animate-spin"></div>
+        </div>
+      );
+    }
     const loginPath = slug ? `/b/${slug}/login` : '/login';
     return <Navigate to={loginPath} state={{ from: location }} replace />;
   }

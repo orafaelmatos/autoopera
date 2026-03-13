@@ -21,10 +21,11 @@ const BarberRegister: React.FC = () => {
         shop_slug: '',
         address: '',
         email: '',
-        instagram: '',
-        description: '',
+        pix_key: '',
         logo: null as File | null,
-        logoPreview: ''
+        logoPreview: '',
+        profile_picture: null as File | null,
+        profilePreview: ''
     });
 
     const navigate = useNavigate();
@@ -32,17 +33,25 @@ const BarberRegister: React.FC = () => {
     const [existingUser, setExistingUser] = useState(false);
     const [compressing, setCompressing] = useState(false);
 
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'profile_picture') => {
         const file = e.target.files?.[0];
         if (file) {
             setCompressing(true);
             try {
                 const compressed = await compressImage(file, 800, 0.7);
-                setFormData({
-                    ...formData,
-                    logo: compressed,
-                    logoPreview: URL.createObjectURL(compressed)
-                });
+                if (field === 'logo') {
+                    setFormData({
+                        ...formData,
+                        logo: compressed,
+                        logoPreview: URL.createObjectURL(compressed)
+                    });
+                } else {
+                    setFormData({
+                        ...formData,
+                        profile_picture: compressed,
+                        profilePreview: URL.createObjectURL(compressed)
+                    });
+                }
             } catch (err) {
                 toast.error("Erro ao processar imagem");
             } finally {
@@ -110,13 +119,15 @@ const BarberRegister: React.FC = () => {
 
         try {
             const rawPhone = formData.phone.replace(/\D/g, '');
-            const { confirmPassword, logoPreview, ...dataToSubmit } = formData;
+            const { confirmPassword, logoPreview, profilePreview, ...dataToSubmit } = formData;
             
             const data = new FormData();
             Object.keys(dataToSubmit).forEach(key => {
                 if (key === 'logo' && formData.logo) {
                     data.append('logo', formData.logo);
-                } else if (key !== 'logo') {
+                } else if (key === 'profile_picture' && formData.profile_picture) {
+                    data.append('profile_picture', formData.profile_picture);
+                } else if (!['logo', 'profile_picture'].includes(key)) {
                     data.append(key, (dataToSubmit as any)[key]);
                 }
             });
@@ -232,8 +243,36 @@ const BarberRegister: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Removido o botão de Busca - Sempre o primeiro acesso */}
                             <div className="space-y-6">
+                                <div className="flex flex-col items-center gap-4 mb-6">
+                                    <label className="text-[10px] uppercase font-black text-text/30 tracking-widest">Sua Foto de Perfil</label>
+                                    <div 
+                                        onClick={() => document.getElementById('profile-upload')?.click()}
+                                        className="w-24 h-24 rounded-2xl bg-background border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/30 transition-all overflow-hidden relative group"
+                                    >
+                                        {formData.profilePreview ? (
+                                            <img src={formData.profilePreview} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-1 text-text/20">
+                                                <Camera size={24} />
+                                                <span className="text-[8px] font-black uppercase">Upload</span>
+                                            </div>
+                                        )}
+                                        {compressing && (
+                                            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                                                <Loader2 className="animate-spin text-primary" size={20} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input 
+                                        id="profile-upload"
+                                        type="file" 
+                                        className="hidden" 
+                                        onChange={(e) => handleImageChange(e, 'profile_picture')}
+                                        accept="image/*"
+                                    />
+                                </div>
+
                                 <div className="space-y-2">
                                     <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Seu Nome Completo</label>
                                     <div className="relative group">
@@ -353,7 +392,7 @@ const BarberRegister: React.FC = () => {
                                             type="file" 
                                             accept="image/*"
                                             className="hidden"
-                                            onChange={handleImageChange}
+                                            onChange={(e) => handleImageChange(e, 'logo')}
                                         />
                                     </div>
                                 </div>
@@ -374,57 +413,43 @@ const BarberRegister: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Instagram</label>
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">E-mail profissional</label>
                                         <div className="relative group">
-                                            <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors" size={18} />
                                             <input 
-                                                type="text"
-                                                value={formData.instagram}
-                                                onChange={e => setFormData({...formData, instagram: e.target.value})}
+                                                type="email" required
+                                                value={formData.email}
+                                                onChange={e => setFormData({...formData, email: e.target.value})}
                                                 className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                placeholder="@suabarbearia"
+                                                placeholder="contato@suabarbearia.com"
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Localização</label>
+                                        <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Chave Pix</label>
                                         <div className="relative group">
-                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary transition-colors" size={18} />
                                             <input 
-                                                type="text"
-                                                value={formData.address}
-                                                onChange={e => setFormData({...formData, address: e.target.value})}
+                                                type="text" required
+                                                value={formData.pix_key}
+                                                onChange={e => setFormData({...formData, pix_key: e.target.value})}
                                                 className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                                placeholder="Cidade, Estado"
+                                                placeholder="CPF, E-mail ou Telefone"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">E-mail profissional</label>
+                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Localização</label>
                                     <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                         <input 
-                                            type="email" required
-                                            value={formData.email}
-                                            onChange={e => setFormData({...formData, email: e.target.value})}
+                                            type="text"
+                                            value={formData.address}
+                                            onChange={e => setFormData({...formData, address: e.target.value})}
                                             className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                            placeholder="contato@suabarbearia.com"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] uppercase font-black text-text/30 ml-1 tracking-widest">Bio do Negócio</label>
-                                    <div className="relative group">
-                                        <AlignLeft className="absolute left-4 top-4 text-text/20 group-focus-within:text-primary" size={18} />
-                                        <textarea 
-                                            rows={2}
-                                            value={formData.description}
-                                            onChange={e => setFormData({...formData, description: e.target.value})}
-                                            className="w-full bg-background border border-border rounded-2xl pt-4 pb-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-medium text-sm resize-none italic"
-                                            placeholder="Conte o diferencial da sua barbearia..."
+                                            placeholder="Cidade, Estado"
                                         />
                                     </div>
                                 </div>

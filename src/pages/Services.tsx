@@ -143,7 +143,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
             <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.4em]">Experiências Profissionais</span>
           </div>
           <h2 className="text-3xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
-            Catálogo de <span className="text-primary/20">Experiências</span>
+            Serviços
           </h2>
           <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase mt-2 sm:mt-4 tracking-[0.2em] ml-1">Defina o valor da sua arte no fluxo</p>
         </div>

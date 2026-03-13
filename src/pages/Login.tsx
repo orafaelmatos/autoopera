@@ -123,9 +123,17 @@ const LoginPage: React.FC = () => {
 
                 localStorage.setItem('token', access);
                 localStorage.setItem('refresh_token', refresh);
-                if (res.data.barbershop) localStorage.setItem('last_barbershop_slug', res.data.barbershop);
+                
+                const shopSlug = res.data.barbershop || res.data.barbershop_slug;
+                if (shopSlug) {
+                    localStorage.setItem('last_barbershop_slug', shopSlug);
+                }
+                
                 await refreshUser();
-                navigate(getRedirectPath('barber', res.data.barbershop));
+                
+                // Redirecionamento forçado para garantir a mudança de URL
+                const path = getRedirectPath('barber', shopSlug);
+                window.location.href = path;
             } else {
                 setError('Erro ao autenticar proprietário');
             }
