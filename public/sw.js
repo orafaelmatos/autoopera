@@ -28,8 +28,9 @@ self.addEventListener('fetch', (event) => {
   // Apenas intercepte requisições GET
   if (event.request.method !== 'GET') return;
 
-  // Evite cachear chamadas de API para garantir dados em tempo real
-  if (event.request.url.includes('/api/')) {
+  // Não cachear API ou Mídia em tempo real (evita 404s fantasmas)
+  const url = event.request.url;
+  if (url.includes('/api/') || url.includes('/media/') || url.startsWith('chrome-extension')) {
     return;
   }
 

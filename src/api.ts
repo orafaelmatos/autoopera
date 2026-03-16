@@ -116,7 +116,13 @@ export const getMediaUrl = (path: string | null | undefined): string => {
   const baseUrl = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
-  return `${baseUrl}${normalizedPath}`;
+  // Garantir que a URL use HTTPS em produção se o site estiver em HTTPS
+  let finalUrl = `${baseUrl}${normalizedPath}`;
+  if (window.location.protocol === 'https:' && finalUrl.startsWith('http:')) {
+    finalUrl = finalUrl.replace('http:', 'https:');
+  }
+
+  return finalUrl;
 };
 
 export const barbershopApi = {
