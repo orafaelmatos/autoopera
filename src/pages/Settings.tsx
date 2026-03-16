@@ -473,6 +473,20 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         </div>
 
                         <div>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Endereço da Barbearia</label>
+                            <div className="relative group">
+                                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                                <input 
+                                    type="text"
+                                    value={shopData.address || ''}
+                                    onChange={e => setShopData({...shopData, address: e.target.value})}
+                                    placeholder="Rua, Número, Bairro, Cidade"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Chave Pix (Para receber pagamentos)</label>
                             <div className="relative group">
                                 <QrCode className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
@@ -485,17 +499,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Manifesto / Descrição do Estabelecimento</label>
-                        <textarea 
-                            value={shopData.description || ''}
-                            onChange={e => setShopData({...shopData, description: e.target.value})}
-                            placeholder="Descreva a experiência premium que sua barbearia entrega aos clientes."
-                            rows={4}
-                            className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[120px]"
-                        />
                     </div>
                 </div>
             </section>
@@ -594,18 +597,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         </div>
                     </div>
 
-                    <div>
-                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
-                        <div className="relative group">
-                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                            <textarea 
-                                value={profileData.description || ''}
-                                onChange={e => setProfileData({...profileData, description: e.target.value})}
-                                rows={4}
-                                className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[32px] pl-16 pr-6 sm:pr-8 py-4 sm:py-6 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[100px] sm:min-h-[140px] font-title"
-                            />
-                        </div>
-                    </div>
                 </div>
             </motion.section>
           )}
@@ -1030,53 +1021,51 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         {/* Lado Direito - Resumo e Performance */}
         <div className="xl:col-span-4 space-y-8">
           
-          {/* Dica Profissional */}
-          <div className="bg-primary border border-primary/5 rounded-[48px] p-10 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.25)]">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
-                <Sparkles size={140} strokeWidth={1} />
-            </div>
-            <div className="flex items-center gap-4 mb-8 relative z-10">
-                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-cta">
-                    <Sparkles size={20} strokeWidth={2.5} />
-                 </div>
-                 <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic font-title">Master Intelligence</h4>
-            </div>
-            <p className="text-base text-white/80 leading-relaxed font-black italic uppercase tracking-tight relative z-10 font-title">
-                "Um <span className="text-cta">Logotipo</span> profissional e uma boa <span className="text-cta">Descrição</span> aumentam a conversão de novos clientes em até 40%."
-            </p>
-            <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
-                <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Profissional #042</span>
-            </div>
-          </div>
+          {/* Foto de Perfil do Barbeiro */}
+          <section className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
+            <div className="flex flex-col items-center">
+                <label className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em] mb-10 w-full text-left">Foto de Perfil</label>
+                
+                <div 
+                    className="relative group cursor-pointer" 
+                    onClick={() => !uploadingProfile && profilePicInputRef.current?.click()}
+                >
+                    <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-[48px] sm:rounded-[64px] bg-background border-8 sm:border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-2xl transition-all duration-500 hover:scale-105 group-hover:rotate-1">
+                        {user?.profile_picture ? (
+                            <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'opacity-20 blur-sm' : 'group-hover:scale-110'}`} />
+                        ) : (
+                            <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
+                                <User size={64} className="text-primary/10" />
+                            </div>
+                        )}
 
-          {/* Status da Assinatura */}
-          <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-             <div className="flex items-center gap-4 mb-10">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                    <ShieldAlert size={24} strokeWidth={2.5} />
+                        {uploadingProfile ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                                <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
+                                <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Subindo...</span>
+                            </div>
+                        ) : (
+                            <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <Camera size={32} className="text-white mb-2" strokeWidth={3} />
+                                <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Alterar Foto</span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Botão Flutuante de Adição */}
+                    <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-cta text-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border-8 border-white">
+                        <Plus size={24} strokeWidth={4} />
+                    </div>
                 </div>
-                <h4 className="text-[10px] font-black text-primary/30 uppercase tracking-[0.3em] italic font-title">Plano de Assinatura</h4>
-             </div>
-
-             <div className="space-y-8">
-                <div className="flex items-center justify-between group">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic group-hover:text-primary transition-colors">Nível Atual</span>
-                    <span className="text-sm font-black italic text-primary uppercase font-title bg-primary/5 px-4 py-2 rounded-full border border-primary/10 shadow-sm">Barber Pro</span>
+                
+                <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
+                
+                <div className="mt-12 text-center">
+                    <h4 className="text-xl font-black italic uppercase text-primary font-title tracking-tighter mb-2">{user?.name}</h4>
+                    <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Sua imagem no app do cliente</p>
                 </div>
-                <div className="flex items-center justify-between group pt-4 border-t border-primary/5">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Performance Mensal</span>
-                    <span className="text-lg font-black italic text-primary font-title">R$ 14.850<span className="text-[10px] text-primary/30">,00</span></span>
-                </div>
-                <div className="flex items-center justify-between group">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Fidelização</span>
-                    <span className="text-sm font-black italic text-green-500 font-title">+24%</span>
-                </div>
-             </div>
-             
-             <button className="w-full mt-12 py-6 bg-background border border-primary/5 text-[10px] font-black italic text-primary/40 uppercase tracking-[0.2em] hover:text-cta hover:border-cta/20 hover:bg-cta/[0.02] transition-all rounded-[28px] shadow-sm">
-                Upgrade de Licença
-             </button>
-          </div>
+            </div>
+          </section>
 
         </div>
       </div>
