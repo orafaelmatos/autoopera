@@ -241,6 +241,11 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     try {
       // Salvar informações da Barbearia
       if (activeTab === 'shop') {
+        if (!shopData.name || !shopData.address || !shopData.phone || !shopData.pix_key) {
+           toast.error("Nome, Endereço, Telefone e Chave Pix são obrigatórios.");
+           return;
+        }
+
         const formData = new FormData();
         if (shopData.name) formData.append('name', shopData.name);
         if (shopData.description) formData.append('description', shopData.description);
@@ -459,6 +464,19 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             </div>
                         </div>
                         <div>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Endereço Completo</label>
+                            <div className="relative group">
+                                <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
+                                <input 
+                                    type="text"
+                                    value={shopData.address || ''}
+                                    onChange={e => setShopData({...shopData, address: e.target.value})}
+                                    placeholder="Rua, Número, Bairro, Cidade"
+                                    className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
+                                />
+                            </div>
+                        </div>
+                        <div>
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Telefone / WhatsApp Profissional</label>
                             <div className="relative group">
                                 <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
@@ -485,17 +503,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Manifesto / Descrição do Estabelecimento</label>
-                        <textarea 
-                            value={shopData.description || ''}
-                            onChange={e => setShopData({...shopData, description: e.target.value})}
-                            placeholder="Descreva a experiência premium que sua barbearia entrega aos clientes."
-                            rows={4}
-                            className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[120px]"
-                        />
                     </div>
                 </div>
             </section>
@@ -591,19 +598,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
                                 />
                             </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Biografia & Especialidades (Manifesto)</label>
-                        <div className="relative group">
-                            <Info className="absolute left-6 top-6 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                            <textarea 
-                                value={profileData.description || ''}
-                                onChange={e => setProfileData({...profileData, description: e.target.value})}
-                                rows={4}
-                                className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[32px] pl-16 pr-6 sm:pr-8 py-4 sm:py-6 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[100px] sm:min-h-[140px] font-title"
-                            />
                         </div>
                     </div>
                 </div>
@@ -1029,55 +1023,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
 
         {/* Lado Direito - Resumo e Performance */}
         <div className="xl:col-span-4 space-y-8">
-          
-          {/* Dica Profissional */}
-          <div className="bg-primary border border-primary/5 rounded-[48px] p-10 sm:p-12 relative overflow-hidden group shadow-[0_32px_64px_-16px_rgba(15,76,92,0.25)]">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:scale-110 transition-transform text-white">
-                <Sparkles size={140} strokeWidth={1} />
-            </div>
-            <div className="flex items-center gap-4 mb-8 relative z-10">
-                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-cta">
-                    <Sparkles size={20} strokeWidth={2.5} />
-                 </div>
-                 <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic font-title">Master Intelligence</h4>
-            </div>
-            <p className="text-base text-white/80 leading-relaxed font-black italic uppercase tracking-tight relative z-10 font-title">
-                "Um <span className="text-cta">Logotipo</span> profissional e uma boa <span className="text-cta">Descrição</span> aumentam a conversão de novos clientes em até 40%."
-            </p>
-            <div className="mt-8 pt-8 border-t border-white/10 relative z-10">
-                <span className="text-[9px] font-black italic text-white/30 uppercase tracking-[0.3em]">Protocolo Profissional #042</span>
-            </div>
-          </div>
-
-          {/* Status da Assinatura */}
-          <div className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-             <div className="flex items-center gap-4 mb-10">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                    <ShieldAlert size={24} strokeWidth={2.5} />
-                </div>
-                <h4 className="text-[10px] font-black text-primary/30 uppercase tracking-[0.3em] italic font-title">Plano de Assinatura</h4>
-             </div>
-
-             <div className="space-y-8">
-                <div className="flex items-center justify-between group">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic group-hover:text-primary transition-colors">Nível Atual</span>
-                    <span className="text-sm font-black italic text-primary uppercase font-title bg-primary/5 px-4 py-2 rounded-full border border-primary/10 shadow-sm">Barber Pro</span>
-                </div>
-                <div className="flex items-center justify-between group pt-4 border-t border-primary/5">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Performance Mensal</span>
-                    <span className="text-lg font-black italic text-primary font-title">R$ 14.850<span className="text-[10px] text-primary/30">,00</span></span>
-                </div>
-                <div className="flex items-center justify-between group">
-                    <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest italic">Fidelização</span>
-                    <span className="text-sm font-black italic text-green-500 font-title">+24%</span>
-                </div>
-             </div>
-             
-             <button className="w-full mt-12 py-6 bg-background border border-primary/5 text-[10px] font-black italic text-primary/40 uppercase tracking-[0.2em] hover:text-cta hover:border-cta/20 hover:bg-cta/[0.02] transition-all rounded-[28px] shadow-sm">
-                Upgrade de Licença
-             </button>
-          </div>
-
         </div>
       </div>
     </div>
