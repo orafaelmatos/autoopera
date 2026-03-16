@@ -472,15 +472,15 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             </div>
                         </div>
 
-                        <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Endereço da Barbearia</label>
+                        <div className="md:col-span-2">
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Endereço Completo</label>
                             <div className="relative group">
                                 <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={shopData.address || ''}
                                     onChange={e => setShopData({...shopData, address: e.target.value})}
-                                    placeholder="Rua, Número, Bairro, Cidade"
+                                    placeholder="Rua, Número, Bairro, Cidade - UF"
                                     className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
@@ -499,6 +499,17 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Manifesto / Descrição do Estabelecimento</label>
+                        <textarea 
+                            value={shopData.description || ''}
+                            onChange={e => setShopData({...shopData, description: e.target.value})}
+                            placeholder="Descreva a experiência premium que sua barbearia entrega aos clientes."
+                            rows={4}
+                            className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[120px]"
+                        />
                     </div>
                 </div>
             </section>
@@ -582,7 +593,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                             <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu WhatsApp (Somente Números)</label>
                             <div className="relative group">
                                 <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
@@ -596,7 +607,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             </div>
                         </div>
                     </div>
-
                 </div>
             </motion.section>
           )}
@@ -1021,52 +1031,42 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         {/* Lado Direito - Resumo e Performance */}
         <div className="xl:col-span-4 space-y-8">
           
-          {/* Foto de Perfil do Barbeiro */}
-          <section className="bg-white border border-primary/5 rounded-[48px] p-10 sm:p-12 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-            <div className="flex flex-col items-center">
-                <label className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.3em] mb-10 w-full text-left">Foto de Perfil</label>
-                
-                <div 
-                    className="relative group cursor-pointer" 
-                    onClick={() => !uploadingProfile && profilePicInputRef.current?.click()}
-                >
-                    <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-[48px] sm:rounded-[64px] bg-background border-8 sm:border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-2xl transition-all duration-500 hover:scale-105 group-hover:rotate-1">
-                        {user?.profile_picture ? (
-                            <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'opacity-20 blur-sm' : 'group-hover:scale-110'}`} />
-                        ) : (
-                            <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
-                                <User size={64} className="text-primary/10" />
-                            </div>
-                        )}
+          {/* Foto de Perfil do Barbeiro - Sidebar */}
+          <div className="bg-white border border-primary/5 rounded-[48px] p-8 shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)] flex flex-col items-center">
+             <h4 className="text-[10px] font-black text-primary/30 uppercase tracking-[0.3em] italic font-title mb-8 w-full text-center">Sua Foto de Perfil</h4>
+             
+             <div 
+                className="relative group cursor-pointer" 
+                onClick={() => !uploadingProfile && profilePicInputRef.current?.click()}
+             >
+                <div className="w-48 h-48 rounded-[40px] bg-white border-[12px] border-background overflow-hidden flex items-center justify-center relative shadow-xl transition-all duration-500 hover:scale-105">
+                    {user?.profile_picture ? (
+                        <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'opacity-20 blur-sm' : 'group-hover:scale-110'}`} />
+                    ) : (
+                        <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
+                            <User size={64} className="text-primary/10" />
+                        </div>
+                    )}
 
-                        {uploadingProfile ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
-                                <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
-                                <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Subindo...</span>
-                            </div>
-                        ) : (
-                            <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <Camera size={32} className="text-white mb-2" strokeWidth={3} />
-                                <span className="text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Alterar Foto</span>
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* Botão Flutuante de Adição */}
-                    <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-cta text-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border-8 border-white">
-                        <Plus size={24} strokeWidth={4} />
-                    </div>
+                    {uploadingProfile ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                            <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
+                        </div>
+                    ) : (
+                        <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <Camera size={24} className="text-white mb-2" strokeWidth={3} />
+                            <span className="text-[10px] font-black italic uppercase tracking-widest text-white">Trocar</span>
+                        </div>
+                    )}
                 </div>
-                
                 <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
-                
-                <div className="mt-12 text-center">
-                    <h4 className="text-xl font-black italic uppercase text-primary font-title tracking-tighter mb-2">{user?.name}</h4>
-                    <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Sua imagem no app do cliente</p>
-                </div>
-            </div>
-          </section>
+             </div>
 
+             <div className="mt-8 text-center">
+                <h3 className="text-xl font-black italic uppercase text-primary font-title tracking-tight mb-1">{user?.name}</h3>
+                <span className="text-[9px] font-black italic text-cta uppercase tracking-widest">Barbeiro Profissional</span>
+             </div>
+          </div>
         </div>
       </div>
     </div>

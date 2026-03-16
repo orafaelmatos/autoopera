@@ -321,7 +321,9 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         slug=shop_slug,
         owner=user,
         address=shop_address,
-        logo=logo
+        logo=logo,
+        pix_key=shop_pix_key,
+        phone=phone
     )
 
     # ===============================
@@ -332,7 +334,8 @@ def barber_register(request, barbershop_slug=None, *args, **kwargs):
         barbershop=barbershop,
         name=user.get_full_name() or "Barbeiro",
         email=barber_email or user.email,
-        whatsapp=phone
+        whatsapp=phone,
+        profile_picture=profile_picture
     )
 
     profile, _ = UserProfile.objects.get_or_create(user=user)

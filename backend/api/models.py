@@ -84,6 +84,7 @@ class Barber(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     profile_picture = models.ImageField(upload_to='barbers/', null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     buffer_minutes = models.IntegerField(default=5)
     booking_horizon_days = models.IntegerField(default=30)

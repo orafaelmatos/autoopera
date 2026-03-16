@@ -365,7 +365,7 @@ const CustomerBooking: React.FC = () => {
                         {barbershop?.name || "AUTOOPERA"}
                     </motion.h1>
                     <p className="text-white/50 font-black text-[7px] sm:text-[10px] tracking-[0.3em] uppercase mt-1 sm:mt-2 italic text-center px-8 line-clamp-1 sm:line-clamp-2 max-w-sm">
-                        {barbershop?.description || "Estilo & Tradição"}
+                        {barbershop?.address || "Estilo & Tradição"}
                     </p>
                 </div>
             </div>

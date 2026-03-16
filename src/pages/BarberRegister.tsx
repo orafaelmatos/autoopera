@@ -445,11 +445,11 @@ const BarberRegister: React.FC = () => {
                                     <div className="relative group">
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-primary" size={18} />
                                         <input 
-                                            type="text"
+                                            type="text" required
                                             value={formData.address}
                                             onChange={e => setFormData({...formData, address: e.target.value})}
                                             className="w-full bg-background border border-border rounded-2xl py-4 pl-12 pr-4 text-text outline-none focus:border-primary/50 transition-all font-bold text-base shadow-sm"
-                                            placeholder="Cidade, Estado"
+                                            placeholder="Rua: Exemplo, 123 - Bairro"
                                         />
                                     </div>
                                 </div>

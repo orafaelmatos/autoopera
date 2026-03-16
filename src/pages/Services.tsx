@@ -138,14 +138,11 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
     <div className="space-y-6 sm:space-y-20 max-w-[1400px] mx-auto pb-20">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-12 px-2 sm:px-0">
         <div>
-          <div className="flex items-center gap-3 mb-2 sm:mb-4 text-cta">
-            <Scissors size={16} className="sm:size-5" strokeWidth={2.5} />
-            <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-[0.4em]">Experiências Profissionais</span>
-          </div>
+         
           <h2 className="text-3xl sm:text-6xl font-black italic uppercase text-primary font-title tracking-tighter leading-none">
             Serviços
           </h2>
-          <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase mt-2 sm:mt-4 tracking-[0.2em] ml-1">Defina o valor da sua arte no fluxo</p>
+          <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase mt-2 sm:mt-4 tracking-[0.2em] ml-1">Configure seus serviços</p>
         </div>
         <button
           onClick={() => {
@@ -155,7 +152,7 @@ const ServicesView: React.FC<Props> = ({ services, setServices }) => {
           className="bg-primary text-white px-8 sm:px-10 py-4 sm:py-6 rounded-2xl sm:rounded-[28px] text-[9px] sm:text-[10px] font-black italic uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary/[0.95] transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto font-title"
         >
           <Plus size={18} sm:size={20} strokeWidth={3} />
-          <span>Criar Nova Experiência</span>
+          <span>Criar Novo Serviço</span>
         </button>
       </header>
 
