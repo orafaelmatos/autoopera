@@ -444,9 +444,6 @@ const CustomerBooking: React.FC = () => {
                                                     <div className="text-left">
                                                         <p className="font-black text-text text-base sm:text-xl leading-tight uppercase italic font-title">{barber.name}</p>
                                                         <div className="mt-1 sm:mt-2 flex flex-col gap-1 sm:gap-1.5">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-[8px] sm:text-[10px] font-black text-cta uppercase tracking-widest italic">Especialista Master</span>
-                                                            </div>
                                                             {barber.description && (
                                                                 <p className="text-[9px] sm:text-[11px] text-text/40 line-clamp-1 sm:line-clamp-2 max-w-[150px] sm:max-w-[180px] font-medium leading-relaxed italic">"{barber.description}"</p>
                                                             )}
@@ -669,7 +666,7 @@ const CustomerBooking: React.FC = () => {
                                                     </div>
                                                     <div className="space-y-1">
                                                         <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em]">Profissional Executor</p>
-                                                        <p className="font-black text-text text-base leading-tight uppercase italic font-title">{appointment.barber_name || 'Especialista'}</p>
+                                                        <p className="font-black text-text text-base leading-tight uppercase italic font-title">{appointment.barber_name || 'Profissional'}</p>
                                                     </div>
                                                 </div>
                                                 <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.1em] border-2 shadow-sm italic ${

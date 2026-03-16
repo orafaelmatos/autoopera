@@ -259,8 +259,8 @@ const LoginPage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="flex flex-col items-center relative z-10">
-                                <div className="w-20 h-20 bg-primary rounded-[28px] flex items-center justify-center shadow-2xl shadow-primary/30 transform rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                                    <Scissors className="text-white" size={32} />
+                                <div className="w-20 h-20 bg-primary rounded-[28px] flex items-center justify-center shadow-2xl shadow-primary/30">
+                                    <img src="/src/assets/autoopera-logo.png" alt="Logo" className="text-white" size={32} />
                                 </div>
                             </div>
                         )}
@@ -273,7 +273,7 @@ const LoginPage: React.FC = () => {
                             </h1>
                         ) : (
                             <h1 className="text-3xl font-black text-text tracking-tighter font-title uppercase italic">
-                                Central de Agendamento
+                                Autoopera Barbearia
                             </h1>
                         )}
                         <p className="text-text/40 text-xs sm:text-sm font-bold italic uppercase tracking-widest">
