@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api, { getMediaUrl } from '../api';
 import { Barbershop } from '../types';
 import toast from 'react-hot-toast';
+import logoImg from '../assets/autoopera-logo.png';
 
 const LoginPage: React.FC = () => {
     const formatPhone = (value: string) => {
@@ -260,7 +261,7 @@ const LoginPage: React.FC = () => {
                         ) : (
                             <div className="flex flex-col items-center relative z-10">
                                 <div className="w-20 h-20 bg-primary rounded-[28px] flex items-center justify-center shadow-2xl shadow-primary/30">
-                                    <img src="/src/assets/autoopera-logo.png" alt="Logo" className="text-white" size={32} />
+                                    <img src={logoImg} alt="Logo" className="text-white w-8 h-8" />
                                 </div>
                             </div>
                         )}
