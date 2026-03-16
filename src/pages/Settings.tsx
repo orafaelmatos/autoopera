@@ -27,20 +27,6 @@ const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 
 const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbershop, setBarbershop, setHasDailyAvailability }) => {
   const { user, refreshUser } = useAuth();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'shop' | 'profile' | 'schedule'>('shop');
-  
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab === 'profile') {
-      setActiveTab('profile');
-    } else if (tab === 'schedule') {
-      setActiveTab('schedule');
-    } else {
-      setActiveTab('shop');
-    }
-  }, [location]);
   const [exceptions, setExceptions] = useState<ScheduleException[]>([]);
   // Daily availability (per-date shifts)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
@@ -61,13 +47,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     slug: ''
   });
 
-  const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
-    description: '',
-    whatsapp: '',
-  });
-
   useEffect(() => {
     if (barbershop) {
       setShopData({
@@ -82,16 +61,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     }
   }, [barbershop]);
 
-  useEffect(() => {
-    if (user) {
-      setProfileData({
-        name: user.name || '',
-        email: user.email || '',
-        description: (user as any).description || '',
-        whatsapp: (user as any).whatsapp || ''
-      });
-    }
-  }, [user]);
   const [newException, setNewException] = useState<Partial<ScheduleException>>({
     type: 'blocked',
     reason: '',
@@ -239,45 +208,32 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
 
   const handleSaveAvailability = async () => {
     try {
-      // Salvar informações da Barbearia
-      if (activeTab === 'shop') {
-        if (!shopData.name || !shopData.address || !shopData.phone || !shopData.pix_key) {
-           toast.error("Nome, Endereço, Telefone e Chave Pix são obrigatórios.");
-           return;
-        }
-
-        const formData = new FormData();
-        if (shopData.name) formData.append('name', shopData.name);
-        if (shopData.description) formData.append('description', shopData.description);
-        if (shopData.address) formData.append('address', shopData.address);
-        if (shopData.phone) formData.append('phone', shopData.phone);
-        if (shopData.pix_key) formData.append('pix_key', shopData.pix_key);
-        if (shopData.primary_color) formData.append('primary_color', shopData.primary_color);
-        
-        const updatedShop = await barbershopApi.update(formData);
-        setBarbershop(updatedShop);
-      } 
+      const formData = new FormData();
+      if (shopData.name) formData.append('name', shopData.name);
+      if (shopData.description) formData.append('description', shopData.description);
+      if (shopData.address) formData.append('address', shopData.address);
+      if (shopData.phone) formData.append('phone', shopData.phone);
+      if (shopData.pix_key) formData.append('pix_key', shopData.pix_key);
+      if (shopData.primary_color) formData.append('primary_color', shopData.primary_color);
       
-      // Salvar informações do Perfil
-      if (activeTab === 'profile') {
-        if (user?.profile_id) {
-          const formData = new FormData();
-          formData.append('name', profileData.name);
-          formData.append('email', profileData.email);
-          formData.append('description', profileData.description);
-          formData.append('whatsapp', profileData.whatsapp);
-          await barbersApi.update(String(user.profile_id), formData as any);
-          await refreshUser();
-        }
+      const updatedShop = await barbershopApi.update(formData);
+      setBarbershop(updatedShop);
+
+      if (user?.profile_id) {
+          const barberFormData = new FormData();
+          if (profilePicInputRef.current?.files?.[0]) {
+            const file = profilePicInputRef.current.files[0];
+            const compressed = await compressImage(file, 800, 0.7);
+            barberFormData.append('profile_picture', compressed);
+            await barbersApi.update(String(user.profile_id), barberFormData as any);
+            await refreshUser();
+          }
       }
 
-      // Sincronizar Horários (Apenas se estiver na aba de horários)
-      if (activeTab === 'schedule') {
-        const synced = await availabilityApi.sync(availability);
-        setAvailability(synced);
-      }
+      const synced = await availabilityApi.sync(availability);
+      setAvailability(synced);
 
-      toast.success("Alterações salvas com sucesso!");
+      toast.success("Configurações salvas com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar:", error);
       toast.error("Erro ao salvar alterações.");
@@ -366,59 +322,91 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         </button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-12 px-1 sm:px-4">
+      <div className="grid grid-cols-1 gap-4 sm:gap-12 px-1 sm:px-4">
         
-        {/* Lado Esquerdo - Configurações Principais */}
-        <div className="xl:col-span-8 space-y-8 sm:space-y-12">
+        {/* Lado Único - Configurações Gerais */}
+        <div className="space-y-8 sm:space-y-12">
           
-          {activeTab === 'shop' && (
-            /* Perfil da Barbearia */
+            {/* Perfil da Barbearia & Profissional */}
             <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-                {/* Header Estilizado com Logo */}
-                <div className="relative h-32 sm:h-64 bg-background overflow-hidden border-b border-primary/5">
+                {/* Header Estilizado com Logo e Foto de Perfil */}
+                <div className="relative h-48 sm:h-80 bg-background overflow-hidden border-b border-primary/5">
                     {/* Fundo Decorativo */}
                     <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #0F4C5C 1px, transparent 0)', backgroundSize: '32px 32px' }} />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-white" />
                     
-                    {/* Logo Preview Centralizado e Elevado */}
-                    <div className="absolute -bottom-6 sm:-bottom-10 left-6 sm:left-10 flex items-end gap-4 sm:gap-8 h-fit">
-                        <div 
-                            className="w-20 h-20 sm:w-48 sm:h-48 rounded-2xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden shadow-xl group/logo cursor-pointer relative transition-transform duration-500"
-                            onClick={(e) => { e.stopPropagation(); !uploadingLogo && logoInputRef.current?.click(); }}
-                        >
-                            {barbershop?.logo ? (
-                                <img src={getMediaUrl(barbershop.logo)} className={`w-full h-full object-contain p-2 sm:p-4 transition-transform duration-700 group-hover/logo:scale-110 ${uploadingLogo ? 'opacity-20 blur-sm' : ''}`} />
-                            ) : (
-                                <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingLogo ? 'opacity-20' : ''}`}>
-                                    <Building2 size={32} sm:size={64} className="text-primary/10" />
-                                </div>
-                            )}
+                    {/* Container Central para Fotos */}
+                    <div className="absolute inset-x-0 bottom-0 flex justify-center items-end gap-4 sm:gap-12 pb-6 sm:pb-10">
+                        {/* Foto de Perfil (Barbeiro) */}
+                        <div className="flex flex-col items-center gap-2">
+                             <div 
+                                className="w-24 h-24 sm:w-44 sm:h-44 rounded-full bg-white border-4 sm:border-[8px] border-white overflow-hidden shadow-xl group/profile cursor-pointer relative transition-transform duration-500 hover:scale-105"
+                                onClick={(e) => { e.stopPropagation(); !uploadingProfile && profilePicInputRef.current?.click(); }}
+                            >
+                                {user?.profile_picture ? (
+                                    <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 group-hover/profile:scale-110 ${uploadingProfile ? 'opacity-20 blur-sm' : ''}`} />
+                                ) : (
+                                    <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
+                                        <User size={32} sm:size={48} className="text-primary/10" />
+                                    </div>
+                                )}
 
-                            {uploadingLogo ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
-                                    <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
-                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Processando...</span>
-                                </div>
-                            ) : (
-                                <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
-                                    <Camera size={24} sm:size={32} className="text-white mb-2" strokeWidth={3} />
-                                    <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
-                                </div>
-                            )}
+                                {uploadingProfile ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                                        <Loader2 size={24} className="text-primary animate-spin" strokeWidth={3} />
+                                    </div>
+                                ) : (
+                                    <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/profile:opacity-100 transition-all duration-300">
+                                        <Camera size={20} sm:size={24} className="text-white mb-1" strokeWidth={3} />
+                                        <span className="text-[6px] sm:text-[8px] font-black italic uppercase tracking-widest text-white text-center">Foto Perfil</span>
+                                    </div>
+                                )}
+                            </div>
+                            <span className="text-[8px] sm:text-[10px] font-black italic uppercase text-primary/40 tracking-widest">Sua Foto Profissional</span>
+                        </div>
+
+                        {/* Logo (Barbearia) */}
+                        <div className="flex flex-col items-center gap-2">
+                            <div 
+                                className="w-24 h-24 sm:w-44 sm:h-44 rounded-2xl sm:rounded-[40px] bg-white border-4 sm:border-[8px] border-white overflow-hidden shadow-xl group/logo cursor-pointer relative transition-transform duration-500 hover:scale-105"
+                                onClick={(e) => { e.stopPropagation(); !uploadingLogo && logoInputRef.current?.click(); }}
+                            >
+                                {barbershop?.logo ? (
+                                    <img src={getMediaUrl(barbershop.logo)} className={`w-full h-full object-contain p-2 sm:p-4 transition-transform duration-700 group-hover/logo:scale-110 ${uploadingLogo ? 'opacity-20 blur-sm' : ''}`} />
+                                ) : (
+                                    <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingLogo ? 'opacity-20' : ''}`}>
+                                        <Building2 size={32} sm:size={48} className="text-primary/10" />
+                                    </div>
+                                )}
+
+                                {uploadingLogo ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
+                                        <Loader2 size={24} className="text-primary animate-spin" strokeWidth={3} />
+                                    </div>
+                                ) : (
+                                    <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
+                                        <Camera size={20} sm:size={24} className="text-white mb-1" strokeWidth={3} />
+                                        <span className="text-[6px] sm:text-[8px] font-black italic uppercase tracking-widest text-white text-center">Logo Loja</span>
+                                    </div>
+                                )}
+                            </div>
+                             <span className="text-[8px] sm:text-[10px] font-black italic uppercase text-primary/40 tracking-widest">Logo da Barbearia</span>
                         </div>
                     </div>
+
                     <input type="file" ref={logoInputRef} className="hidden" onChange={(e) => handleFileChange('logo', e)} accept="image/*" />
+                    <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
                 </div>
 
-                <div className="pt-12 sm:pt-24 p-4 sm:p-16 space-y-6 sm:space-y-12">
-                    {/* Informativo de Identidade Visual */}
-                    <div className="bg-primary/5 border border-primary/10 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 flex items-start gap-4 sm:gap-6">
+                <div className="p-4 sm:p-16 space-y-6 sm:space-y-12">
+                     {/* Informativo de Identidade Visual */}
+                     <div className="bg-primary/5 border border-primary/10 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 flex items-start gap-4 sm:gap-6">
                         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-white flex items-center justify-center text-cta shrink-0 shadow-lg">
                             <Sparkles size={20} sm:size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-sm sm:text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Identidade Visual</h4>
-                            <p className="text-[10px] sm:text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest font-title italic">Sua marca impecável no sistema.</p>
+                            <h4 className="text-sm sm:text-lg font-black italic uppercase text-primary mb-1 tracking-tight">Gestão de Identidade</h4>
+                            <p className="text-[10px] sm:text-xs text-primary/40 leading-relaxed font-black italic uppercase tracking-widest font-title italic">Suas fotos e dados comerciais centralizados.</p>
                         </div>
                     </div>
 
@@ -477,7 +465,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Telefone / WhatsApp Profissional</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">WhatsApp para Lembretes (Cliente)</label>
                             <div className="relative group">
                                 <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
@@ -491,14 +479,14 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         </div>
 
                         <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Chave Pix (Para receber pagamentos)</label>
+                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Chave Pix (Recebimentos)</label>
                             <div className="relative group">
                                 <QrCode className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors" size={20} strokeWidth={2.5} />
                                 <input 
                                     type="text"
                                     value={shopData.pix_key || ''}
                                     onChange={e => setShopData({...shopData, pix_key: e.target.value})}
-                                    placeholder="CPF, E-mail, Telefone ou Chave Aleatória"
+                                    placeholder="Chave Pix"
                                     className="w-full bg-background border-2 border-transparent rounded-[28px] pl-16 pr-6 py-5 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10"
                                 />
                             </div>
@@ -506,110 +494,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     </div>
                 </div>
             </section>
-          )}
 
-          {activeTab === 'profile' && (
-            <motion.section 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]"
-            >
-                <div className="p-4 sm:p-16 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent">
-                    <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-12 text-center sm:text-left">
-                        {/* Foto de Perfil */}
-                        <div 
-                            className="relative group cursor-pointer" 
-                            onClick={() => !uploadingProfile && profilePicInputRef.current?.click()}
-                        >
-                            <div className="w-24 h-24 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[40px] bg-white border-8 sm:border-[12px] border-white overflow-hidden flex items-center justify-center relative shadow-xl transition-all duration-500 hover:scale-105">
-                                {user?.profile_picture ? (
-                                    <img src={getMediaUrl(user.profile_picture)} className={`w-full h-full object-cover transition-transform duration-700 ${uploadingProfile ? 'opacity-20 blur-sm' : 'group-hover:scale-110'}`} />
-                                ) : (
-                                    <div className={`w-full h-full flex items-center justify-center bg-background ${uploadingProfile ? 'opacity-20' : ''}`}>
-                                        <User size={32} className="sm:size-[80px] text-primary/10" />
-                                    </div>
-                                )}
-
-                                {uploadingProfile ? (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
-                                        <Loader2 size={32} className="text-primary animate-spin mb-2" strokeWidth={3} />
-                                        <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-tighter text-primary">Processando...</span>
-                                    </div>
-                                ) : (
-                                    <div className="absolute inset-0 bg-primary/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <Camera size={20} className="sm:size-[28px] text-white mb-2" strokeWidth={3} />
-                                        <span className="text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-white text-center px-4">Trocar</span>
-                                    </div>
-                                )}
-                            </div>
-                            <input type="file" ref={profilePicInputRef} className="hidden" onChange={(e) => handleFileChange('profile', e)} accept="image/*" />
-                        </div>
-
-                        <div className="flex-1">
-                            <h3 className="text-2xl sm:text-5xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2 sm:mb-3">{user?.name || 'Mestre Barbeiro'}</h3>
-                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 mt-2 sm:mt-6">
-                              <span className="px-4 sm:px-5 py-1.5 sm:py-2 bg-primary text-white rounded-full text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest shadow-lg shadow-primary/20 font-title">
-                                Barbeiro Profissional
-                              </span>
-                              <div className="px-4 sm:px-5 py-1.5 sm:py-2 bg-background border border-primary/5 rounded-full inline-flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                  <span className="text-[8px] sm:text-[10px] font-black italic text-primary uppercase tracking-[0.2em] font-title">Online no Fluxo</span>
-                              </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-4 sm:p-16 space-y-6 sm:space-y-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10">
-                        <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu Nome Profissional</label>
-                            <div className="relative group">
-                                <User className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                                <input 
-                                    type="text"
-                                    value={profileData.name}
-                                    onChange={e => setProfileData({...profileData, name: e.target.value})}
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
-                            <div className="relative group">
-                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                                <input 
-                                    type="email"
-                                    value={profileData.email}
-                                    onChange={e => setProfileData({...profileData, email: e.target.value})}
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu WhatsApp (Somente Números)</label>
-                            <div className="relative group">
-                                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                                <input 
-                                    type="text"
-                                    value={profileData.whatsapp}
-                                    onChange={e => setProfileData({...profileData, whatsapp: e.target.value})}
-                                    placeholder="5511999999999"
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.section>
-          )}
-          
-          {activeTab === 'schedule' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="space-y-4 sm:space-y-12"
-            >
               {/* Jornada Semanal Profissional */}
               <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
                 <div className="p-4 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-4 sm:gap-6">
@@ -1016,13 +901,6 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                     </div>
                   </div>
               </section>
-            </motion.div>
-          )}
-
-        </div>
-
-        {/* Lado Direito - Resumo e Performance */}
-        <div className="xl:col-span-4 space-y-8">
         </div>
       </div>
     </div>
