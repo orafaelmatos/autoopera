@@ -15,18 +15,25 @@ class PixGenerator:
     def _normalize_key(self, key):
         if not key:
             return ""
-        # Remove espaços e caracteres que nunca fazem parte de uma chave Pix
-        # (como parênteses, asteriscos, etc)
-        # Mantém apenas letras, números, @, ponto, hífen e o sinal + para telefones
-        return re.sub(r'[^a-zA-Z0-9@.+-]', '', str(key)).strip()
+        
+        # Remove todos os caracteres não alfanuméricos para análise
+        clean_key = re.sub(r'[^a-zA-Z0-9@.-]', '', str(key)).strip()
+        
+        # Identifica se é um telefone brasileiro (apenas números, 10 ou 11 dígitos)
+        only_digits = re.sub(r'\D', '', str(key))
+        if only_digits.isdigit() and len(only_digits) in [10, 11]:
+            # Chaves de telefone para o Pix DEVEM incluir o código do país +55
+            return f"+55{only_digits}"
+            
+        return clean_key
 
     def _normalize_text(self, text, limit):
         if not text:
             return "NAO INFORMADO"[:limit]
         # Remove acentos
         text = "".join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
-        # Mantém apenas letras, números e espaços
-        text = re.sub(r'[^a-zA-Z0-9 ]', '', text)
+        # Mantém apenas letras e números (SEM ESPAÇOS em campos sensíveis)
+        text = re.sub(r'[^a-zA-Z0-9]', '', text)
         return text.strip().upper()[:limit]
 
     def _normalize_reference(self, ref):
