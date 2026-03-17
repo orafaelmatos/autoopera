@@ -74,8 +74,10 @@ const AppointmentCard: React.FC<{
   const bgComplete = useTransform(x, [0, 100], ["rgba(39, 174, 96, 0)", "#27AE60"]);
   const bgCancel = useTransform(x, [0, -100], ["rgba(231, 76, 60, 0)", "#E74C3C"]);
 
+  const isPaid = apt.payment_status === 'PAID';
+
   return (
-    <div className="relative overflow-hidden rounded-[32px] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-primary/5">
+    <div className={`relative overflow-hidden rounded-[32px] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border transition-colors ${isPaid ? 'border-green-500/30' : 'border-primary/5'}`}>
       {/* Ações de Swipe de fundo */}
       <motion.div style={{ backgroundColor: bgComplete }} className="absolute inset-x-0 inset-y-0 flex items-center pl-8 text-white z-0">
         <Check size={28} strokeWidth={3} />
@@ -96,11 +98,11 @@ const AppointmentCard: React.FC<{
         className="relative z-10 bg-white p-5 sm:p-7 flex items-center gap-4 sm:gap-6 cursor-grab active:cursor-grabbing"
       >
         {/* Horário e Dia */}
-        <div className="flex flex-col items-center justify-center min-w-[70px] sm:min-w-[90px] h-[70px] sm:h-[90px] rounded-3xl bg-primary/5 border border-primary/5">
-          <span className="text-[10px] font-black uppercase text-primary/40 font-title tracking-wider mb-1">
+        <div className={`flex flex-col items-center justify-center min-w-[70px] sm:min-w-[90px] h-[70px] sm:h-[90px] rounded-3xl border transition-colors ${isPaid ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/5'}`}>
+          <span className={`text-[10px] font-black uppercase font-title tracking-wider mb-1 ${isPaid ? 'text-green-600/60' : 'text-primary/40'}`}>
             {new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
           </span>
-          <span className="text-xl sm:text-2xl font-black italic text-primary leading-none font-title">
+          <span className={`text-xl sm:text-2xl font-black italic leading-none font-title ${isPaid ? 'text-green-600' : 'text-primary'}`}>
             {new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
@@ -108,16 +110,19 @@ const AppointmentCard: React.FC<{
         {/* Informações Centrais */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5">
-            <h4 className="text-base sm:text-xl font-black italic uppercase text-primary truncate font-title tracking-tight">
+            <h4 className={`text-base sm:text-xl font-black italic uppercase truncate font-title tracking-tight ${isPaid ? 'text-green-700' : 'text-primary'}`}>
               {apt.clientName}
             </h4>
-            {apt.payment_status === 'PAID' && (
-               <div className="w-2 h-2 rounded-full bg-green-500" title="Pago" />
+            {isPaid && (
+               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500 text-white text-[8px] font-bold uppercase tracking-wider">
+                 <Check size={8} strokeWidth={4} />
+                 PAGO
+               </div>
             )}
           </div>
           
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 text-primary/60 text-[9px] font-black italic uppercase font-title border border-primary/5">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black italic uppercase font-title border ${isPaid ? 'bg-green-500/5 text-green-600/70 border-green-500/10' : 'bg-primary/5 text-primary/60 border-primary/5'}`}>
               <Scissors size={10} />
               {apt.service_names || 'Serviço'}
             </span>
@@ -133,6 +138,16 @@ const AppointmentCard: React.FC<{
 
         {/* Ações Visíveis */}
         <div className="flex items-center gap-2">
+          {!isPaid && (
+            <button 
+              onClick={() => onConfirmPayment(apt.id)}
+              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white transition-all shadow-sm active:scale-95"
+              title="Marcar como Pago"
+            >
+              <CheckCircle2 size={24} />
+            </button>
+          )}
+
           <button 
             onClick={handleWhatsAppReminder}
             className="w-12 h-12 flex items-center justify-center rounded-2xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-95"
@@ -144,11 +159,6 @@ const AppointmentCard: React.FC<{
           </button>
           
           <div className="hidden sm:flex items-center gap-2 border-l border-primary/5 pl-2 ml-2">
-            {apt.payment_status === 'WAITING_PAYMENT' && (
-               <button onClick={() => onConfirmPayment(apt.id)} className="p-3 text-cta hover:bg-cta/5 rounded-xl transition-all" title="Confirmar Pix">
-                 <CheckCircle2 size={20} />
-               </button>
-            )}
             <button onClick={() => onComplete(apt.id)} className="p-3 text-[#27AE60] hover:bg-green-50 rounded-xl transition-all" title="Concluir">
               <Check size={22} strokeWidth={3} />
             </button>

@@ -886,7 +886,8 @@ class AppointmentViewSet(TenantModelViewSet):
              return Response({"detail": "Sem permissão"}, status=403)
 
         appointment.payment_status = 'PAID'
-        appointment.status = 'confirmed' # Confirma agendamento automaticamente ao pagar
+        # Removemos o appointment.status = 'confirmed' para não alterar o status do agendamento, 
+        # apenas o status do pagamento.
         appointment.save()
         
         # Opcional: Criar transação financeira
@@ -896,11 +897,13 @@ class AppointmentViewSet(TenantModelViewSet):
             category='service',
             amount=sum([s.price for s in appointment.services.all()]),
             type='income',
-            description=f"Pagamento Pix - {appointment.client_name}",
+            description=f"Pagamento Confirmado - {appointment.client_name}",
             date=timezone.now()
         )
 
-        return Response({"status": "PAID", "message": "Pagamento confirmado com sucesso!"})
+        # Retorna o agendamento atualizado para o frontend
+        serializer = self.get_serializer(appointment)
+        return Response(serializer.data)
 
 class AvailabilityViewSet(TenantModelViewSet):
     """ViewSet para disponibilidade semanal per-barbershop"""
