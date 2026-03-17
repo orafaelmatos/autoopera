@@ -534,6 +534,7 @@ const App: React.FC = () => {
             <ProtectedRoute allowedRoles={['barber']}>
               <CalendarPage 
                 barberId={user?.profile_id?.toString()}
+                barberName={user?.name || user?.full_name}
                 availability={availability} 
                 setAvailability={setAvailability} 
                 services={services} 

@@ -33,6 +33,7 @@ interface Props {
   setAppointments: (a: Appointment[]) => void;
   exceptions: ScheduleException[];
   setExceptions: (e: ScheduleException[]) => void;
+  barberName?: string;
 }
 
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -43,8 +44,9 @@ const AppointmentCard: React.FC<{
   onComplete: (id: string) => void, 
   onCancel: (id: string) => void,
   onConfirmPayment: (id: string) => void,
-  getStatusLabel: (s: string) => string
-}> = ({ apt, services, onComplete, onCancel, onConfirmPayment, getStatusLabel }) => {
+  getStatusLabel: (s: string) => string,
+  barberName?: string
+}> = ({ apt, services, onComplete, onCancel, onConfirmPayment, getStatusLabel, barberName }) => {
   const x = useMotionValue(0);
 
   const handleWhatsAppReminder = () => {
@@ -52,7 +54,7 @@ const AppointmentCard: React.FC<{
     const dateStr = dateObj.toLocaleDateString('pt-BR');
     const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     
-    const message = `Olá ${apt.clientName}!\n\nEste é um lembrete do seu horário na barbearia.\n\nData: ${dateStr}\nHorário: ${timeStr}\n\nQualquer imprevisto é só avisar.\nTe esperamos!`;
+    const message = `Olá ${apt.clientName}!\n\nEste é um lembrete do seu horário com ${barberName || 'seu barbeiro'}.\n\nData: ${dateStr}\nHorário: ${timeStr}\n\nQualquer imprevisto é só avisar.\nTe esperamos!`;
     
     const rawPhone = apt.clientPhone || '';
     const cleanPhone = rawPhone.replace(/\D/g, '');
@@ -170,7 +172,8 @@ const CalendarView: React.FC<Props> = ({
   appointments, 
   setAppointments,
   exceptions,
-  setExceptions
+  setExceptions,
+  barberName
 }) => {
   const [isAddingException, setIsAddingNew] = useState(false);
   const [isAddingAppointment, setIsAddingAppointment] = useState(false);
@@ -355,6 +358,7 @@ const handleCompleteAppointment = async (id: string) => {
             onCancel={handleCancelAppointment}
             onConfirmPayment={handleConfirmPayment}
             getStatusLabel={getStatusLabel}
+            barberName={barberName}
           />
         ))}
         
