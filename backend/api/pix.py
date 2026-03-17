@@ -43,11 +43,12 @@ class PixGenerator:
         return f"{id}{size}{value}"
 
     def generate_payload(self):
-        # 00: Payload Format Indicator (Fixed "01")
+        # 00: Payload Format Indicator (Fixo "01")
         payload = self._format_field("00", "01")
         
         # 01: Point of Initiation Method (11 = Estático, 12 = Dinâmico)
-        payload += self._format_field("01", "12")
+        # Bancos como Nubank/Itaú preferem 11 para chaves estáticas com valor.
+        payload += self._format_field("01", "11")
         
         # 26: Merchant Account Information
         gui = self._format_field("00", "br.gov.bcb.pix")
@@ -55,32 +56,33 @@ class PixGenerator:
         merchant_account = self._format_field("26", gui + key)
         payload += merchant_account
         
-        # 52: Merchant Category Code (Fixed "0000")
+        # 52: Merchant Category Code (Fixo "0000")
         payload += self._format_field("52", "0000")
         
-        # 53: Transaction Currency (Fixed "986" for BRL)
+        # 53: Transaction Currency (986 = Real Brasileiro)
         payload += self._format_field("53", "986")
         
         # 54: Transaction Amount
         payload += self._format_field("54", self.amount)
         
-        # 58: Country Code (Fixed "BR")
+        # 58: Country Code (BR)
         payload += self._format_field("58", "BR")
         
-        # 59: Merchant Name
+        # 59: Merchant Name (Máximo 25 caracteres)
         merchant_name = self.name if self.name else "BARBEARIA"
         payload += self._format_field("59", merchant_name[:25])
         
-        # 60: Merchant City
+        # 60: Merchant City (Máximo 15 caracteres)
         merchant_city = self.city if self.city else "CIDADE"
         payload += self._format_field("60", merchant_city[:15])
         
         # 62: Additional Data Field Template
-        # 05: Reference Label (Transaction ID)
-        ref = self._format_field("05", self.reference_label[:25])
+        # IMPORTANTE: No modo estático (11), o ID de transação deve ser curto ou "000"
+        txid = self.reference_label[:25] if self.reference_label else "000"
+        ref = self._format_field("05", txid)
         payload += self._format_field("62", ref)
         
-        # 63: CRC16 (To be calculated and appended)
+        # 63: CRC16
         payload += "6304"
         payload += self._crc16(payload)
         
