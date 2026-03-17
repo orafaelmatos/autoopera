@@ -184,8 +184,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+from pathlib import Path
+BASE_DIR_BACKEND = Path(__file__).resolve().parent.parent
+
 STATIC_URL = '/static/'
-STATIC_ROOT = "/app/backend_static"
+STATIC_ROOT = os.environ.get('STATIC_ROOT', str(BASE_DIR_BACKEND / "backend_static"))
 
 STORAGES = {
     "default": {
@@ -200,7 +203,7 @@ WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = "/app/media"
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', str(BASE_DIR_BACKEND / "media"))
 
 # Garantir que o Django não anexe o host local nas URLs das imagens
 # Isso força o DRF a usar caminhos relativos na rede local
