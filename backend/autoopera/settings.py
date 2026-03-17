@@ -38,7 +38,9 @@ CSRF_TRUSTED_ORIGINS = [
 # Configurações de HTTPS para produção
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
+    # O Easypanel/Nginx já cuida do redirecionamento para HTTPS
+    # Deixe False para evitar loop "Redirected too many times"
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
