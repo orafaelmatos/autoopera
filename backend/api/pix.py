@@ -31,14 +31,15 @@ class PixGenerator:
 
     def _normalize_reference(self, ref):
         if not ref:
-            return "***"
+            return "PAGA01"
         # Referência Pix não pode ter espaços ou caracteres especiais
         ref = "".join(c for c in unicodedata.normalize('NFD', ref) if unicodedata.category(c) != 'Mn')
         ref = re.sub(r'[^a-zA-Z0-9]', '', ref)
-        return ref[:25] or "***"
+        # O ID da transação (62-05) deve ser curto e opcionalmente diferente de ***
+        return ref[:25] or "PAGA01"
 
     def _format_field(self, id, value):
-        size = str(len(value)).zfill(2)
+        size = str(len(str(value))).zfill(2)
         return f"{id}{size}{value}"
 
     def generate_payload(self):
@@ -46,8 +47,7 @@ class PixGenerator:
         payload = self._format_field("00", "01")
         
         # 01: Point of Initiation Method (11 = Estático, 12 = Dinâmico)
-        # Usamos 12 pois o valor e o ID são específicos para esta transação
-        payload += self._format_field("01", "11")
+        payload += self._format_field("01", "12")
         
         # 26: Merchant Account Information
         gui = self._format_field("00", "br.gov.bcb.pix")
@@ -68,10 +68,12 @@ class PixGenerator:
         payload += self._format_field("58", "BR")
         
         # 59: Merchant Name
-        payload += self._format_field("59", self.name[:25])
+        merchant_name = self.name if self.name else "BARBEARIA"
+        payload += self._format_field("59", merchant_name[:25])
         
         # 60: Merchant City
-        payload += self._format_field("60", self.city[:15])
+        merchant_city = self.city if self.city else "CIDADE"
+        payload += self._format_field("60", merchant_city[:15])
         
         # 62: Additional Data Field Template
         # 05: Reference Label (Transaction ID)
