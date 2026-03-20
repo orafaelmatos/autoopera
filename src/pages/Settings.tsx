@@ -6,11 +6,11 @@ import {
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
   Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
-  X, QrCode, Smartphone, MessageCircle, Loader2
+  X, QrCode, Smartphone, MessageCircle, Loader2, Scissors, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Availability, ScheduleException, Barbershop, DailyAvailability } from '../types';
-import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi, dailyAvailabilityApi } from '../api';
+import { Availability, ScheduleException, Barbershop, DailyAvailability, Service } from '../types';
+import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi, dailyAvailabilityApi, appointmentsApi, servicesApi } from '../api';
 import { useAuth } from '../AuthContext';
 import { compressImage } from '../utils/image';
 import toast from 'react-hot-toast';
@@ -45,7 +45,9 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   // Daily availability (per-date shifts)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
   const [dailyShifts, setDailyShifts] = useState<Array<{startTime:string,endTime:string,isActive:boolean,id?:string}>>([]);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const logoInputRef = React.useRef<HTMLInputElement>(null);
@@ -99,6 +101,34 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     startTime: '08:00',
     endTime: '19:00'
   });
+
+  const [showSlots, setShowSlots] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    servicesApi.getAll().then(setServices).catch(console.error);
+  }, []);
+
+  const loadAvailableSlots = async () => {
+    if (!user?.profile_id || services.length === 0) return;
+    setLoadingSlots(true);
+    try {
+      // Usamos o primeiro serviço ativo para ver a disponibilidade geral de slots
+      const serviceId = services.find(s => s.is_active)?.id || services[0].id;
+      const slots = await appointmentsApi.getAvailableSlots(
+        String(user.profile_id), 
+        String(serviceId), 
+        selectedDate
+      );
+      setAvailableSlots(slots);
+      setShowSlots(true);
+    } catch (err) {
+      console.error("Erro ao carregar horários livres:", err);
+      toast.error("Erro ao buscar horários livres.");
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
 
   // Calendar states for month overview
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
@@ -807,6 +837,54 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             {new Date(selectedDate + "T00:00:00").toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
                           </h4>
                           <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Configuração de Turnos Pontuais</p>
+                          
+                          <div className="mt-8 flex flex-col gap-4">
+                            <button 
+                              onClick={loadAvailableSlots}
+                              disabled={loadingSlots}
+                              className="w-full flex items-center justify-center gap-3 py-4 bg-cta/10 text-cta border border-cta/20 rounded-2xl hover:bg-cta/20 transition-all active:scale-[0.98] group"
+                            >
+                              {loadingSlots ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Eye size={16} className="group-hover:scale-110 transition-transform" />
+                              )}
+                              <span className="text-[10px] font-black italic uppercase tracking-widest font-title">Ver Horários Livres</span>
+                            </button>
+
+                            <AnimatePresence>
+                              {showSlots && (
+                                <motion.div 
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="bg-primary/5 rounded-[32px] p-6 border border-primary/10">
+                                    <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto custom-scrollbar-hidden">
+                                      {availableSlots.length > 0 ? (
+                                        availableSlots.map(slot => (
+                                          <div key={slot} className="px-4 py-2 bg-white border border-primary/5 rounded-xl shadow-sm">
+                                            <span className="text-[11px] font-black italic text-primary font-title">{slot}</span>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest p-4">
+                                          Nenhum horário disponível para esta data.
+                                        </p>
+                                      )}
+                                    </div>
+                                    <button 
+                                      onClick={() => setShowSlots(false)}
+                                      className="w-full mt-4 text-[8px] font-black italic text-primary/20 uppercase tracking-widest hover:text-primary/40 transition-colors"
+                                    >
+                                      Ocultar Horários
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         <div className="space-y-4 max-h-[40vh] overflow-y-auto custom-scrollbar-hidden pr-2 mb-12">
