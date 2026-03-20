@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { appointmentsApi, scheduleExceptionsApi, transactionsApi, dailyAvailabilityApi } from '../api';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -99,8 +100,8 @@ const AppointmentCard: React.FC<{
       >
         {/* Horário e Dia */}
         <div className={`flex flex-col items-center justify-center min-w-[70px] sm:min-w-[90px] h-[70px] sm:h-[90px] rounded-3xl border transition-colors ${isPaid ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/5'}`}>
-          <span className={`text-[10px] font-black uppercase font-title tracking-wider mb-1 ${isPaid ? 'text-green-600/60' : 'text-primary/40'}`}>
-            {new Date(apt.date).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')}
+          <span className={`text-[10px] sm:text-[11px] font-black uppercase font-title tracking-wider mb-1 ${isPaid ? 'text-green-600/60' : 'text-primary/40'}`}>
+            {format(new Date(apt.date), 'dd/MM')}
           </span>
           <span className={`text-xl sm:text-2xl font-black italic leading-none font-title ${isPaid ? 'text-green-600' : 'text-primary'}`}>
             {new Date(apt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
