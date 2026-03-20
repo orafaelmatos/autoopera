@@ -275,12 +275,15 @@ const CustomerBooking: React.FC = () => {
                     </div>
                 </motion.div>
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-                    <h2 className="text-4xl font-black text-text mb-2 tracking-tighter uppercase font-title">Confirmado!</h2>
+                    <h2 className="text-4xl font-black text-text mb-2 tracking-tighter uppercase font-title leading-tight">Agendamento Realizado!</h2>
                     <p className="text-text/60 mb-8 max-w-[280px] mx-auto italic">
-                        Seu agendamento com o profissional <strong>{selectedBarber?.name}</strong> foi realizado com sucesso.
+                        Pronto! Seu horário com <strong>{selectedBarber?.name}</strong> está garantido. Você pode pagar agora ou no dia do atendimento.
                     </p>
                     
-                    <div className="bg-white p-8 rounded-[40px] shadow-[0_24px_48px_-12px_rgba(15,76,92,0.12)] border border-border mb-10 text-left space-y-4 max-w-sm mx-auto">
+                    <div className="bg-white p-8 rounded-[40px] shadow-[0_24px_48px_-12px_rgba(15,76,92,0.12)] border border-border mb-10 text-left space-y-4 max-w-sm mx-auto relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-green-500 text-white text-[8px] font-black uppercase px-4 py-1 rotate-45 translate-x-4 translate-y-2 shadow-sm">
+                            Confirmado
+                        </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black uppercase text-text/30 tracking-widest">Data</span>
                             <span className="text-text font-black font-title italic">{format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}</span>
@@ -302,10 +305,10 @@ const CustomerBooking: React.FC = () => {
                     </div>
 
                     {pixInfo && (
-                        <div className="mb-10 bg-primary/5 border-2 border-dashed border-primary/20 rounded-[40px] p-8 max-w-sm mx-auto">
-                            <h3 className="text-xl font-black text-primary mb-4 tracking-tighter uppercase font-title italic">Pagamento Antecipado</h3>
+                        <div className="mb-10 bg-primary/5 border-2 border-dashed border-primary/20 rounded-[40px] p-8 max-w-sm mx-auto shadow-inner">
+                            <h3 className="text-xl font-black text-primary mb-4 tracking-tighter uppercase font-title italic">Pagar agora via Pix?</h3>
                             <p className="text-primary/60 text-[10px] uppercase font-black tracking-widest leading-relaxed mb-6">
-                                Utilize o QR Code abaixo ou a chave copia e cola para confirmar seu agendamento via Pix.
+                                Se preferir, você já pode realizar o pagamento antecipado utilizando o QR Code abaixo.
                             </p>
                             
                             <div className="bg-white p-4 rounded-3xl shadow-xl mb-6 flex justify-center overflow-hidden">
