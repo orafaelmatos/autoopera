@@ -714,6 +714,25 @@ class AppointmentViewSet(TenantModelViewSet):
     filterset_fields = ['status', 'platform', 'date']
     ordering_fields = ['date', 'created_at']
 
+    def get_queryset(self):
+        """
+        Retorna agendamentos filtrados:
+        - Se for barbeiro/administrador: vê todos da barbearia (já feito pelo TenantModelViewSet)
+        - Se for cliente logado: vê apenas os SEUS agendamentos
+        """
+        queryset = super().get_queryset()
+        
+        # Se o usuário logado tiver um perfil de cliente e NÃO for um barbeiro/staff
+        # vamos restringir a visualização apenas aos seus próprios agendamentos.
+        if hasattr(self.request.user, 'customer_profile') and not self.request.user.is_staff:
+            # Se ele tiver perfil de barbeiro também, talvez queira ver a agenda, 
+            # mas o fluxo de "Cliente" geralmente usa a CustomerBooking.
+            # Vamos assumir que se ele está acessando como cliente, filtramos.
+            queryset = queryset.filter(customer=self.request.user.customer_profile)
+            
+        # Ordenar por data decrescente (mais recentes primeiro)
+        return queryset.order_by('-date')
+
     def create(self, request, *args, **kwargs):
         barbershop = request.barbershop
         barber_id = request.data.get('barberId')
@@ -737,6 +756,14 @@ class AppointmentViewSet(TenantModelViewSet):
         customer_id = request.data.get('customer')
         client_name = request.data.get('clientName')
         client_phone = request.data.get('clientPhone')
+
+        # Se for um cliente autenticado sem customer_id no corpo da requisição, 
+        # tenta usar o perfil dele automaticamente.
+        if not customer_id and hasattr(request.user, 'customer_profile'):
+            customer_id = request.user.customer_profile.id
+            if not client_name:
+                client_name = request.user.customer_profile.name
+
         date_str = request.data.get('date')
         platform = request.data.get('platform', 'manual')
         is_override = request.data.get('isOverride', False)
@@ -913,38 +940,48 @@ class AvailabilityViewSet(TenantModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['day_of_week']
 
+    def get_queryset(self):
+        """Sobrescreve para garantir que o barbeiro veja apenas SUAS disponibilidades"""
+        user = self.request.user
+        barber = getattr(user, 'barber_profile', None)
+        if not barber:
+            from .models import Barber
+            barber = Barber.objects.filter(user=user).first()
+        
+        if not barber:
+            return Availability.objects.none()
+            
+        return Availability.objects.filter(barber=barber)
+
     @action(detail=False, methods=['post'])
     def sync(self, request, *args, **kwargs):
         """Sincroniza todas as disponibilidades do barbeiro logado"""
-        barber = getattr(request.user, 'barber_profile', None)
+        user = request.user
+        barber = getattr(user, 'barber_profile', None)
+        
+        # Fallback: se não encontrar via related name, busca manualmente
         if not barber:
-            return Response({"error": "NOT_A_BARBER", "message": "Usuário não possui perfil de barbeiro."}, status=status.HTTP_403_FORBIDDEN)
+            from .models import Barber
+            barber = Barber.objects.filter(user=user).first()
 
-        data = request.data  # Lista de novos horários
-        # Debug print for docker stdout (helps when logging config isn't picked up)
+        if not barber:
+            return Response({"error": "NOT_A_BARBER", "message": f"Usuário {user.id} não possui perfil de barbeiro."}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        from django.db import transaction
         try:
-            print("[availability.sync] incoming payload:", data)
-        except Exception:
-            logging.info("[availability.sync] could not print payload")
-
-        if not isinstance(data, list):
-            return Response({"error": "INVALID_PAYLOAD", "message": "Payload deve ser uma lista de disponibilidades."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Remove horários atuais
-        Availability.objects.filter(barber=barber).delete()
-
-        # Cria novos
-        created = []
-        try:
-            for idx, item in enumerate(data):
-                serializer = self.get_serializer(data=item)
-                try:
+            with transaction.atomic():
+                # Forçamos a limpeza baseada no barbeiro identificado
+                deleted_count, _ = Availability.objects.filter(barber=barber).delete()
+                
+                created = []
+                for idx, item in enumerate(data):
+                    serializer = self.get_serializer(data=item)
                     serializer.is_valid(raise_exception=True)
-                    # garante associação com barbershop também
                     serializer.save(barber=barber, barbershop=barber.barbershop)
                     created.append(serializer.data)
-                except DRFValidationError as e:
-                    return Response({"error": "VALIDATION_ERROR", "index": idx, "details": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response(created, status=status.HTTP_201_CREATED)
         except Exception as e:
             tb = traceback.format_exc()
             logging.error("Erro inesperado na sincronização de disponibilidades: %s", tb)

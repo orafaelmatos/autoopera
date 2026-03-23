@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
   Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
-  X, QrCode, Smartphone, MessageCircle, Loader2, Scissors, Eye
+  X, QrCode, Smartphone, MessageCircle, Loader2, Scissors, Eye, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Availability, ScheduleException, Barbershop, DailyAvailability, Service } from '../types';
@@ -230,83 +230,124 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     }
   };
 
-  const toggleDay = (dayIdx: number) => {
+  const toggleDay = async (dayIdx: number) => {
+    let newAv;
     const dayIntervals = availability.filter(a => a.dayOfWeek === dayIdx);
     if (dayIntervals.length > 0) {
-      // Se já tem intervalos, remove todos (desativa o dia)
-      setAvailability(availability.filter(a => a.dayOfWeek !== dayIdx));
+      newAv = availability.filter(a => a.dayOfWeek !== dayIdx);
     } else {
-      // Se não tem nada, adiciona um intervalo padrão
-      setAvailability([...availability, {
+      newAv = [...availability, {
         dayOfWeek: dayIdx,
         startTime: '09:00',
         endTime: '18:00',
         isActive: true
-      } as any]);
+      } as any];
     }
+    setAvailability(newAv);
+    await syncAvailability(newAv);
   };
 
-  const addInterval = (dayIdx: number) => {
-    setAvailability([...availability, {
+  const addInterval = async (dayIdx: number) => {
+    const newAv = [...availability, {
       dayOfWeek: dayIdx,
       startTime: '08:00',
-      endTime: '12:00',
+      endTime: '20:00',
       isActive: true
-    } as any]);
+    } as any];
+    setAvailability(newAv);
+    await syncAvailability(newAv);
   };
 
-  const removeInterval = (index: number) => {
+  const removeInterval = async (index: number) => {
     const newAv = [...availability];
     newAv.splice(index, 1);
     setAvailability(newAv);
+    await syncAvailability(newAv);
   };
 
-  const updateIntervalTime = (index: number, field: 'startTime' | 'endTime', value: string) => {
+  const updateIntervalTime = async (index: number, field: 'startTime' | 'endTime', value: string) => {
     const newAv = [...availability];
     (newAv[index] as any)[field] = value;
     setAvailability(newAv);
+    await syncAvailability(newAv);
+  };
+
+  const syncAvailability = async (data: Availability[]) => {
+    try {
+      const synced = await availabilityApi.sync(data);
+      setAvailability(synced);
+      // Opcional: toast silencioso ou sutil
+    } catch (error) {
+      console.error("Erro ao sincronizar disponibilidade:", error);
+      toast.error("Erro ao salvar alterações.");
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      if (!user) return;
+      const formData = new FormData();
+      formData.append('name', profileData.name);
+      formData.append('email', profileData.email);
+       if (profileData.whatsapp) {
+          formData.append('whatsapp', profileData.whatsapp);
+          formData.append('phone', profileData.whatsapp);
+      }
+      
+      const targetId = (user as any).profile_id || user.id;
+      console.log('DEBUG: Salvando perfil:', profileData);
+
+      await barbersApi.update(String(targetId), formData as any);
+      await refreshUser();
+      toast.success("Perfil atualizado!");
+    } catch (error) {
+      console.error("Erro ao salvar perfil:", error);
+      toast.error("Erro ao atualizar perfil.");
+    }
   };
 
   const handleSaveAvailability = async () => {
     try {
-      // Salvar informações da Barbearia
-      if (activeTab === 'shop') {
-        const formData = new FormData();
-        if (shopData.name) formData.append('name', shopData.name);
-        if (shopData.description) formData.append('description', shopData.description);
-        if (shopData.address) formData.append('address', shopData.address);
-        if (shopData.phone) formData.append('phone', shopData.phone);
-        if (shopData.pix_key) formData.append('pix_key', shopData.pix_key);
-        if (shopData.primary_color) formData.append('primary_color', shopData.primary_color);
-        
-        const updatedShop = await barbershopApi.update(formData);
-        setBarbershop(updatedShop);
-      } 
+      console.log('DEBUG: Salvando disponibilidade. Payload:', JSON.stringify(availability));
+      const synced = await availabilityApi.sync(availability);
+      console.log('DEBUG: Resposta do servidor (synced):', JSON.stringify(synced));
       
-      // Salvar informações do Perfil
-      if (activeTab === 'profile') {
-        if (user?.profile_id) {
-          const formData = new FormData();
-          formData.append('name', profileData.name);
-          formData.append('email', profileData.email);
-          formData.append('description', profileData.description);
-          formData.append('whatsapp', profileData.whatsapp);
-          await barbersApi.update(String(user.profile_id), formData as any);
-          await refreshUser();
-        }
-      }
-
-      // Sincronizar Horários (Apenas se estiver na aba de horários)
-      if (activeTab === 'schedule') {
-        const synced = await availabilityApi.sync(availability);
-        setAvailability(synced);
-      }
-
-      toast.success("Alterações salvas com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar:", error);
-      toast.error("Erro ao salvar alterações.");
+      setAvailability(synced);
+      window.dispatchEvent(new CustomEvent('availability-updated', { detail: synced }));
+      toast.success("Agenda salva com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao salvar agenda:", error);
+      const msg = error.response?.data?.message || error.response?.data?.error || 'Falha ao salvar agenda';
+      toast.error(`Erro: ${msg}`);
     }
+  };
+
+  const handleSaveShopData = async () => {
+    try {
+      console.log('DEBUG: Salvando dados da barbearia:', shopData);
+      // Salvar informações da Barbearia
+      const formData = new FormData();
+      if (shopData.name) formData.append('name', shopData.name);
+      if (shopData.description) formData.append('description', shopData.description);
+      if (shopData.address) formData.append('address', shopData.address);
+      if (shopData.phone) formData.append('phone', shopData.phone);
+      if (shopData.pix_key) formData.append('pix_key', shopData.pix_key);
+      if (shopData.primary_color) formData.append('primary_color', shopData.primary_color);
+      
+      const updatedShop = await barbershopApi.update(formData);
+      setBarbershop(updatedShop);
+      toast.success("Perfil atualizado!");
+    } catch (error: any) {
+      console.error("Erro ao salvar shop data:", error);
+      const msg = error.response?.data?.message || 'Erro ao atualizar perfil.';
+      toast.error(msg);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    if (activeTab === 'shop') await handleSaveShopData();
+    else if (activeTab === 'schedule') await handleSaveAvailability();
+    else if (activeTab === 'profile') await handleSaveProfile();
   };
 
   const handleFileChange = async (type: 'logo' | 'profile', e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,27 +411,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   };
 
   return (
-    <div className="space-y-4 sm:space-y-12 animate-fadeIn max-w-[1400px] mx-auto pb-10 sm:pb-32 px-1 sm:px-0">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 px-1 sm:px-4">
-        <div>
-          <h2 className="text-2xl sm:text-5xl font-black italic uppercase tracking-tighter text-primary font-title mb-1 sm:mb-2">
-            Configurações <span className="text-cta">Gerais</span>
-          </h2>
-          <div className="flex items-center gap-2 sm:gap-3">
-             <div className="h-[2px] w-8 sm:w-12 bg-cta/30 rounded-full" />
-             <p className="text-primary/60 font-black italic text-[10px] sm:text-sm uppercase tracking-widest font-title">Gestão de Identidade & Fluxo</p>
-          </div>
-        </div>
-        <button 
-          onClick={handleSaveAvailability}
-          disabled={uploadingLogo || uploadingProfile}
-          className="bg-primary text-white px-6 sm:px-10 py-4 sm:py-6 rounded-[20px] sm:rounded-[24px] text-[10px] sm:text-sm font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title group disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Save size={18} sm:size={20} strokeWidth={3} />
-          <span>Salvar Alterações</span>
-        </button>
-      </header>
-
+    <div className="space-y-4 sm:space-y-12 animate-fadeIn max-w-[1400px] mx-auto pb-10 sm:pb-32 px-2 sm:px-0">
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-12 px-1 sm:px-4">
         
         {/* Lado Esquerdo - Configurações Principais */}
@@ -531,15 +552,14 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                         </div>
                     </div>
 
-                    <div>
-                        <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-4 ml-6 block tracking-[0.2em]">Manifesto / Descrição do Estabelecimento</label>
-                        <textarea 
-                            value={shopData.description || ''}
-                            onChange={e => setShopData({...shopData, description: e.target.value})}
-                            placeholder="Descreva a experiência premium que sua barbearia entrega aos clientes."
-                            rows={4}
-                            className="w-full bg-background border-2 border-transparent rounded-[32px] px-8 py-6 text-primary font-black italic uppercase text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 resize-none min-h-[120px]"
-                        />
+                    <div className="flex justify-end pr-4">
+                        <button 
+                            onClick={handleSaveAvailability}
+                            className="bg-primary text-white px-10 py-5 rounded-[24px] text-xs font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title"
+                        >
+                            <Save size={20} strokeWidth={3} />
+                            <span>Salvar Informações da Barbearia</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -611,30 +631,55 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">E-mail de Acesso</label>
-                            <div className="relative group">
-                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                                <input 
-                                    type="email"
-                                    value={profileData.email}
-                                    onChange={e => setProfileData({...profileData, email: e.target.value})}
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
-                                />
+
+                        <div className="flex justify-end pt-6">
+                            <button 
+                                onClick={handleSaveProfile}
+                                className="bg-primary text-white px-10 py-5 rounded-[24px] text-xs font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title"
+                            >
+                                <Save size={20} strokeWidth={3} />
+                                <span>Salvar Perfil</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-4 sm:p-16 space-y-6 sm:space-y-12 border-t border-primary/5">
+                        <h4 className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-6 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Dados da Barbearia</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10">
+                            <div>
+                                <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Nome da Barbearia</label>
+                                <div className="relative group">
+                                    <Building2 className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
+                                    <input 
+                                        type="text" 
+                                        value={shopData.name}
+                                        onChange={e => setShopData({...shopData, name: e.target.value})}
+                                        className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Chave PIX</label>
+                                <div className="relative group">
+                                    <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
+                                    <input 
+                                        type="text" 
+                                        value={shopData.pix_key}
+                                        onChange={e => setShopData({...shopData, pix_key: e.target.value})}
+                                        className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div className="md:col-span-2">
-                            <label className="text-[10px] sm:text-xs font-black italic text-primary/30 uppercase mb-2 sm:mb-4 ml-4 sm:ml-6 block tracking-[0.2em] font-title">Seu WhatsApp (Somente Números)</label>
-                            <div className="relative group">
-                                <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/20 group-focus-within:text-cta transition-colors sm:size-[20px]" size={18} strokeWidth={2.5} />
-                                <input 
-                                    type="text"
-                                    value={profileData.whatsapp}
-                                    onChange={e => setProfileData({...profileData, whatsapp: e.target.value})}
-                                    placeholder="5511999999999"
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl sm:rounded-[28px] pl-16 pr-6 py-4 sm:py-5 text-primary font-black italic uppercase text-xs sm:text-sm focus:border-cta/20 focus:bg-white outline-none transition-all placeholder:text-primary/10 font-title"
-                                />
-                            </div>
+
+                        <div className="flex justify-end pr-4">
+                            <button 
+                                onClick={handleSaveShopData}
+                                className="bg-primary text-white px-10 py-5 rounded-[24px] text-xs font-black italic uppercase tracking-wider flex items-center justify-center gap-3 hover:bg-primary/90 transition-all shadow-xl active:scale-95 font-title"
+                            >
+                                <Save size={20} strokeWidth={3} />
+                                <span>Salvar Informações da Barbearia</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -645,31 +690,38 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
                animate={{ opacity: 1, y: 0 }}
-               className="space-y-4 sm:space-y-12"
+               className="space-y-6 sm:space-y-12"
             >
               {/* Jornada Semanal Profissional */}
               <section className="bg-white border border-primary/5 rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-[0_32px_64px_-16px_rgba(15,76,92,0.08)]">
-                <div className="p-4 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] to-transparent flex items-center gap-4 sm:gap-6">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <Clock size={20} className="sm:size-[28px]" strokeWidth={2.5} />
-                    </div>
-                    <div>
-                        <h3 className="text-lg sm:text-3xl font-black italic uppercase text-primary font-title tracking-tight leading-none mb-1">Jornada Semanal</h3>
-                        <p className="text-[8px] sm:text-[10px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Seus turnos recorrentes</p>
+                <div className="p-6 sm:p-12 border-b border-primary/5 bg-gradient-to-br from-primary/[0.02] via-transparent to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20 shrink-0 rotate-3">
+                            <Clock size={24} className="sm:size-[32px]" strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl sm:text-4xl font-black italic uppercase text-primary font-title tracking-tighter leading-none mb-2">
+                                Horários de <span className="text-cta">Fluxo</span>
+                            </h3>
+                            <div className="flex items-center gap-2">
+                                <div className="h-1 w-4 bg-cta/40 rounded-full" />
+                                <p className="text-[9px] sm:text-[11px] font-black italic text-primary/40 uppercase tracking-[0.2em] font-title">Gestão da Jornada Semanal</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div className="divide-y divide-primary/5">
+
+                <div className="p-6 sm:p-12 space-y-6 sm:space-y-4">
                   {DAYS.map((dayName, dayIdx) => {
                     const dayIntervalsIndices = availability
-                      .map((a, i) => (a.dayOfWeek === dayIdx ? i : -1))
-                      .filter(i => i !== -1);
+                      .map((a, idx) => (a.dayOfWeek === dayIdx ? idx : -1))
+                      .filter((idx) => idx !== -1);
                     const isActive = dayIntervalsIndices.length > 0;
 
                     return (
                       <div key={dayIdx} className="p-4 sm:px-12 flex flex-col md:flex-row md:items-center gap-4 sm:gap-8 group hover:bg-primary/[0.01] transition-colors">
                         <div className="w-full md:w-44 flex items-center justify-between md:block shrink-0">
-                          <span className="text-[10px] sm:text-sm font-black italic uppercase text-primary tracking-widest block font-title">{dayName}</span>
+                          <span className="text-[11px] sm:text-sm font-black italic uppercase text-primary tracking-widest block font-title">{dayName}</span>
                           <div className="mt-1 sm:mt-2">
                              <label className="relative inline-flex items-center cursor-pointer">
                                 <input 
@@ -679,7 +731,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                     className="sr-only peer" 
                                 />
                                 <div className="w-10 h-5 sm:w-12 sm:h-6 bg-primary/10 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-3 sm:after:h-4 after:w-3 sm:after:w-4 after:transition-all peer-checked:after:translate-x-5 sm:peer-checked:after:translate-x-6"></div>
-                                <span className="ml-3 text-[8px] sm:text-[10px] font-black italic text-primary/40 uppercase tracking-widest peer-checked:text-primary transition-colors">
+                                <span className="ml-2 sm:ml-3 text-[8px] sm:text-[10px] font-black italic text-primary/40 uppercase tracking-widest peer-checked:text-primary transition-colors">
                                     {isActive ? 'Ativo' : 'Folga'}
                                 </span>
                              </label>
@@ -691,44 +743,56 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                             layout
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex-1 flex flex-wrap gap-2 sm:gap-4"
+                            className="flex-1 grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-4"
                           >
                             {dayIntervalsIndices.map((globalIdx) => (
-                              <div key={globalIdx} className="flex items-center gap-2 sm:gap-3 bg-background border border-primary/5 rounded-xl sm:rounded-2xl px-3 sm:px-5 py-2 sm:py-3 shadow-sm group/shift">
-                                <div className="flex items-center gap-2">
+                              <div key={globalIdx} className="flex items-center justify-between gap-2 bg-background border border-primary/5 rounded-2xl px-3 py-3 shadow-sm group/shift w-full sm:w-auto">
+                                <div className="flex items-center gap-1.5 flex-1 justify-center sm:justify-start min-w-0">
                                   <input 
                                     type="time" 
                                     value={availability[globalIdx].startTime} 
-                                    onChange={(e) => updateIntervalTime(globalIdx, 'startTime', e.target.value)}
-                                    className="bg-transparent text-[10px] sm:text-sm font-black italic text-primary outline-none font-title w-12 sm:w-auto" 
+                                    onBlur={(e) => updateIntervalTime(globalIdx, 'startTime', e.target.value)}
+                                    onChange={(e) => {
+                                      const newAv = [...availability];
+                                      (newAv[globalIdx] as any).startTime = e.target.value;
+                                      setAvailability(newAv);
+                                    }}
+                                    className="bg-transparent text-[14px] sm:text-sm font-black italic text-primary outline-none font-title w-[4.5rem] sm:w-auto text-center sm:text-left shrink-0" 
                                   />
-                                  <span className="text-primary/20 text-[6px] sm:text-[10px] uppercase font-black italic">às</span>
+                                  <span className="text-primary/20 text-[8px] sm:text-[10px] uppercase font-black italic shrink-0">às</span>
                                   <input 
                                     type="time" 
                                     value={availability[globalIdx].endTime} 
-                                    onChange={(e) => updateIntervalTime(globalIdx, 'endTime', e.target.value)}
-                                    className="bg-transparent text-[10px] sm:text-sm font-black italic text-primary outline-none font-title w-12 sm:w-auto" 
+                                    onBlur={(e) => updateIntervalTime(globalIdx, 'endTime', e.target.value)}
+                                    onChange={(e) => {
+                                      const newAv = [...availability];
+                                      (newAv[globalIdx] as any).endTime = e.target.value;
+                                      setAvailability(newAv);
+                                    }}
+                                    className="bg-transparent text-[14px] sm:text-sm font-black italic text-primary outline-none font-title w-[4.5rem] sm:w-auto text-center sm:text-left shrink-0" 
                                   />
                                 </div>
                                 <button 
                                   onClick={() => removeInterval(globalIdx)}
-                                  className="p-1 sm:p-2 rounded-lg sm:rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover/shift:opacity-100"
+                                  className="p-2 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90 shrink-0"
                                 >
-                                  <Trash2 size={12} sm:size={16} strokeWidth={2.5} />
+                                  <Trash2 size={18} strokeWidth={2.5} />
                                 </button>
                               </div>
                             ))}
                             
                             <button 
                               onClick={() => addInterval(dayIdx)}
-                              className="h-8 sm:h-12 px-3 sm:px-6 rounded-xl sm:rounded-2xl border-2 border-dashed border-primary/10 text-[8px] sm:text-[10px] font-black italic uppercase tracking-widest text-primary/40 hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all flex items-center gap-2 font-title"
+                              className="h-14 sm:h-12 w-full sm:w-auto px-6 sm:px-8 rounded-2xl sm:rounded-2xl border-2 border-dashed border-cta/20 text-[11px] sm:text-[10px] font-black italic uppercase tracking-widest text-cta/60 hover:text-cta hover:border-cta/40 hover:bg-cta/5 transition-all flex items-center justify-center gap-3 font-title active:scale-95 group/btn"
                             >
-                              <Plus size={12} sm:size={14} strokeWidth={3} />
-                              Turno
+                              <div className="w-6 h-6 rounded-lg bg-cta/10 flex items-center justify-center text-cta group-hover/btn:scale-110 transition-transform">
+                                <Plus size={16} strokeWidth={3} />
+                              </div>
+                              <span>Adicionar Novo Turno</span>
                             </button>
                           </motion.div>
                         ) : (
-                          <div className="flex-1 flex items-center border-2 border-dashed border-primary/5 rounded-2xl sm:rounded-[32px] p-2 sm:p-8">
+                          <div className="flex-1 flex items-center border-2 border-dashed border-primary/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8">
                             <span className="text-[8px] sm:text-[10px] font-black italic text-primary/10 uppercase tracking-[0.4em] font-title">Dia de descanso</span>
                           </div>
                         )}
@@ -753,19 +817,19 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                 <div className="max-w-md mx-auto mb-6 sm:mb-16 px-2">
                   <div className="flex items-center justify-between bg-primary/[0.03] p-1.5 sm:p-3 rounded-2xl sm:rounded-[32px] border border-primary/5 shadow-inner">
                     <button 
-                        onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} 
+                        onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} 
                         className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronLeft size={18} sm:size={24} strokeWidth={3} />
+                        <ChevronLeft size={18} strokeWidth={3} />
                     </button>
                     <div className="text-[9px] sm:text-[14px] font-black italic uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary font-title">
                         {currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                     </div>
                     <button 
-                        onClick={() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} 
+                        onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} 
                         className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-[24px] bg-white text-primary hover:text-cta transition-all shadow-sm active:scale-90"
                     >
-                        <ChevronRight size={18} sm:size={24} strokeWidth={3} />
+                        <ChevronRight size={18} strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -780,7 +844,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                   {calendarMatrix(currentMonth).map((cell, idx) => (
                     <div 
                       key={idx} 
-                      className={`group relative h-12 sm:h-44 rounded-xl sm:rounded-full transition-all flex flex-col items-center justify-center border-2 ${
+                      className={`group relative h-10 sm:h-44 rounded-xl sm:rounded-full transition-all flex flex-col items-center justify-center border-2 ${
                         cell.isCurrentMonth 
                         ? 'bg-white border-primary/5 hover:border-cta/40 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1' 
                         : 'bg-transparent border-transparent opacity-0 pointer-events-none'
@@ -788,11 +852,11 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                       onClick={() => cell.isCurrentMonth && openDay(cell.date)}
                     >
                       <div className="flex flex-col items-center sm:gap-2">
-                        <span className={`text-sm sm:text-4xl font-black italic font-title leading-none transition-colors ${cell.isCurrentMonth ? 'text-primary' : 'text-primary/10'}`}>
+                        <span className={`text-[13px] sm:text-4xl font-black italic font-title leading-none transition-colors ${cell.isCurrentMonth ? 'text-primary' : 'text-primary/10'}`}>
                           {cell.day}
                         </span>
                         {availMap[cell.date] && availMap[cell.date].length > 0 && (
-                          <div className="w-1.5 h-1.5 sm:w-4 sm:h-4 rounded-full bg-cta shadow-[0_0_10px_rgba(230,126,34,0.6)] animate-pulse mt-1 sm:mt-0" />
+                          <div className="w-1.5 h-1.5 sm:w-4 sm:h-4 rounded-full bg-cta shadow-[0_0_10px_rgba(230,126,34,0.6)] animate-pulse mt-0.5 sm:mt-0" />
                         )}
                       </div>
                       
@@ -889,28 +953,31 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
 
                         <div className="space-y-4 max-h-[40vh] overflow-y-auto custom-scrollbar-hidden pr-2 mb-12">
                           {dailyShifts.map((s, idx) => (
-                            <div key={idx} className="flex flex-col sm:flex-row items-center gap-6 bg-background p-6 rounded-[32px] border border-primary/5 group relative">
-                              <div className="flex items-center gap-4 flex-1">
-                                <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
-                                <span className="text-primary/20 font-black italic text-[10px] uppercase">às</span>
-                                <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
+                            <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-background p-4 sm:p-6 rounded-[28px] sm:rounded-[32px] border border-primary/5 group relative">
+                              <div className="flex items-center gap-2 sm:gap-4 flex-1 w-full">
+                                <input type="time" value={s.startTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].startTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
+                                <span className="text-primary/20 font-black italic text-[9px] sm:text-[10px] uppercase">às</span>
+                                <input type="time" value={s.endTime} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].endTime = e.target.value; return n })} className="flex-1 bg-white border-2 border-transparent rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none font-title shadow-sm" />
                               </div>
-                              <div className="flex items-center gap-6 w-full sm:w-auto">
+                              <div className="flex items-center justify-between w-full sm:w-auto gap-4 sm:gap-6">
                                 <label className="flex items-center gap-3 cursor-pointer">
                                   <input type="checkbox" checked={s.isActive} onChange={e => setDailyShifts(ds => { const n = [...ds]; n[idx].isActive = e.target.checked; return n })} className="sr-only peer" />
-                                  <div className="w-12 h-6 bg-primary/10 rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6 relative"></div>
+                                  <div className="w-10 h-5 sm:w-12 sm:h-6 bg-primary/10 rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-3 sm:after:h-4 after:w-3 sm:after:w-4 after:transition-all peer-checked:after:translate-x-5 sm:peer-checked:after:translate-x-6 relative"></div>
+                                  <span className="text-[10px] font-black italic text-primary/40 uppercase tracking-widest sm:hidden">
+                                    {s.isActive ? 'Ativo' : 'Inativo'}
+                                  </span>
                                 </label>
-                                <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="w-12 h-12 flex items-center justify-center rounded-2xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"><Trash2 size={20} strokeWidth={2.5} /></button>
+                                <button onClick={() => setDailyShifts(ds => ds.filter((_, i) => i !== idx))} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-90"><Trash2 size={18} sm:size={20} strokeWidth={2.5} /></button>
                               </div>
                             </div>
                           ))}
 
                           <button 
                             onClick={() => setDailyShifts(ds => [...ds, { startTime: '09:00', endTime: '12:00', isActive: true }])} 
-                            className="w-full py-8 border-2 border-dashed border-primary/10 rounded-[32px] text-primary/30 flex items-center justify-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                            className="w-full py-6 sm:py-8 border-2 border-dashed border-primary/10 rounded-[28px] sm:rounded-[32px] text-primary/30 flex items-center justify-center gap-3 hover:border-primary/30 hover:bg-primary/5 transition-all active:scale-[0.98]"
                           >
-                            <Plus size={20} strokeWidth={3} />
-                            <span className="text-[10px] font-black italic uppercase tracking-[0.2em]">Adicionar Novo Bloco de Tempo</span>
+                            <Plus size={18} sm:size={20} strokeWidth={3} />
+                            <span className="text-[9px] sm:text-[10px] font-black italic uppercase tracking-[0.2em]">Adicionar Novo Bloco</span>
                           </button>
                         </div>
 

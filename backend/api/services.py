@@ -118,8 +118,17 @@ class BookingService:
                 for ex in exceptions_extended:
                     working_intervals.append({'start_time': ex.start_time, 'end_time': ex.end_time})
             else:
+                # O Django e nosso frontend usam 0=Domingo, 6=Sábado.
+                # target_date.weekday() do Python retorna 0=Segunda, 6=Domingo.
+                # Ajuste para converter Python Weekday para nosso formato (0=Domingo):
                 django_day = (target_date.weekday() + 1) % 7
-                availabilities = Availability.objects.filter(barber=barber, barbershop=barbershop, day_of_week=django_day, is_active=True)
+                
+                availabilities = Availability.objects.filter(
+                    barber=barber, 
+                    barbershop=barbershop, 
+                    day_of_week=django_day, 
+                    is_active=True
+                )
                 for av in availabilities:
                     working_intervals.append({'start_time': av.start_time, 'end_time': av.end_time})
 

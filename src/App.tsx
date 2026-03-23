@@ -26,15 +26,6 @@ import {
   Download
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
-
-// Scroll to top on route change
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-};
 import { Service, Appointment, Availability, Customer, Transaction, Product, ScheduleException, Barbershop } from './types';
 import { 
   servicesApi, 
@@ -63,6 +54,63 @@ import BarberRegister from './pages/BarberRegister';
 import LandingPage from './pages/LandingPage';
 import Onboarding from './components/Onboarding';
 import InstallPrompt from './components/InstallPrompt';
+
+// Scroll to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: string[] }> = ({ children, allowedRoles }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const { slug } = useParams<{ slug?: string }>();
+
+  if (isLoading) {
+    return (
+      <div key="protected-loading" className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/20 border-t-cta rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Se não estiver logado, manda pro login preservando o slug se existir
+  if (!user) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (token) {
+       // Possível delay no checkAuth, esperamos mais um pouco
+       return (
+        <div key="protected-waiting-auth" className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/20 border-t-cta rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+    const loginPath = slug ? `/b/${slug}/login` : '/login';
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
+  }
+
+  // Se estiver logado mas o papel não for permitido
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    const targetSlug = slug || user?.barbershop_slug || localStorage.getItem('last_barbershop_slug') || 'default';
+    // Se for cliente e tentar acessar area de barbeiro, manda pro booking
+    if (user.role === 'customer') {
+      return <Navigate to={`/b/${targetSlug}/booking`} replace />;
+    }
+    // Se for barbeiro e cair aqui, vai pro dashboard
+    return <Navigate to={`/b/${targetSlug}`} replace />;
+  }
+
+  // Forçar o slug na URL para Clientes se estiverem na raiz ou sem slug
+  if (user.role === 'customer' && !slug) {
+    const targetSlug = user?.barbershop_slug || localStorage.getItem('last_barbershop_slug') || 'default';
+    return <Navigate to={`/b/${targetSlug}/booking`} replace />;
+  }
+
+  return <React.Fragment key="protected-content">{children}</React.Fragment>;
+};
 
 const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, badge?: string, id?: string }> = ({ active, onClick, icon, label, badge, id }) => (
   <button 
@@ -146,54 +194,6 @@ const MobileMenuRow: React.FC<{ active: boolean, onClick: () => void, icon: Reac
   </button>
 );
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: string[] }> = ({ children, allowedRoles }) => {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
-  const { slug } = useParams<{ slug?: string }>();
-
-  if (isLoading) {
-    return (
-      <div key="protected-loading" className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/20 border-t-cta rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Se não estiver logado, manda pro login preservando o slug se existir
-  if (!user) {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
-       // Possível delay no checkAuth, esperamos mais um pouco
-       return (
-        <div key="protected-waiting-auth" className="min-h-screen bg-background flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-primary/20 border-t-cta rounded-full animate-spin"></div>
-        </div>
-      );
-    }
-    const loginPath = slug ? `/b/${slug}/login` : '/login';
-    return <Navigate to={loginPath} state={{ from: location }} replace />;
-  }
-
-  // Se estiver logado mas o papel não for permitido
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    const targetSlug = slug || user?.barbershop_slug || localStorage.getItem('last_barbershop_slug') || 'default';
-    // Se for cliente e tentar acessar area de barbeiro, manda pro booking
-    if (user.role === 'customer') {
-      return <Navigate to={`/b/${targetSlug}/booking`} replace />;
-    }
-    // Se for barbeiro e cair aqui, vai pro dashboard
-    return <Navigate to={`/b/${targetSlug}`} replace />;
-  }
-
-  // Forçar o slug na URL para Clientes se estiverem na raiz ou sem slug
-  if (user.role === 'customer' && !slug) {
-    const targetSlug = user?.barbershop_slug || localStorage.getItem('last_barbershop_slug') || 'default';
-    return <Navigate to={`/b/${targetSlug}/booking`} replace />;
-  }
-
-  return <React.Fragment key="protected-content">{children}</React.Fragment>;
-};
-
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -223,8 +223,16 @@ const App: React.FC = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   React.useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail) setAvailability(e.detail);
+    };
+    window.addEventListener('availability-updated', handleUpdate);
+    return () => window.removeEventListener('availability-updated', handleUpdate);
+  }, []);
+
+  React.useEffect(() => {
     if (user?.role === 'barber' && user.barbershop_onboarding_completed === false) {
-      setShowOnboarding(true);
+      // Logic for onboarding if needed
     }
   }, [user]);
 
@@ -267,6 +275,7 @@ const App: React.FC = () => {
         setExceptions(exceptionsData);
         setBarbershop(shopData);
         setHasDailyAvailability(dailyData && dailyData.length > 0);
+        console.log('DEBUG: Dados carregados no F5 (availability):', JSON.stringify(availabilityData));
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {

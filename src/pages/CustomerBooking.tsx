@@ -70,6 +70,8 @@ const CustomerBooking: React.FC = () => {
     const [isBooking, setIsBooking] = useState(false);
     const [bookingComplete, setBookingComplete] = useState(false);
     const [pixInfo, setPixInfo] = useState<{qr_code_base64: string; brcode: string; amount: number} | null>(null);
+    const [cancellingId, setCancellingId] = useState<number | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -162,6 +164,9 @@ const CustomerBooking: React.FC = () => {
             }
 
             setBookingComplete(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Recarrega o histórico para garantir que o novo agendamento apareça
+            loadHistory();
         } catch (error) {
             console.error("Erro ao agendar:", error);
             toast.error("Erro ao agendar. Tente outro horário.");
@@ -185,6 +190,27 @@ const CustomerBooking: React.FC = () => {
             toast.error("Erro ao carregar histórico.");
         } finally {
             setLoadingHistory(false);
+        }
+    };
+
+    const handleCancelAppointment = async (id: number) => {
+        setCancellingId(id);
+    };
+
+    const confirmCancel = async () => {
+        if (!cancellingId) return;
+        
+        setIsCancelling(true);
+        try {
+            await appointmentsApi.delete(cancellingId);
+            toast.success("Agendamento cancelado com sucesso!");
+            setCancellingId(null);
+            loadHistory();
+        } catch (error) {
+            console.error("Erro ao cancelar:", error);
+            toast.error("Erro ao cancelar agendamento.");
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -378,7 +404,8 @@ const CustomerBooking: React.FC = () => {
                 <div className="bg-white rounded-2xl sm:rounded-3xl p-1 sm:p-1.5 flex gap-1 mb-4 sm:mb-8 shadow-[0_12px_32px_rgba(15,76,92,0.1)] border border-border/50 relative z-10">
                     <button 
                         onClick={() => setTab('booking')}
-                        className={`flex-1 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'booking' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
+                        className={`flex-1 py-3 sm:p
+                            y-4 px-2 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${tab === 'booking' ? 'bg-primary text-white shadow-lg' : 'text-text/40 hover:text-text/60'}`}
                     >
                         <Calendar size={12} className="sm:size-[14px]" /> Agendar
                     </button>
@@ -649,32 +676,33 @@ const CustomerBooking: React.FC = () => {
                             initial={{ opacity: 0, x: 20 }} 
                             animate={{ opacity: 1, x: 0 }} 
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6"
+                            className="space-y-4 sm:space-y-6"
                         >
-                            <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-black text-text font-title uppercase italic tracking-tighter">Sua Jornada</h2>
-                                <div className="px-5 py-2 bg-primary/5 rounded-2xl border border-primary/10">
-                                    <span className="text-[10px] text-primary font-black uppercase tracking-widest italic">{history.length} Cortes</span>
+                            <div className="flex justify-between items-center mb-4 sm:mb-8">
+                                <h2 className="text-xl sm:text-2xl font-black text-text font-title uppercase italic tracking-tighter">Agendamentos</h2>
+                                <div className="px-4 py-1.5 sm:px-5 sm:py-2 bg-primary/5 rounded-xl sm:rounded-2xl border border-primary/10">
+                                    <span className="text-[8px] sm:text-[10px] text-primary font-black uppercase tracking-widest italic">{history.length} Agendamentos</span>
                                 </div>
                             </div>
                             
                             {history.length > 0 ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     {history.map(appointment => (
-                                        <div key={appointment.id} className="bg-white p-6 rounded-[32px] border border-border hover:border-primary/20 transition-all group shadow-sm">
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div className="flex gap-4">
-                                                    <div className="w-14 h-14 bg-background rounded-2xl flex items-center justify-center border border-border group-hover:bg-primary/5 transition-colors shadow-inner">
-                                                        <User size={24} className="text-text/10 group-hover:text-primary/40" />
+                                        <div key={appointment.id} className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-[32px] border border-border hover:border-primary/20 transition-all group shadow-sm active:scale-[0.99]">
+                                            <div className="flex justify-between items-start mb-3 sm:mb-4">
+                                                <div className="flex gap-3 sm:gap-4 overflow-hidden">
+                                                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-background rounded-xl sm:rounded-2xl flex items-center justify-center border border-border group-hover:bg-primary/5 transition-colors shrink-0">
+                                                        <User size={18} className="text-text/10 group-hover:text-primary/40 sm:size-[22px]" />
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em]">Profissional Executor</p>
-                                                        <p className="font-black text-text text-base leading-tight uppercase italic font-title">{appointment.barber_name || 'Profissional'}</p>
+                                                    <div className="overflow-hidden">
+                                                        <p className="text-[8px] text-text/30 font-black uppercase tracking-[0.15em] mb-0.5">Barbeiro</p>
+                                                        <p className="font-black text-text text-sm sm:text-base leading-tight uppercase italic font-title truncate">{appointment.barber_name || 'Profissional'}</p>
                                                     </div>
                                                 </div>
-                                                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.1em] border-2 shadow-sm italic ${
+                                                <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.05em] border shadow-sm italic shrink-0 ${
                                                     appointment.status === 'completed' ? 'bg-cta/5 border-cta/20 text-cta' : 
                                                     appointment.status === 'cancelled' ? 'bg-red-500/5 border-red-500/20 text-red-500' : 
+                                                    appointment.status === 'confirmed' ? 'bg-green-500/5 border-green-500/20 text-green-600' :
                                                     'bg-primary/5 border-primary/20 text-primary'
                                                 }`}>
                                                     {appointment.status === 'completed' ? 'Realizado' : 
@@ -683,39 +711,53 @@ const CustomerBooking: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                                <div className="bg-background p-4 rounded-2xl shadow-inner border border-border/40">
-                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Serviços</p>
-                                                    <p className="text-xs font-black text-text truncate uppercase italic font-title">{appointment.service_names}</p>
+                                            <div className="grid grid-cols-2 gap-2 sm:gap-3 py-3 border-y border-border/40 my-1">
+                                                <div>
+                                                    <p className="text-[8px] text-text/30 font-black uppercase tracking-[0.15em] mb-0.5">Serviços</p>
+                                                    <p className="text-[10px] sm:text-xs font-black text-text truncate uppercase italic font-title">{appointment.service_names}</p>
                                                 </div>
-                                                <div className="bg-background p-4 rounded-2xl shadow-inner border border-border/40">
-                                                    <p className="text-[9px] text-text/20 font-black uppercase tracking-[0.2em] mb-1">Total</p>
-                                                    <p className="text-xs font-black text-primary italic font-title">R$ {appointment.total_price || '0.00'}</p>
+                                                <div className="text-right">
+                                                    <p className="text-[8px] text-text/30 font-black uppercase tracking-[0.15em] mb-0.5">Valor</p>
+                                                    <p className="text-[10px] sm:text-xs font-black text-primary italic font-title">R$ {parseFloat(appointment.total_price || '0').toFixed(2)}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-4 border-t border-border">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar size={14} className="text-primary/30" />
-                                                        <span className="text-[10px] font-black text-text uppercase italic">{appointment.date && format(new Date(appointment.date), 'dd/MM/yy')}</span>
+                                            <div className="flex items-center justify-between mt-3">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1.5 font-title italic">
+                                                        <Calendar size={12} className="text-primary/40 sm:size-[14px]" />
+                                                        <span className="text-[9px] sm:text-[10px] font-black text-text uppercase">{appointment.date && format(new Date(appointment.date), 'dd/MM/yy')}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Clock size={14} className="text-primary/30" />
-                                                        <span className="text-[10px] font-black text-text uppercase italic">{appointment.date && format(new Date(appointment.date), 'HH:mm')}</span>
+                                                    <div className="flex items-center gap-1.5 font-title italic">
+                                                        <Clock size={12} className="text-primary/40 sm:size-[14px]" />
+                                                        <span className="text-[9px] sm:text-[10px] font-black text-text uppercase">{appointment.date && format(new Date(appointment.date), 'HH:mm')}</span>
                                                     </div>
                                                 </div>
-                                                <CheckCircle2 size={16} className="text-primary/10" />
+                                                
+                                                <div className="flex items-center gap-2">
+                                                    {['pending', 'confirmed'].includes(appointment.status) && new Date(appointment.date) > new Date() && (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleCancelAppointment(appointment.id);
+                                                            }}
+                                                            className="px-3 py-1.5 bg-red-500/10 text-red-600 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all border border-red-500/10 italic"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                    )}
+                                                    <CheckCircle2 size={14} className={`${appointment.status === 'completed' ? 'text-cta opacity-40' : 'text-text/5'}`} />
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="py-32 flex flex-col items-center justify-center gap-6 bg-white rounded-[40px] border border-dashed border-border border-2">
-                                    <div className="w-24 h-24 bg-background rounded-[40px] flex items-center justify-center shadow-inner">
-                                        <Clock size={40} className="text-text/5" strokeWidth={1} />
+                                <div className="py-20 sm:py-32 flex flex-col items-center justify-center gap-4 sm:gap-6 bg-white rounded-3xl sm:rounded-[40px] border border-dashed border-border border-2">
+                                    <div className="w-16 h-16 sm:w-24 sm:h-24 bg-background rounded-2xl sm:rounded-[40px] flex items-center justify-center shadow-inner">
+                                        <Clock size={30} className="text-text/5 sm:size-[40px]" strokeWidth={1} />
                                     </div>
-                                    <p className="text-text/20 font-black uppercase text-[10px] tracking-[0.3em] italic">Seu histórico está em branco</p>
+                                    <p className="text-text/30 font-black uppercase text-[8px] sm:text-[10px] tracking-[0.2em] italic px-8 text-center">Nenhum agendamento encontrado.</p>
                                 </div>
                             )}
                         </motion.div>
@@ -828,6 +870,57 @@ const CustomerBooking: React.FC = () => {
                     )}
                 </AnimatePresence>
             </main>
+
+            {/* Modal de Confirmação de Cancelamento */}
+            <AnimatePresence>
+                {cancellingId !== null && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isCancelling && setCancellingId(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center overflow-hidden"
+                        >
+                            <div className="w-20 h-20 bg-red-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 text-red-500 border border-red-500/10">
+                                <Info size={32} />
+                            </div>
+                            
+                            <h3 className="text-2xl font-black text-text mb-2 tracking-tighter uppercase font-title italic italic">Cancelar Horário?</h3>
+                            <p className="text-text/60 text-xs mb-8 uppercase font-bold tracking-widest leading-relaxed">
+                                Esta ação não pode ser desfeita. O horário ficará livre para outros clientes.
+                            </p>
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={confirmCancel}
+                                    disabled={isCancelling}
+                                    className="w-full bg-red-500 text-white font-black py-5 rounded-[24px] shadow-lg shadow-red-500/20 active:scale-95 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                >
+                                    {isCancelling ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        "Sim, Cancelar Agora"
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setCancellingId(null)}
+                                    disabled={isCancelling}
+                                    className="w-full bg-background text-text/40 font-black py-5 rounded-[24px] active:scale-95 transition-all uppercase tracking-widest text-[10px] italic"
+                                >
+                                    Manter Agendamento
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -126,26 +126,26 @@ const Schedule: React.FC = () => {
         const blanks = Array(firstDayOfMonth).fill(null);
 
         return (
-            <div className="flex flex-col gap-6 animate-fadeIn">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+            <div className="flex flex-col gap-4 sm:gap-6 animate-fadeIn">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start">
                     {/* Calendário Compacto */}
-                    <div className="lg:col-span-7 bg-white border border-primary/5 rounded-[32px] p-6 sm:p-8 shadow-xl">
-                        <div className="flex items-center justify-between mb-8 px-2">
+                    <div className="lg:col-span-7 bg-white border border-primary/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 shadow-xl">
+                        <div className="flex items-center justify-between mb-4 sm:mb-8 px-1 sm:px-2">
                             <div className="flex flex-col">
-                            <h3 className="text-xl font-black italic uppercase text-primary tracking-tighter leading-none">
+                                <h3 className="text-lg sm:text-xl font-black italic uppercase text-primary tracking-tighter leading-none">
                                     {format(currentMonth, 'MMMM', { locale: ptBR })}
                                 </h3>
-                                <span className="text-[9px] font-black italic uppercase text-primary/20 tracking-widest">{format(currentMonth, 'yyyy')}</span>
+                                <span className="text-[8px] sm:text-[9px] font-black italic uppercase text-primary/20 tracking-widest">{format(currentMonth, 'yyyy')}</span>
                             </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 sm:p-2.5 rounded-xl bg-background hover:bg-primary/5 text-primary active:scale-90 transition-all"><ChevronLeft size={18} /></button>
-                                <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 sm:p-2.5 rounded-xl bg-background hover:bg-primary/5 text-primary active:scale-90 transition-all"><ChevronRight size={18} /></button>
+                            <div className="flex gap-1.5 sm:gap-2">
+                                <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-background hover:bg-primary/5 text-primary active:scale-90 transition-all"><ChevronLeft size={16} sm:size={18} /></button>
+                                <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-background hover:bg-primary/5 text-primary active:scale-90 transition-all"><ChevronRight size={16} sm:size={18} /></button>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-7 gap-1 sm:gap-2">
                             {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                                <div key={`cal-header-${i}`} className="text-center text-[9px] font-black italic text-primary/20 uppercase py-1">{d}</div>
+                                <div key={`cal-header-${i}`} className="text-center text-[8px] sm:text-[9px] font-black italic text-primary/20 uppercase py-1">{d}</div>
                             ))}
                             {blanks.map((_, i) => <div key={`blank-${i}`} />)}
                             {days.map((day) => {
@@ -156,13 +156,13 @@ const Schedule: React.FC = () => {
                                         key={day.toString()}
                                         onClick={() => !isPast && setSelectedDate(day)}
                                         className={`
-                                            aspect-square rounded-xl sm:rounded-2xl flex flex-col items-center justify-center transition-all relative
+                                            aspect-square rounded-lg sm:rounded-2xl flex flex-col items-center justify-center transition-all relative
                                             ${isSel ? 'bg-cta text-white scale-105 shadow-md z-10' : 'bg-background hover:bg-primary/5 text-primary'}
                                             ${isPast ? 'opacity-10 cursor-not-allowed' : 'cursor-pointer'}
                                         `}
                                     >
-                                        <span className="text-xs sm:text-base font-black italic">{format(day, 'd')}</span>
-                                        {isToday(day) && !isSel && <div className="w-1 h-1 rounded-full bg-cta absolute bottom-1.5" />}
+                                        <span className="text-[10px] sm:text-base font-black italic">{format(day, 'd')}</span>
+                                        {isToday(day) && !isSel && <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-cta absolute bottom-1 sm:bottom-1.5" />}
                                     </button>
                                 );
                             })}
@@ -170,47 +170,53 @@ const Schedule: React.FC = () => {
                     </div>
 
                     {/* Editor Lateral sem Banner */}
-                    <div className="lg:col-span-5 bg-white border border-primary/5 rounded-[32px] p-6 sm:p-8 shadow-xl space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-primary/5">
+                    <div className="lg:col-span-5 bg-white border border-primary/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 shadow-xl space-y-4 sm:space-y-6">
+                        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-primary/5">
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black italic uppercase text-cta tracking-widest">Editando Dia</span>
-                                <h4 className="text-xl font-black italic uppercase text-primary tracking-tighter leading-none">
+                                <span className="text-[8px] sm:text-[9px] font-black italic uppercase text-cta tracking-widest">Editando Dia</span>
+                                <h4 className="text-lg sm:text-xl font-black italic uppercase text-primary tracking-tighter leading-none">
                                     {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
                                 </h4>
                             </div>
                             {hasDailyOverride && (
-                                <div className="px-3 py-1.5 bg-cta/10 rounded-lg text-[8px] font-black italic uppercase text-cta flex items-center gap-1.5">
+                                <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-cta/10 rounded-lg text-[7px] sm:text-[8px] font-black italic uppercase text-cta flex items-center gap-1 sm:gap-1.5 shrink-0">
                                     <div className="w-1 h-1 rounded-full bg-cta" /> Editado
                                 </div>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-black italic text-primary/30 uppercase tracking-widest ml-1">Início</label>
-                                <input 
-                                    type="time" 
-                                    value={startTime}
-                                    onChange={e => setStartTime(e.target.value)}
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none transition-all shadow-sm" 
-                                />
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div className="space-y-1.5 sm:space-y-2">
+                                <label className="text-[8px] sm:text-[9px] font-black italic text-primary/30 uppercase tracking-widest ml-1">Início</label>
+                                <div className="relative">
+                                    <input 
+                                        type="time" 
+                                        value={startTime}
+                                        onChange={e => setStartTime(e.target.value)}
+                                        className="w-full bg-background border-2 border-transparent rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none transition-all shadow-sm appearance-none" 
+                                    />
+                                    <Clock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/20 pointer-events-none hidden sm:block" />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[9px] font-black italic text-primary/30 uppercase tracking-widest ml-1">Fim</label>
-                                <input 
-                                    type="time" 
-                                    value={endTime}
-                                    onChange={e => setEndTime(e.target.value)}
-                                    className="w-full bg-background border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-black italic text-primary focus:border-cta/20 outline-none transition-all shadow-sm" 
-                                />
+                            <div className="space-y-1.5 sm:space-y-2">
+                                <label className="text-[8px] sm:text-[9px] font-black italic text-primary/30 uppercase tracking-widest ml-1">Fim</label>
+                                <div className="relative">
+                                    <input 
+                                        type="time" 
+                                        value={endTime}
+                                        onChange={e => setEndTime(e.target.value)}
+                                        className="w-full bg-background border-2 border-transparent rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-black italic text-primary focus:border-cta/20 outline-none transition-all shadow-sm appearance-none" 
+                                    />
+                                    <Clock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/20 pointer-events-none hidden sm:block" />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3 pt-4">
+                        <div className="flex flex-col gap-2.5 sm:gap-3 pt-2 sm:pt-4">
                             <button 
                                 onClick={handleSaveDaily}
                                 disabled={saving}
-                                className="w-full bg-cta text-white py-5 rounded-2xl font-black italic uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg hover:bg-cta/90 active:scale-[0.98] transition-all disabled:opacity-50"
+                                className="w-full bg-cta text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black italic uppercase text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:bg-cta/90 active:scale-[0.98] transition-all disabled:opacity-50"
                             >
                                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} strokeWidth={3} />}
                                 Confirmar Horário
@@ -220,7 +226,7 @@ const Schedule: React.FC = () => {
                                 <button 
                                     onClick={handleClearDaily}
                                     disabled={saving}
-                                    className="w-full py-3 text-red-500/40 hover:text-red-500 text-[9px] font-black italic uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-2 sm:py-3 text-red-500/40 hover:text-red-500 text-[8px] sm:text-[9px] font-black italic uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                 >
                                     <Trash2 size={12} /> Resetar p/ Padrão
                                 </button>
@@ -233,43 +239,43 @@ const Schedule: React.FC = () => {
     };
 
     const renderWeeklyView = () => (
-        <div className="bg-white border border-primary/5 rounded-[32px] p-6 sm:p-10 shadow-xl animate-fadeIn space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-primary/5">
-                <Info size={16} className="text-cta" />
-                <p className="text-[10px] font-black italic uppercase text-primary/40 tracking-widest leading-tight">Estes são seus horários base. Eles valem para todos os dias que não tiverem uma regra especial no "Dia a Dia".</p>
+        <div className="bg-white border border-primary/5 rounded-2xl sm:rounded-[32px] p-4 sm:p-10 shadow-xl animate-fadeIn space-y-4 sm:space-y-6">
+            <div className="flex items-start sm:items-center gap-2 sm:gap-3 pb-3 sm:pb-4 border-b border-primary/5">
+                <Info size={14} className="text-cta shrink-0 mt-0.5 sm:mt-0" />
+                <p className="text-[8px] sm:text-[10px] font-black italic uppercase text-primary/40 tracking-widest leading-tight">Estes são seus horários base. Eles valem para todos os dias que não tiverem uma regra especial no "Dia a Dia".</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2 sm:gap-3">
                 {[1, 2, 3, 4, 5, 6, 0].map((dayIndex) => {
                     const config = availability.find(a => a.dayOfWeek === dayIndex);
                     if (!config) return null;
                     const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
                     return (
-                        <div key={`weekly-${dayIndex}`} className={`p-5 rounded-2xl border-2 transition-all ${config.isActive ? 'bg-white border-primary/10 shadow-sm' : 'bg-background/50 border-transparent opacity-40'}`}>
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
+                        <div key={`weekly-${dayIndex}`} className={`p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all ${config.isActive ? 'bg-white border-primary/10 shadow-sm' : 'bg-background/50 border-transparent opacity-40'}`}>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                <div className="flex items-center gap-3 sm:gap-4">
                                     <button 
                                         onClick={() => setAvailability(prev => prev.map(a => a.dayOfWeek === dayIndex ? {...a, isActive: !a.isActive} : a))}
-                                        className={`w-11 h-6 rounded-full relative transition-all ${config.isActive ? 'bg-cta' : 'bg-primary/10'}`}
+                                        className={`w-10 h-5 sm:w-11 sm:h-6 rounded-full relative transition-all ${config.isActive ? 'bg-cta' : 'bg-primary/10'}`}
                                     >
-                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${config.isActive ? 'left-6' : 'left-1'}`} />
+                                        <div className={`absolute top-0.5 sm:top-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-white shadow transition-all ${config.isActive ? 'left-5 sm:left-6' : 'left-0.5 sm:left-1'}`} />
                                     </button>
-                                    <h4 className="text-base font-black italic uppercase text-primary tracking-tight w-24">{dayNames[dayIndex]}</h4>
+                                    <h4 className="text-sm sm:text-base font-black italic uppercase text-primary tracking-tight w-20 sm:w-24">{dayNames[dayIndex]}</h4>
                                 </div>
                                 {config.isActive && (
-                                    <div className="flex items-center gap-3 bg-background rounded-xl p-2 px-4 border border-primary/5 shadow-inner">
+                                    <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 bg-background rounded-lg sm:rounded-xl p-1.5 sm:p-2 px-3 sm:px-4 border border-primary/5 shadow-inner">
                                         <input 
                                             type="time" 
                                             value={config.startTime}
                                             onChange={e => setAvailability(prev => prev.map(a => a.dayOfWeek === dayIndex ? {...a, startTime: e.target.value} : a))}
-                                            className="bg-transparent border-none p-0 text-xs font-black italic text-primary w-14 focus:ring-0"
+                                            className="bg-transparent border-none p-0 text-[10px] sm:text-xs font-black italic text-primary w-12 sm:w-14 focus:ring-0 appearance-none"
                                         />
-                                        <ArrowRight size={12} className="text-primary/20" />
+                                        <ArrowRight size={10} className="text-primary/20" />
                                         <input 
                                             type="time" 
                                             value={config.endTime}
                                             onChange={e => setAvailability(prev => prev.map(a => a.dayOfWeek === dayIndex ? {...a, endTime: e.target.value} : a))}
-                                            className="bg-transparent border-none p-0 text-xs font-black italic text-primary w-14 focus:ring-0"
+                                            className="bg-transparent border-none p-0 text-[10px] sm:text-xs font-black italic text-primary w-12 sm:w-14 focus:ring-0 appearance-none"
                                         />
                                     </div>
                                 )}
@@ -281,41 +287,41 @@ const Schedule: React.FC = () => {
             <button 
                 onClick={handleSaveWeekly}
                 disabled={saving}
-                className="w-full bg-primary text-white py-6 rounded-2xl font-black italic uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl hover:bg-primary/90 transition-all active:scale-[0.98]"
+                className="w-full bg-primary text-white py-4 sm:py-6 rounded-xl sm:rounded-2xl font-black italic uppercase text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-3 shadow-xl hover:bg-primary/90 transition-all active:scale-[0.98]"
             >
-                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                {saving ? <Loader2 size={16} sm:size={18} className="animate-spin" /> : <Save size={16} sm:size={18} />}
                 Confirmar Jornada Base
             </button>
         </div>
     );
 
     return (
-        <div className="space-y-10 animate-fadeIn max-w-[1400px] mx-auto pb-32 px-4 sm:px-6">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-4">
+        <div className="space-y-6 sm:space-y-10 animate-fadeIn max-w-[1400px] mx-auto pb-32 px-4 sm:px-6">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-8 py-2 sm:py-4">
                 <div className="space-y-1">
-                    <h2 className="text-3xl sm:text-6xl font-black italic uppercase tracking-tighter text-primary font-title">
+                    <h2 className="text-2xl sm:text-6xl font-black italic uppercase tracking-tighter text-primary font-title">
                         Meus <span className="text-cta">Horários</span>
                     </h2>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-[2px] bg-cta/30 rounded-full" />
-                        <p className="text-primary/30 font-black italic text-[9px] sm:text-xs uppercase tracking-widest font-title">
+                        <div className="w-6 sm:w-8 h-[2px] bg-cta/30 rounded-full" />
+                        <p className="text-primary/30 font-black italic text-[8px] sm:text-xs uppercase tracking-widest font-title">
                             Disponibilidade Profissional
                         </p>
                     </div>
                 </div>
                 
-                <div className="bg-primary/5 p-1.5 rounded-[24px] flex gap-1.5 self-start shadow-inner border border-primary/5">
+                <div className="bg-primary/5 p-1 rounded-2xl sm:rounded-[24px] flex gap-1 self-start shadow-inner border border-primary/5 w-full sm:w-auto overflow-hidden">
                     <button 
                         onClick={() => setView('daily')}
-                        className={`px-8 sm:px-10 py-3.5 rounded-[20px] text-[10px] font-black italic uppercase tracking-widest transition-all ${view === 'daily' ? 'bg-primary text-white shadow-xl scale-105' : 'text-primary/30 hover:text-primary'}`}
+                        className={`flex-1 sm:flex-none px-4 sm:px-10 py-3 sm:py-3.5 rounded-xl sm:rounded-[20px] text-[9px] sm:text-[10px] font-black italic uppercase tracking-widest transition-all ${view === 'daily' ? 'bg-primary text-white shadow-xl scale-[1.02] sm:scale-105' : 'text-primary/30 hover:text-primary'}`}
                     >
                         Dia a Dia
                     </button>
                     <button 
                         onClick={() => setView('weekly')}
-                        className={`px-8 sm:px-10 py-3.5 rounded-[20px] text-[10px] font-black italic uppercase tracking-widest transition-all ${view === 'weekly' ? 'bg-primary text-white shadow-xl scale-105' : 'text-primary/30 hover:text-primary'}`}
+                        className={`flex-1 sm:flex-none px-4 sm:px-10 py-3 sm:py-3.5 rounded-xl sm:rounded-[20px] text-[9px] sm:text-[10px] font-black italic uppercase tracking-widest transition-all ${view === 'weekly' ? 'bg-primary text-white shadow-xl scale-[1.02] sm:scale-105' : 'text-primary/30 hover:text-primary'}`}
                     >
-                        Padrão Semanal
+                        Padrão
                     </button>
                 </div>
             </header>

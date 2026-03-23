@@ -158,11 +158,11 @@ export const appointmentsApi = {
   getAvailableSlots: (barberId: string, serviceIds: string, date: string) => 
     api.get<string[]>('appointments/available_slots/', { params: { barberId, serviceIds, date } }).then(r => r.data),
   create: (data: Partial<Appointment>) => api.post<Appointment>('appointments/', data).then(r => r.data),
-  update: (id: string, data: Partial<Appointment>) => api.patch<Appointment>(`appointments/${id}/`, data).then(r => r.data),
-  delete: (id: string) => api.delete(`appointments/${id}/`),
-  complete: (id: string) => api.post<Appointment>(`appointments/${id}/complete/`).then(r => r.data),
-  getPixPayment: (id: string) => api.get<{qr_code_base64: string; brcode: string; amount: number}>(`appointments/${id}/pix/`).then(r => r.data),
-  confirmPayment: (id: string) => api.post<Appointment>(`appointments/${id}/confirm-payment/`).then(r => r.data),
+  update: (id: string | number, data: Partial<Appointment>) => api.patch<Appointment>(`appointments/${id}/`, data).then(r => r.data),
+  delete: (id: string | number) => api.delete(`appointments/${id}/`),
+  complete: (id: string | number) => api.post<Appointment>(`appointments/${id}/complete/`).then(r => r.data),
+  getPixPayment: (id: string | number) => api.get<{qr_code_base64: string; brcode: string; amount: number}>(`appointments/${id}/pix/`).then(r => r.data),
+  confirmPayment: (id: string | number) => api.post<Appointment>(`appointments/${id}/confirm-payment/`).then(r => r.data),
 };
 
 export const transactionsApi = {

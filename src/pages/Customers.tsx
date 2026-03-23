@@ -378,7 +378,7 @@ const CustomersView: React.FC<Props> = ({ customers, setCustomers }) => {
       </AnimatePresence>
 
       {/* Modal: Adicionar Novo Cliente */}
-      <AnimatePresence>
+      <AnimatePresence>c
         {isAddingNew && (
           <div className="fixed inset-0 bg-primary/40 backdrop-blur-xl z-[200] flex items-center justify-center p-6 sm:p-12">
             <motion.div 
