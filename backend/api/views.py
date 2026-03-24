@@ -767,8 +767,14 @@ class AppointmentViewSet(TenantModelViewSet):
         date_str = request.data.get('date')
         platform = request.data.get('platform', 'manual')
         is_override = request.data.get('isOverride', False)
+        status_val = request.data.get('status', 'confirmed')
 
-        if not all([barber_id, service_ids, client_name, date_str]):
+        # Se status for bloqueado, não exige serviços
+        required_fields = [barber_id, client_name, date_str]
+        if status_val != 'blocked':
+            required_fields.append(service_ids)
+
+        if not all(required_fields):
             return Response({"error": "MISSING_FIELDS"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Se não tem customer_id mas tem telefone, tenta vincular ou criar cliente
@@ -799,7 +805,8 @@ class AppointmentViewSet(TenantModelViewSet):
                 client_name=client_name,
                 start_time=date_obj,
                 platform=platform,
-                is_override=is_override
+                is_override=is_override,
+                status=status_val
             )
             
             # 🚀 Envia Webhook para n8n (Assíncrono)

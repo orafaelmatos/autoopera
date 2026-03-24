@@ -61,7 +61,7 @@ export interface Appointment {
   barberId: string;
   barber_whatsapp?: string;
   date: string; // ISO format
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'blocked';
   payment_status?: 'PENDING' | 'WAITING_PAYMENT' | 'PAID';
   payment_id?: string;
   platform?: 'manual' | 'whatsapp' | 'web';

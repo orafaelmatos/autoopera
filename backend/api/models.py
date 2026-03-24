@@ -160,6 +160,7 @@ class Appointment(models.Model):
         ('confirmed', 'Confirmado'),
         ('cancelled', 'Cancelado'),
         ('completed', 'Concluído'),
+        ('blocked', 'Bloqueado'),
     ]
     
     PLATFORM_CHOICES = [

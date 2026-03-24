@@ -6,10 +6,11 @@ import {
   Plus, Trash2, Clock, Save, Calendar, 
   AlertCircle, Building2, Camera, MapPin, Phone, User,
   Mail, Info, Sparkles, AlertTriangle, ChevronLeft, ChevronRight, ShieldAlert,
-  X, QrCode, Smartphone, MessageCircle, Loader2, Scissors, Eye, DollarSign
+  X, QrCode, Smartphone, MessageCircle, Loader2, Scissors, Eye, DollarSign,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Availability, ScheduleException, Barbershop, DailyAvailability, Service } from '../types';
+import { Availability, ScheduleException, Barbershop, DailyAvailability, Service, Appointment } from '../types';
 import { availabilityApi, scheduleExceptionsApi, barbershopApi, getMediaUrl, barbersApi, dailyAvailabilityApi, appointmentsApi, servicesApi } from '../api';
 import { useAuth } from '../AuthContext';
 import { compressImage } from '../utils/image';
@@ -46,6 +47,7 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0,10));
   const [dailyShifts, setDailyShifts] = useState<Array<{startTime:string,endTime:string,isActive:boolean,id?:string}>>([]);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<Appointment[]>([]);
   const [loadingDaily, setLoadingDaily] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -121,12 +123,55 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
         selectedDate
       );
       setAvailableSlots(slots);
+
+      // Carregar agendamentos do dia para identificar os bloqueios
+      const allApts = await appointmentsApi.getAll();
+      const blocks = allApts.filter(a => 
+        String(a.barberId) === String(user.profile_id) && 
+        a.status === 'blocked' && 
+        a.date.startsWith(selectedDate)
+      );
+      setBlockedSlots(blocks);
+      
       setShowSlots(true);
     } catch (err) {
       console.error("Erro ao carregar horários livres:", err);
       toast.error("Erro ao buscar horários livres.");
     } finally {
       setLoadingSlots(false);
+    }
+  };
+
+  const toggleBlockSlot = async (time: string, existingBlock?: Appointment) => {
+    if (!user?.profile_id) return;
+
+    if (existingBlock) {
+      // DESBLOQUEAR
+      try {
+        await appointmentsApi.delete(existingBlock.id);
+        toast.success(`Horário ${time} liberado!`);
+        loadAvailableSlots();
+      } catch (err) {
+        toast.error("Erro ao liberar horário.");
+      }
+    } else {
+      // BLOQUEAR
+      try {
+        await appointmentsApi.create({
+          clientName: 'BLOQUEADO (CONFIG)',
+          clientPhone: '',
+          serviceIds: [],
+          barberId: String(user.profile_id),
+          date: `${selectedDate}T${time}:00`,
+          status: 'blocked',
+          platform: 'manual',
+          isOverride: true
+        } as any);
+        toast.success(`Horário ${time} bloqueado!`);
+        loadAvailableSlots();
+      } catch (err) {
+        toast.error("Erro ao bloquear horário.");
+      }
     }
   };
 
@@ -925,15 +970,47 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
                                   className="overflow-hidden"
                                 >
                                   <div className="bg-primary/5 rounded-[32px] p-6 border border-primary/10">
-                                    <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto custom-scrollbar-hidden">
-                                      {availableSlots.length > 0 ? (
-                                        availableSlots.map(slot => (
-                                          <div key={slot} className="px-4 py-2 bg-white border border-primary/5 rounded-xl shadow-sm">
-                                            <span className="text-[11px] font-black italic text-primary font-title">{slot}</span>
-                                          </div>
-                                        ))
+                                    <div className="text-center mb-6">
+                                      <p className="text-[9px] font-black italic text-primary/30 uppercase tracking-[0.2em]">Clique em um horário para bloquear/desbloquear</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 max-h-[250px] overflow-y-auto custom-scrollbar-hidden">
+                                      {availableSlots.length > 0 || blockedSlots.length > 0 ? (
+                                        <>
+                                          {/* Horários Livres - Filtrar os que já estão bloqueados */}
+                                          {availableSlots
+                                            .filter(slot => !blockedSlots.some(block => 
+                                              new Date(block.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) === slot
+                                            ))
+                                            .map(slot => (
+                                              <button 
+                                                key={slot} 
+                                                onClick={() => toggleBlockSlot(slot)}
+                                                className="px-4 py-2 bg-white border border-primary/5 rounded-xl shadow-sm hover:bg-red-50 hover:border-red-100 transition-all active:scale-95 group flex flex-col items-center"
+                                              >
+                                                <span className="text-[11px] font-black italic text-primary font-title group-hover:text-red-500">{slot}</span>
+                                              </button>
+                                            ))}
+
+                                          {/* Horários Bloqueados */}
+                                          {blockedSlots
+                                            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                            .map(block => {
+                                              const time = new Date(block.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                                              return (
+                                                <button 
+                                                  key={block.id} 
+                                                  onClick={() => toggleBlockSlot(time, block)}
+                                                  className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl shadow-sm hover:bg-green-50 hover:border-green-100 transition-all active:scale-95 group flex flex-col items-center relative overflow-hidden"
+                                                >
+                                                  <span className="text-[11px] font-black italic text-red-500 font-title group-hover:text-green-600 line-through decoration-red-500/30">{time}</span>
+                                                  <ShieldAlert size={8} className="text-red-500 mt-0.5" />
+                                                </button>
+                                              );
+                                            })
+                                          }
+                                        </>
                                       ) : (
-                                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest p-4">
+                                        <p className="text-[10px] font-black italic text-primary/30 uppercase tracking-widest p-4 w-full text-center">
                                           Nenhum horário disponível para esta data.
                                         </p>
                                       )}

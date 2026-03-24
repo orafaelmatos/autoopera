@@ -139,7 +139,7 @@ class BookingService:
         existing_slots = TimeSlot.objects.filter(
             appointment__barber=barber,
             appointment__barbershop=barbershop,
-            appointment__status='confirmed',
+            appointment__status__in=['confirmed', 'blocked'],
             start_time__date=target_date
         ).order_by('start_time')
 
@@ -183,7 +183,7 @@ class BookingService:
 
     @staticmethod
     @transaction.atomic
-    def create_appointment(barbershop, barber_id, service_ids, customer_id, client_name, start_time, platform='manual', is_override=False):
+    def create_appointment(barbershop, barber_id, service_ids, customer_id, client_name, start_time, platform='manual', is_override=False, status='confirmed'):
         if timezone.is_aware(start_time):
             start_time = timezone.localtime(start_time)
             
@@ -191,14 +191,18 @@ class BookingService:
             service_ids = [service_ids]
 
         barber = Barber.objects.select_for_update().get(id=barber_id, barbershop=barbershop)
-        services = Service.objects.filter(id__in=service_ids, barbershop=barbershop, is_active=True)
         
-        if not services.exists():
-            raise exceptions.ValidationError("NO_SERVICES_SELECTED")
-
-        total_duration = sum([s.duration for s in services])
-        # Usamos o maior valor entre a soma dos buffers dos serviços ou o buffer padrão do barbeiro
-        total_buffer = max(sum([s.buffer_time for s in services]), barber.buffer_minutes)
+        if status == 'blocked':
+            services = Service.objects.none()
+            total_duration = 30 # Default 30 min for intentional blocks
+            total_buffer = 0
+        else:
+            services = Service.objects.filter(id__in=service_ids, barbershop=barbershop, is_active=True)
+            if not services.exists():
+                raise exceptions.ValidationError("NO_SERVICES_SELECTED")
+            total_duration = sum([s.duration for s in services])
+            # Usamos o maior valor entre a soma dos buffers dos serviços ou o buffer padrão do barbeiro
+            total_buffer = max(sum([s.buffer_time for s in services]), barber.buffer_minutes)
         
         end_time = start_time + timedelta(minutes=total_duration + total_buffer)
 
@@ -214,7 +218,7 @@ class BookingService:
             overlap = TimeSlot.objects.filter(
                 appointment__barber=barber,
                 appointment__barbershop=barbershop,
-                appointment__status='confirmed',
+                appointment__status__in=['confirmed', 'blocked'],
                 start_time__lt=end_time,
                 end_time__gt=start_time
             ).exists()
@@ -228,10 +232,11 @@ class BookingService:
             customer_id=customer_id,
             client_name=client_name,
             date=start_time,
-            status='confirmed',
+            status=status,
             platform=platform
         )
-        appointment.services.set(services)
+        if services:
+            appointment.services.set(services)
 
         TimeSlot.objects.create(
             appointment=appointment,
