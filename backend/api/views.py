@@ -857,8 +857,11 @@ class AppointmentViewSet(TenantModelViewSet):
 
         try:
             target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            slots = BookingService.get_available_slots(barbershop, barber_id, service_ids, target_date)
-            return Response([s.strftime('%H:%M') for s in slots])
+            slots, block_reason = BookingService.get_available_slots(barbershop, barber_id, service_ids, target_date)
+            return Response({
+                "available_slots": [s.strftime('%H:%M') for s in slots],
+                "block_reason": block_reason
+            })
         except Exception as e:
             import traceback
             tb = traceback.format_exc()

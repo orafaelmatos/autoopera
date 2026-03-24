@@ -101,10 +101,19 @@ class BookingService:
         total_needed_mins = total_duration_mins + total_buffer_mins
         duration_delta = timedelta(minutes=total_duration_mins)
 
-        # Prioridade 1: Exceção de Bloqueio
-        exception_blocked = ScheduleException.objects.filter(barber=barber, barbershop=barbershop, date=target_date, type='blocked').first()
-        if exception_blocked:
-            return []
+        # Prioridade 1: Exceção de Bloqueio (Dia Inteiro)
+        # Verificamos se há bloqueio global (barber=None) ou específico para este barbeiro
+        exception_blocked_whole_day = ScheduleException.objects.filter(
+            Q(barber=barber) | Q(barber__isnull=True),
+            barbershop=barbershop, 
+            date=target_date, 
+            type='blocked',
+            start_time__isnull=True,
+            end_time__isnull=True
+        ).first()
+        
+        if exception_blocked_whole_day:
+            return [], exception_blocked_whole_day.reason
 
         # Determinação dos intervalos de trabalho...
         daily = DailyAvailability.objects.filter(barber=barber, barbershop=barbershop, date=target_date, is_active=True)
@@ -133,23 +142,44 @@ class BookingService:
                     working_intervals.append({'start_time': av.start_time, 'end_time': av.end_time})
 
         if not working_intervals:
-            return []
+            return [], None
 
-        # Agendamentos existentes no dia
-        existing_slots = TimeSlot.objects.filter(
+        # Agendamentos existentes no dia e bloqueios parciais
+        existing_slots_qs = TimeSlot.objects.filter(
             appointment__barber=barber,
             appointment__barbershop=barbershop,
             appointment__status__in=['confirmed', 'blocked'],
             start_time__date=target_date
-        ).order_by('start_time')
+        )
 
         # Garantimos que todos os slots existentes estejam no fuso horário local para comparação
         slots_local = []
-        for s in existing_slots:
+        for s in existing_slots_qs.order_by('start_time'):
             slots_local.append({
                 'start': timezone.localtime(s.start_time),
                 'end': timezone.localtime(s.end_time)
             })
+
+        # Adiciona bloqueios parciais (ScheduleException de tempo específico)
+        partial_blocks = ScheduleException.objects.filter(
+            Q(barber=barber) | Q(barber__isnull=True),
+            barbershop=barbershop,
+            date=target_date,
+            type='blocked',
+            start_time__isnull=False,
+            end_time__isnull=False
+        )
+        
+        for pb in partial_blocks:
+            pb_start = timezone.make_aware(datetime.combine(target_date, pb.start_time))
+            pb_end = timezone.make_aware(datetime.combine(target_date, pb.end_time))
+            slots_local.append({
+                'start': pb_start,
+                'end': pb_end
+            })
+            
+        # Re-ordena para garantir que a lógica de collision skip funcione bem (opcional, mas bom pra clareza)
+        slots_local.sort(key=lambda x: x['start'])
 
         slots = []
         now = timezone.localtime()
@@ -179,7 +209,40 @@ class BookingService:
                     slots.append(current_time)
                     current_time += timedelta(minutes=15) # Passo do grid
 
-        return sorted(list(set(slots)))
+        # If no slots were found and it's not a whole day block, we check for other reasons
+        final_slots = sorted(list(set(slots)))
+        if not final_slots:
+            # Check if there are ANY working intervals at all
+            if not working_intervals:
+                return [], "Nenhum horário de atendimento configurado para este dia."
+            
+            # Check if all working intervals are in the past (for today)
+            if target_date == now.date():
+                all_past = True
+                for interval in working_intervals:
+                    end_dt = timezone.make_aware(datetime.combine(target_date, interval['end_time']))
+                    if end_dt > now:
+                        all_past = False
+                        break
+                if all_past:
+                    return [], "O horário de atendimento para hoje já encerrou."
+            
+            # Check if there are many collisions causing zero slots
+            if slots_local:
+                # Se for por conta de bloqueios, tenta retornar um motivo específico se houver apenas um motivo comum
+                reasons = [pb.reason for pb in partial_blocks if pb.reason]
+                if not reasons:
+                    # Também checa agendamentos tipo 'blocked' se tiverem algum motivo
+                    # (Como Appointment não possui campo reason nativo, checamos ScheduleException primeiro)
+                    pass
+                
+                if reasons:
+                    # Retorna o primeiro motivo encontrado se for tudo bloqueado
+                    return [], reasons[0]
+                    
+                return [], "Todos os horários deste profissional já estão ocupados."
+
+        return final_slots, None
 
     @staticmethod
     @transaction.atomic

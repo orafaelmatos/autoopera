@@ -66,6 +66,7 @@ const CustomerBooking: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [blockReason, setBlockReason] = useState<string | null>(null);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingComplete, setBookingComplete] = useState(false);
@@ -107,15 +108,17 @@ const CustomerBooking: React.FC = () => {
             const dateStr = format(selectedDate, 'yyyy-MM-dd');
             const serviceIds = selectedServices.map(s => s.id).join(',');
             // API calls now use serviceIds parameter
-            const slots = await appointmentsApi.getAvailableSlots(
+            const data = await appointmentsApi.getAvailableSlots(
                 selectedBarber.id,
                 serviceIds,
                 dateStr
             );
-            setAvailableSlots(slots);
+            setAvailableSlots(data.available_slots || []);
+            setBlockReason(data.block_reason || null);
         } catch (error) {
             console.error("Erro ao carregar horários:", error);
             setAvailableSlots([]);
+            setBlockReason(null);
         } finally {
             setLoadingSlots(false);
         }
@@ -631,7 +634,9 @@ const CustomerBooking: React.FC = () => {
                                             ) : (
                                                 <div className="p-8 sm:p-12 bg-white border-2 border-dashed border-border rounded-2xl sm:rounded-[40px] text-center space-y-4">
                                                     <Info size={24} className="text-text/10 mx-auto sm:size-[32px]" />
-                                                    <p className="text-[9px] sm:text-[10px] font-black text-text/30 uppercase tracking-widest italic">A agenda do profissional está cheia neste dia.</p>
+                                                    <p className="text-[9px] sm:text-[10px] font-black text-text/30 uppercase tracking-widest italic">
+                                                        {blockReason || "A agenda do profissional está cheia neste dia."}
+                                                    </p>
                                                     <button
                                                         onClick={() => setSelectedDate(addDays(selectedDate, 1))}
                                                         className="px-5 py-2.5 bg-primary/5 text-primary rounded-xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm italic"
