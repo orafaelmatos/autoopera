@@ -117,12 +117,12 @@ const SettingsView: React.FC<Props> = ({ availability, setAvailability, barbersh
     try {
       // Usamos o primeiro serviço ativo para ver a disponibilidade geral de slots
       const serviceId = services.find(s => s.is_active)?.id || services[0].id;
-      const slots = await appointmentsApi.getAvailableSlots(
+      const data = await appointmentsApi.getAvailableSlots(
         String(user.profile_id), 
         String(serviceId), 
         selectedDate
       );
-      setAvailableSlots(slots);
+      setAvailableSlots(data.available_slots || []);
 
       // Carregar agendamentos do dia para identificar os bloqueios
       const allApts = await appointmentsApi.getAll();
