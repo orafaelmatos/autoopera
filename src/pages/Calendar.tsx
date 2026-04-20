@@ -89,8 +89,10 @@ const AppointmentCard: React.FC<{
 
       <motion.div 
         drag="x"
-        dragConstraints={{ left: -140, right: 140 }}
-        dragElastic={0.1}
+        dragDirectionLock
+        dragSnapToOrigin
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.4}
         onDragEnd={(_, info) => {
           if (info.offset.x > 100) onComplete(apt.id);
           else if (info.offset.x < -100) onCancel(apt.id);

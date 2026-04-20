@@ -34,8 +34,10 @@ const SwipeableAppointment: React.FC<{ apt: Appointment, index: number, serviceN
 
       <motion.div
         drag="x"
-        dragConstraints={{ left: 0, right: 250 }}
-        dragElastic={0.05}
+        dragDirectionLock
+        dragSnapToOrigin
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.4}
         onDragEnd={(_, info) => {
           if (info.offset.x > 180) {
             onFinish();
